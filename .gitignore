@@ -1,0 +1,43 @@
+<<<<<<< HEAD
+## Compiled source #
+bin/
+obj/
+
+## User-specific files #
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## VS Code #
+.vscode/
+
+## Rider #
+.idea/
+
+## Logs #
+*.log
+
+## OS generated files #
+.DS_Store
+=======
+# Carpetas de Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Carpetas de build
+bin/
+obj/
+
+# Archivos de NuGet
+*.nupkg
+packages/
+
+# Archivos temporales o de sistema
+*.log
+*.DS_Store
+>>>>>>> main
+Thumbs.db
