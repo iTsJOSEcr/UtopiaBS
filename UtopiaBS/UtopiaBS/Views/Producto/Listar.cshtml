@@ -1,0 +1,41 @@
+﻿@model IEnumerable<UtopiaBS.Entities.Producto>
+
+<h2>Listado de Productos</h2>
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-info">@TempData["Mensaje"]</div>
+}
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Proveedor</th>
+            <th>Precio</th>
+            <th>Cantidad</th>
+            <th>Fecha</th>
+            <th>Threshold</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Nombre</td>
+                <td>@item.Tipo</td>
+                <td>@item.Proveedor</td>
+                <td>@item.PrecioUnitario</td>
+                <td>@item.CantidadStock</td>
+                <td>@item.Fecha.ToShortDateString()</td>
+                <td>@item.Threshold</td>
+                <td>
+                    @Html.ActionLink("Editar", "Editar", new { id = item.IdProducto }, new { @class = "btn btn-warning btn-sm" })
+                    @Html.ActionLink("Eliminar", "Eliminar", new { id = item.IdProducto }, new { @class = "btn btn-danger btn-sm", onclick = "return confirm('¿Seguro que desea eliminar este producto?');" })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
