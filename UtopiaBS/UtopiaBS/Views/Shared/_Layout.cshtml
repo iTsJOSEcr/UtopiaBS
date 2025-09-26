@@ -33,6 +33,11 @@
                 Menu
                 <i class="fas fa-bars ms-1"></i>
             </button>
+            <ul class="nav navbar-nav">
+                <li>@Html.ActionLink("Agregar Producto", "Agregar", "Producto")</li>
+                <li>@Html.ActionLink("Listar Productos", "Listar", "Producto")</li>
+            </ul>
+
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
                     <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
@@ -70,5 +75,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Core theme JS-->
     <script src="~/Scripts/js/scripts.js"></script>
+    @RenderSection("Scripts", required: false)
+
 </body>
 </html>

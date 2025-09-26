@@ -1,0 +1,77 @@
+﻿@model UtopiaBS.Entities.Producto
+
+
+@{
+    ViewBag.Title = "Agregar Producto";
+}
+
+<h2>Agregar Producto</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+<div class="form-horizontal">
+    <div class="form-group">
+        @Html.LabelFor(m => m.Nombre)
+        @Html.EditorFor(m => m.Nombre, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(m => m.Nombre)
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Tipo)
+        @Html.EditorFor(m => m.Tipo, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(m => m.Tipo)
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Proveedor)
+        @Html.EditorFor(m => m.Proveedor, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(m => m.Proveedor)
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Descripcion, htmlAttributes: new { @class = "control-label col-md-2" })
+        <div class="col-md-10">
+            @Html.TextAreaFor(model => model.Descripcion, new { @class = "form-control", rows = 3 })
+            @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.PrecioUnitario)
+        @Html.EditorFor(m => m.PrecioUnitario, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(m => m.PrecioUnitario)
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.CantidadStock)
+        @Html.EditorFor(m => m.CantidadStock, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(m => m.CantidadStock)
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Fecha)
+        @Html.EditorFor(m => m.Fecha, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(m => m.Fecha)
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Threshold)
+        @Html.EditorFor(m => m.Threshold, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(m => m.Threshold)
+    </div>
+
+    <input type="submit" value="Agregar" class="btn btn-primary" />
+</div>
+}
+
+@if (ViewBag.Mensaje != null)
+{
+    <div class="alert alert-info">@ViewBag.Mensaje</div>
+}
+
+<div>
+    @Html.ActionLink("Regresar a la página principal", "Index", "Home", null, new { @class = "btn btn-secondary" })
+
+</div>
