@@ -5,7 +5,7 @@ namespace UtopiaBS.Entities
 
 
 {
-    [Table("Producto")] // Nombre real de la tabla en SQL
+    [Table("Producto")] 
     public class Producto
     {
         [Key]
@@ -14,9 +14,6 @@ namespace UtopiaBS.Entities
 
         [Required, MaxLength(150)]
         public string Nombre { get; set; }
-
-        [NotMapped]
-        public string Tipo { get; set; }
 
         [MaxLength(500)]
         public string Descripcion { get; set; }
@@ -31,15 +28,17 @@ namespace UtopiaBS.Entities
         [Required]
         public int CantidadStock { get; set; }
 
-        [NotMapped]
+        [Required]
         public DateTime Fecha { get; set; }
 
-        [NotMapped]
-        public int Threshold { get; set; } // Mínimo de unidades permitidas
+        [Required]
+        public int Threshold { get; set; } 
 
-        [NotMapped] // no se guarda en la BD
+        public int IdEstado { get; set; } = 1;
+
+        public string Tipo { get; set; }
+
+        [NotMapped] 
         public decimal Precio => PrecioUnitario;
-
-
     }
 }
