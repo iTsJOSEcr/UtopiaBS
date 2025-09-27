@@ -9,22 +9,13 @@ namespace UtopiaBS.Business
     {
         public string AgregarProducto(Producto nuevo)
         {
-            if (string.IsNullOrWhiteSpace(nuevo.Nombre) ||
-                string.IsNullOrWhiteSpace(nuevo.Tipo) ||
-                string.IsNullOrWhiteSpace(nuevo.Proveedor) ||
-                nuevo.Precio <= 0 ||
-                nuevo.Threshold <= 0)
-            {
-                return "El producto no se puede agregar por campos en blanco o inválidos.";
-            }
-
             try
             {
                 using (var db = new Context())
                 {
-                    bool existe = db.Productos.Any(p => p.Nombre == nuevo.Nombre);
-                    if (existe)
-                        return "Ya existe un producto con ese nombre.";
+                    nuevo.Fecha = DateTime.Now; 
+                    nuevo.Threshold = (nuevo.CantidadStock > 0) ? 0 : 1;
+                    nuevo.IdEstado = 1; 
 
                     db.Productos.Add(nuevo);
                     db.SaveChanges();
@@ -33,75 +24,51 @@ namespace UtopiaBS.Business
             }
             catch (Exception ex)
             {
-                var inner = ex;
-                string detalles = "";
-                while (inner != null)
-                {
-                    detalles += inner.Message + " | ";
-                    inner = inner.InnerException;
-                }
-                return $"Error al agregar producto: {detalles}";
+                return $"Error al agregar el producto: {ex.Message}";
             }
         }
 
-        // 🔹 Aquí agregas el método EditarProducto
-        public string EditarProducto(Producto productoEditado)
+        public string EditarProducto(Producto producto)
         {
-            if (productoEditado == null)
-                return "No se recibió ningún producto para editar.";
-
-            if (string.IsNullOrWhiteSpace(productoEditado.Nombre) ||
-                string.IsNullOrWhiteSpace(productoEditado.Tipo) ||
-                string.IsNullOrWhiteSpace(productoEditado.Proveedor) ||
-                productoEditado.PrecioUnitario <= 0 ||
-                productoEditado.Threshold < 0)
-            {
-                return "No se puede editar el producto: hay campos en blanco o inválidos.";
-            }
-
             try
             {
                 using (var db = new Context())
                 {
-                    var productoExistente = db.Productos.Find(productoEditado.IdProducto);
-                    if (productoExistente == null)
-                        return "No se puede editar: el producto no existe.";
+                    var existente = db.Productos.Find(producto.IdProducto);
+                    if (existente == null)
+                        return "Producto no encontrado.";
 
-                    productoExistente.Nombre = productoEditado.Nombre;
-                    productoExistente.Tipo = productoEditado.Tipo;
-                    productoExistente.Proveedor = productoEditado.Proveedor;
-                    productoExistente.PrecioUnitario = productoEditado.PrecioUnitario;
-                    productoExistente.Threshold = productoEditado.Threshold;
-                    productoExistente.Fecha = productoEditado.Fecha;
+                    existente.Nombre = producto.Nombre;
+                    existente.Tipo = producto.Tipo;
+                    existente.Descripcion = producto.Descripcion;
+                    existente.Proveedor = producto.Proveedor;
+                    existente.PrecioUnitario = producto.PrecioUnitario;
+                    existente.CantidadStock = producto.CantidadStock;
+                    existente.Threshold = (producto.CantidadStock > 0) ? 0 : 1;
+                    existente.IdEstado = producto.IdEstado;
+
+
+                    existente.Fecha = DateTime.Now;
 
                     db.SaveChanges();
                 }
-
                 return "Producto editado exitosamente.";
             }
             catch (Exception ex)
             {
-                var inner = ex;
-                string detalles = "";
-                while (inner != null)
-                {
-                    detalles += inner.Message + " | ";
-                    inner = inner.InnerException;
-                }
-                return $"Error al editar producto: {detalles}";
+                return $"Error al editar el producto: {ex.Message}";
             }
-
         }
 
-        public string EliminarProducto(int idProducto)
+        public string EliminarProducto(int id)
         {
             try
             {
                 using (var db = new Context())
                 {
-                    var producto = db.Productos.FirstOrDefault(p => p.IdProducto == idProducto);
+                    var producto = db.Productos.Find(id);
                     if (producto == null)
-                        return "No se encontró el producto.";
+                        return "Producto no encontrado.";
 
                     db.Productos.Remove(producto);
                     db.SaveChanges();
@@ -110,16 +77,8 @@ namespace UtopiaBS.Business
             }
             catch (Exception ex)
             {
-                var inner = ex;
-                string detalles = "";
-                while (inner != null)
-                {
-                    detalles += inner.Message + " | ";
-                    inner = inner.InnerException;
-                }
-                return $"Error al eliminar producto: {detalles}";
+                return $"Error al eliminar el producto: {ex.Message}";
             }
         }
-
     }
 }

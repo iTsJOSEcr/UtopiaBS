@@ -1,77 +1,70 @@
 ﻿@model UtopiaBS.Entities.Producto
 
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">Agregar Producto</h3>
+                </div>
+                <div class="card-body p-4">
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
 
-@{
-    ViewBag.Title = "Agregar Producto";
-}
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Nombre, new { @class = "form-label fw-bold" })
+                            @Html.EditorFor(m => m.Nombre, new { htmlAttributes = new { @class = "form-control", placeholder = "Ej. Mascarilla facial" } })
+                            @Html.ValidationMessageFor(m => m.Nombre, "", new { @class = "text-danger" })
+                        </div>
 
-<h2>Agregar Producto</h2>
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Tipo, new { @class = "form-label fw-bold" })
+                            @Html.EditorFor(m => m.Tipo, new { htmlAttributes = new { @class = "form-control", placeholder = "Ej. Belleza, Higiene" } })
+                            @Html.ValidationMessageFor(m => m.Tipo, "", new { @class = "text-danger" })
+                        </div>
 
-@using (Html.BeginForm())
-{
-    @Html.AntiForgeryToken()
-<div class="form-horizontal">
-    <div class="form-group">
-        @Html.LabelFor(m => m.Nombre)
-        @Html.EditorFor(m => m.Nombre, new { htmlAttributes = new { @class = "form-control" } })
-        @Html.ValidationMessageFor(m => m.Nombre)
-    </div>
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Proveedor, new { @class = "form-label fw-bold" })
+                            @Html.EditorFor(m => m.Proveedor, new { htmlAttributes = new { @class = "form-control", placeholder = "Nombre del proveedor" } })
+                            @Html.ValidationMessageFor(m => m.Proveedor, "", new { @class = "text-danger" })
+                        </div>
 
-    <div class="form-group">
-        @Html.LabelFor(m => m.Tipo)
-        @Html.EditorFor(m => m.Tipo, new { htmlAttributes = new { @class = "form-control" } })
-        @Html.ValidationMessageFor(m => m.Tipo)
-    </div>
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Descripcion, new { @class = "form-label fw-bold" })
+                            @Html.TextAreaFor(m => m.Descripcion, new { @class = "form-control", rows = 3, placeholder = "Agrega una breve descripción del producto..." })
+                            @Html.ValidationMessageFor(m => m.Descripcion, "", new { @class = "text-danger" })
+                        </div>
 
-    <div class="form-group">
-        @Html.LabelFor(m => m.Proveedor)
-        @Html.EditorFor(m => m.Proveedor, new { htmlAttributes = new { @class = "form-control" } })
-        @Html.ValidationMessageFor(m => m.Proveedor)
-    </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.PrecioUnitario, new { @class = "form-label fw-bold" })
+                                @Html.EditorFor(m => m.PrecioUnitario, new { htmlAttributes = new { @class = "form-control", placeholder = "₡0.00" } })
+                                @Html.ValidationMessageFor(m => m.PrecioUnitario, "", new { @class = "text-danger" })
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                @Html.LabelFor(m => m.CantidadStock, new { @class = "form-label fw-bold" })
+                                @Html.EditorFor(m => m.CantidadStock, new { htmlAttributes = new { @class = "form-control", placeholder = "0" } })
+                                @Html.ValidationMessageFor(m => m.CantidadStock, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
 
-    <div class="form-group">
-        @Html.LabelFor(model => model.Descripcion, htmlAttributes: new { @class = "control-label col-md-2" })
-        <div class="col-md-10">
-            @Html.TextAreaFor(model => model.Descripcion, new { @class = "form-control", rows = 3 })
-            @Html.ValidationMessageFor(model => model.Descripcion, "", new { @class = "text-danger" })
+                        <div class="d-grid gap-2">
+                            <input type="submit" value="Agregar Producto" class="btn btn-primary btn-lg" />
+                        </div>
+                    }
+                </div>
+                @if (ViewBag.Mensaje != null)
+                {
+                    <div class="card-footer">
+                        <div class="alert alert-info text-center mb-0">@ViewBag.Mensaje</div>
+                    </div>
+                }
+            </div>
+
+            <div class="text-center mt-3">
+                @Html.ActionLink("⬅ Regresar a la página principal", "Index", "Home", null, new { @class = "btn btn-outline-secondary" })
+            </div>
         </div>
     </div>
-
-
-    <div class="form-group">
-        @Html.LabelFor(m => m.PrecioUnitario)
-        @Html.EditorFor(m => m.PrecioUnitario, new { htmlAttributes = new { @class = "form-control" } })
-        @Html.ValidationMessageFor(m => m.PrecioUnitario)
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(m => m.CantidadStock)
-        @Html.EditorFor(m => m.CantidadStock, new { htmlAttributes = new { @class = "form-control" } })
-        @Html.ValidationMessageFor(m => m.CantidadStock)
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(m => m.Fecha)
-        @Html.EditorFor(m => m.Fecha, new { htmlAttributes = new { @class = "form-control" } })
-        @Html.ValidationMessageFor(m => m.Fecha)
-    </div>
-
-    <div class="form-group">
-        @Html.LabelFor(m => m.Threshold)
-        @Html.EditorFor(m => m.Threshold, new { htmlAttributes = new { @class = "form-control" } })
-        @Html.ValidationMessageFor(m => m.Threshold)
-    </div>
-
-    <input type="submit" value="Agregar" class="btn btn-primary" />
-</div>
-}
-
-@if (ViewBag.Mensaje != null)
-{
-    <div class="alert alert-info">@ViewBag.Mensaje</div>
-}
-
-<div>
-    @Html.ActionLink("Regresar a la página principal", "Index", "Home", null, new { @class = "btn btn-secondary" })
-
 </div>

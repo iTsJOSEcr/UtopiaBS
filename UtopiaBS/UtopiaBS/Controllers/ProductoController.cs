@@ -1,4 +1,4 @@
-﻿using System;
+﻿  using System;
 using System.Linq;
 using System.Web.Mvc;
 using UtopiaBS.Business;
@@ -13,17 +13,20 @@ namespace UtopiaBS.Web.Controllers
 
         // GET: Producto/Agregar
         public ActionResult Agregar()
-        {
+        { 
             return View();
         }
 
-        // POST: Producto/Agregar
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Agregar(Producto nuevo)
         {
             if (ModelState.IsValid)
             {
+                nuevo.Fecha = DateTime.Now;
+
+                nuevo.Threshold = (nuevo.CantidadStock > 0) ? 0 : 1; 
+
                 string resultado = service.AgregarProducto(nuevo);
                 ViewBag.Mensaje = resultado;
 
@@ -35,6 +38,7 @@ namespace UtopiaBS.Web.Controllers
             }
             return View(nuevo);
         }
+
 
         // GET: Producto/Listar
         public ActionResult Listar()
@@ -54,7 +58,7 @@ namespace UtopiaBS.Web.Controllers
             {
                 var producto = db.Productos.Find(id);
                 if (producto == null)
-                    return RedirectToAction("Listar"); // o mostrar mensaje de error
+                    return RedirectToAction("Listar"); 
 
                 return View(producto);
             }
@@ -71,7 +75,7 @@ namespace UtopiaBS.Web.Controllers
                 ViewBag.Mensaje = resultado;
 
                 if (resultado.Contains("exitosamente"))
-                    return RedirectToAction("Listar"); // después de editar, regresar al listado
+                    return RedirectToAction("Listar"); 
             }
             return View(producto);
         }
@@ -80,7 +84,7 @@ namespace UtopiaBS.Web.Controllers
         public ActionResult Eliminar(int id)
         {
             string resultado = service.EliminarProducto(id);
-            TempData["Mensaje"] = resultado; // usamos TempData para mostrar el mensaje en Listar
+            TempData["Mensaje"] = resultado; 
             return RedirectToAction("Listar");
         }
 
