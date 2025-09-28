@@ -10,6 +10,64 @@
  * Copyright 2011-2022 Twitter, Inc.
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
  */
+/* Navbar altura fija y padding para contenido */
+#mainNav {
+    height: 60px;
+}
+
+body {
+    padding-top: 70px; /* Ajusta según altura del navbar */
+}
+
+/* Wrapper para centrar contenido */
+.content-wrapper {
+    margin-top: 20px;
+}
+
+/* Tabla centrada y card */
+.table-card {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+/* Botones más bonitos */
+.btn-outline-warning {
+    color: #ffc107;
+    border-color: #ffc107;
+}
+
+    .btn-outline-warning:hover {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+
+/* Ajusta el padding superior para que el contenido no quede debajo del navbar */
+body {
+    padding-top: 70px; /* ajusta según la altura real de tu navbar */
+}
+
+/* Wrapper para centrar contenido */
+.content-wrapper {
+    margin-top: 20px;
+}
+
+/* Tarjetas y tablas centradas */
+.table-card, .form-card {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
 :root {
   --bs-blue: #0d6efd;
   --bs-indigo: #6610f2;
