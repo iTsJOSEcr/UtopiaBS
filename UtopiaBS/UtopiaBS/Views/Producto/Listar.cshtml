@@ -1,0 +1,65 @@
+﻿@model IEnumerable<UtopiaBS.Entities.Producto>
+
+@{
+    ViewBag.Title = "Listado de Productos";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">📦 Listado de Productos</h3>
+            @Html.ActionLink("➕ Agregar Producto", "Agregar", "Producto", null, new { @class = "btn btn-light btn-sm" })
+        </div>
+        <div class="card-body">
+
+            @if (TempData["Mensaje"] != null)
+            {
+                <div class="alert alert-success">@TempData["Mensaje"]</div>
+            }
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-center">Nombre</th>
+                            <th class="text-center">Tipo</th>
+                            <th class="text-center">Proveedor</th>
+                            <th class="text-center">Precio</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-center">Fecha</th>
+                            <th class="text-center">Threshold</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-center"><strong>@item.Nombre</strong></td>
+                                <td class="text-center">@item.Tipo</td>
+                                <td class="text-center">@item.Proveedor</td>
+                                <td class="text-center"><span class="badge bg-success">₡@item.PrecioUnitario</span></td>
+                                <td class="text-center">
+                                    @if (item.CantidadStock > item.Threshold)
+                                    {
+                                        <span class="badge bg-warning text-dark">@item.CantidadStock</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">@item.CantidadStock</span>
+                                    }
+                                </td>
+                                <td class="text-center">@item.Fecha.ToShortDateString()</td>
+                                <td class="text-center"><span class="badge bg-warning text-dark">@item.Threshold</span></td>
+                                <td class="text-center">
+                                    @Html.ActionLink("✏️", "Editar", new { id = item.IdProducto }, new { @class = "btn btn-sm btn-outline-warning me-1", title = "Editar" })
+                                    @Html.ActionLink("🗑️", "Eliminar", new { id = item.IdProducto }, new { @class = "btn btn-sm btn-outline-danger", onclick = "return confirm('¿Seguro que desea eliminar este producto?');", title = "Eliminar" })
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
