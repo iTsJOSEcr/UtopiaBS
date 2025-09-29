@@ -1,0 +1,32 @@
+﻿@model UtopiaBS.Web.ViewModels.VentaViewModel
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario</th>
+            <th>Subtotal</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var linea in Model.Lineas)
+        {
+            <tr>
+                <td>@linea.NombreProducto</td>
+                <td>
+                    <input type="number" min="1" value="@linea.Cantidad"
+                           onchange="actualizarLinea(@linea.IdProducto, this.value)" />
+                </td>
+                <td>@linea.PrecioUnitario.ToString("C")</td>
+                <td>@linea.SubTotal.ToString("C")</td>
+                <td>
+                    <button onclick="actualizarLinea(@linea.IdProducto, 0)" class="btn btn-danger btn-sm">Eliminar</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4>Total: @Model.Total.ToString("C")</h4>
