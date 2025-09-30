@@ -1,0 +1,11 @@
+﻿@model IEnumerable<UtopiaBS.Web.ViewModels.LineaVentaViewModel>
+
+<ul class="list-group mt-2">
+    @foreach (var servicio in Model)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>@servicio.NombreProducto - @servicio.PrecioUnitario.ToString("C")</span>
+            <button class="btn btn-sm btn-primary" onclick="agregarServicio(@servicio.IdProducto, '@servicio.NombreProducto', @servicio.PrecioUnitario)">Agregar</button>
+        </li>
+    }
+</ul>
