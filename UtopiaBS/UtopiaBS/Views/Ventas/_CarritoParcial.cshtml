@@ -1,32 +1,79 @@
 ﻿@model UtopiaBS.Web.ViewModels.VentaViewModel
 
-<table class="table table-bordered">
+<table class="table table-bordered" id="tblCarrito">
     <thead>
         <tr>
-            <th>Producto</th>
+            <th>Tipo</th>
+            <th>Nombre</th>
             <th>Cantidad</th>
             <th>Precio Unitario</th>
             <th>Subtotal</th>
-            <th>Acción</th>
+            <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var linea in Model.Lineas)
         {
-            <tr>
+            <tr data-id="@linea.IdProducto">
+                <td>@(linea.EsServicio ? "Servicio" : "Producto")</td>
                 <td>@linea.NombreProducto</td>
                 <td>
                     <input type="number" min="1" value="@linea.Cantidad"
-                           onchange="actualizarLinea(@linea.IdProducto, this.value)" />
+                           onchange="actualizarCantidad(this, @linea.IdProducto, @linea.PrecioUnitario, @linea.EsServicio.ToString().ToLower())" />
                 </td>
                 <td>@linea.PrecioUnitario.ToString("C")</td>
-                <td>@linea.SubTotal.ToString("C")</td>
+                <td class="subtotal">@linea.SubTotal.ToString("C")</td>
                 <td>
-                    <button onclick="actualizarLinea(@linea.IdProducto, 0)" class="btn btn-danger btn-sm">Eliminar</button>
+                    <button class="btn btn-danger btn-sm"
+                            onclick="eliminarLinea(@linea.IdProducto, @linea.EsServicio.ToString().ToLower())">
+                        Eliminar
+                    </button>
                 </td>
             </tr>
         }
     </tbody>
 </table>
 
-<h4>Total: @Model.Total.ToString("C")</h4>
+<h4 id="totalCarrito">Total: @Model.Total.ToString("C")</h4>
+
+<script>
+function actualizarCantidad(input, idProducto, precioUnitario, esServicio) {
+    var cantidad = parseInt(input.value);
+    if (cantidad <= 0) cantidad = 1;
+    input.value = cantidad;
+
+    // Recalcular subtotal en tiempo real
+    var fila = $(input).closest('tr');
+    var subtotal = precioUnitario * cantidad;
+    fila.find('.subtotal').text(subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
+
+    // Recalcular total
+    var total = 0;
+    $('#tblCarrito tbody tr').each(function() {
+        var sub = parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g,""));
+        total += sub;
+    });
+    $('#totalCarrito').text("Total: " + total.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
+
+    // Actualizar cantidad en servidor (sin recargar)
+    $.post('@Url.Action("ActualizarLinea", "Ventas")', { idProducto: idProducto, cantidad: cantidad, esServicio: esServicio }, function(res) {
+        // No necesitamos hacer nada aquí; la UI ya se actualizó
+    });
+}
+
+function eliminarLinea(idProducto, esServicio) {
+    $.post('@Url.Action("EliminarLinea", "Ventas")', { idProducto: idProducto, esServicio: esServicio }, function(res) {
+        if (res.success) {
+            $(`tr[data-id='${idProducto}']`).remove();
+
+            // Recalcular total
+            var total = 0;
+            $('#tblCarrito tbody tr').each(function() {
+                var sub = parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g,""));
+                total += sub;
+            });
+            $('#totalCarrito').text("Total: " + total.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
+        }
+    });
+}
+</script>
