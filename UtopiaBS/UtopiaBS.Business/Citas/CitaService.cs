@@ -9,23 +9,25 @@ namespace UtopiaBS.Business
 {
     public class CitaService
     {
-        public List<Cita> ListarDisponibles(int? empleadoId = null)
+        public List<Cita> ListarDisponibles(int? empleadoId = null, int? servicioId = null)
         {
             using (var db = new Context())
             {
                 var query = db.Citas
                               .Include(c => c.Empleado)
                               .Include(c => c.Servicio)
-                              .Where(c => c.IdEstadoCita == 1) 
+                              .Where(c => c.IdEstadoCita == 1) // disponibles
                               .AsQueryable();
 
                 if (empleadoId.HasValue)
                     query = query.Where(c => c.IdEmpleado == empleadoId.Value);
 
+                if (servicioId.HasValue)
+                    query = query.Where(c => c.IdServicio == servicioId.Value);
+
                 return query.OrderBy(c => c.FechaHora).ToList();
             }
         }
-
         public string ReservarCita(int idCita, int idCliente, int? idEmpleado, int? idServicio)
         {
             try
