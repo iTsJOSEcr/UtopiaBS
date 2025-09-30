@@ -56,6 +56,9 @@
     <Compile Include="Producto\Producto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Servicios\Servicio.cs" />
+    <Compile Include="Ventas\DetalleVentaProducto.cs" />
+    <Compile Include="Ventas\DetalleVentaServicio.cs" />
+    <Compile Include="Ventas\Venta.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

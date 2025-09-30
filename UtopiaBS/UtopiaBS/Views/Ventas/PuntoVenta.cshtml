@@ -1,0 +1,199 @@
+﻿@model UtopiaBS.Web.ViewModels.VentaViewModel
+@{
+    ViewBag.Title = "Punto de Venta";
+}
+
+<h2>Punto de Venta</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" id="tabsBusqueda">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#tabProductos">Productos</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#tabServicios">Servicios</a>
+            </li>
+        </ul>
+
+        <div class="tab-content mt-3">
+            <!-- Buscar Producto -->
+            <div class="tab-pane fade show active" id="tabProductos">
+                <h4>Buscar Producto</h4>
+                <input type="text" id="txtBuscarProducto" placeholder="Nombre o código" class="form-control" />
+                <button class="btn btn-primary mt-2" onclick="buscarProducto()">Buscar</button>
+                <ul id="resultadoBusquedaProductos" class="list-group mt-2"></ul>
+            </div>
+
+            <!-- Buscar Servicio -->
+            <div class="tab-pane fade" id="tabServicios">
+                <h4>Buscar Servicio</h4>
+                <input type="text" id="txtBuscarServicio" placeholder="Nombre o código" class="form-control" />
+                <button class="btn btn-primary mt-2" onclick="buscarServicio()">Buscar</button>
+                <ul id="resultadoBusquedaServicios" class="list-group mt-2"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <h4>Carrito</h4>
+        <table class="table table-bordered" id="tblCarrito">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var linea in Model.Lineas)
+                {
+                    <tr data-id="@linea.IdProducto">
+                        <td>@(linea.EsServicio ? "Servicio" : "Producto")</td>
+                        <td>@linea.NombreProducto</td>
+                        <td>
+                            <input type="number" min="1" value="@linea.Cantidad"
+                                   onchange="actualizarCantidad(this, @linea.IdProducto, @linea.PrecioUnitario, @linea.EsServicio.ToString().ToLower())" />
+                        </td>
+                        <td>@linea.PrecioUnitario.ToString("C")</td>
+                        <td class="subtotal">@linea.SubTotal.ToString("C")</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm"
+                                    onclick="eliminarLinea(@linea.IdProducto, @linea.EsServicio.ToString().ToLower())">
+                                Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <h5 id="totalCarrito">Total: @Model.Total.ToString("C")</h5>
+        <button class="btn btn-success mt-3" onclick="finalizarVenta()">Finalizar Venta</button>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // --- BUSQUEDA ---
+    function buscarProducto() {
+        var termino = $("#txtBuscarProducto").val();
+        $.get('@Url.Action("BuscarProducto", "Ventas")', { termino: termino }, function(res) {
+            var html = "";
+            res.forEach(function(p) {
+                html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>${p.Nombre} - ${p.PrecioUnitario.toFixed(2)}</span>
+                            <button class="btn btn-sm btn-primary" onclick="agregarProducto(${p.IdProducto}, '${p.Nombre}', ${p.PrecioUnitario})">Agregar</button>
+                        </li>`;
+            });
+            $("#resultadoBusquedaProductos").html(html);
+        });
+    }
+
+    function buscarServicio() {
+        var termino = $("#txtBuscarServicio").val();
+        $.get('@Url.Action("BuscarServicio", "Ventas")', { termino: termino }, function(res) {
+            var html = "";
+            res.forEach(function(s) {
+                html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>${s.Nombre} - ${s.PrecioUnitario.toFixed(2)}</span>
+                            <button class="btn btn-sm btn-primary" onclick="agregarServicio(${s.IdServicio}, '${s.Nombre}', ${s.PrecioUnitario})">Agregar</button>
+                        </li>`;
+            });
+            $("#resultadoBusquedaServicios").html(html);
+        });
+    }
+
+    // --- TAB ACTIVO ---
+    function guardarTabActivo(tabId) {
+        sessionStorage.setItem('tabActivo', tabId);
+    }
+
+    function restaurarTabActivo() {
+        var tabActivo = sessionStorage.getItem('tabActivo');
+        if (tabActivo) {
+            var triggerEl = document.querySelector(`a[href='${tabActivo}']`);
+            if (triggerEl) {
+                var tab = new bootstrap.Tab(triggerEl);
+                tab.show();
+            }
+        }
+    }
+
+    $(document).ready(function () {
+        restaurarTabActivo();
+    });
+
+    // --- AGREGAR PRODUCTO/SERVICIO ---
+    function agregarProducto(idProducto, nombre, precioUnitario) {
+        guardarTabActivo('#tabProductos');
+        $.post('@Url.Action("AgregarAlCarrito", "Ventas")', { idProducto, nombre, precioUnitario }, function(res) {
+            if (res.success) location.reload();
+        });
+    }
+
+    function agregarServicio(idServicio, nombre, precioUnitario) {
+        guardarTabActivo('#tabServicios');
+        $.post('@Url.Action("AgregarServicioAlCarrito", "Ventas")', { idServicio, nombre, precioUnitario }, function(res) {
+            if (res.success) location.reload();
+        });
+    }
+
+    // --- ACTUALIZAR CANTIDAD EN TIEMPO REAL ---
+    function actualizarCantidad(input, idProducto, precioUnitario, esServicio) {
+        var cantidad = parseInt(input.value);
+        if (cantidad <= 0) cantidad = 1;
+        input.value = cantidad;
+
+        // Actualizar subtotal de la fila en tiempo real
+        var fila = $(input).closest('tr');
+        var subtotal = precioUnitario * cantidad;
+        fila.find('.subtotal').text(subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
+
+        // Actualizar total
+        var total = 0;
+        $('#tblCarrito tbody tr').each(function () {
+            var sub = parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g, ""));
+            total += sub;
+        });
+        $('#totalCarrito').text("Total: " + total.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
+
+        // Actualizar en servidor
+        $.post('@Url.Action("ActualizarLinea", "Ventas")', { idProducto: idProducto, cantidad: cantidad, esServicio: esServicio });
+    }
+
+    // --- ELIMINAR ---
+    function eliminarLinea(idProducto, esServicio) {
+        $.post('@Url.Action("EliminarLinea", "Ventas")', { idProducto: idProducto, esServicio: esServicio }, function(res) {
+            if (res.success) {
+                $(`tr[data-id='${idProducto}']`).remove();
+
+                // Recalcular total
+                var total = 0;
+                $('#tblCarrito tbody tr').each(function () {
+                    var sub = parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g, ""));
+                    total += sub;
+                });
+                $('#totalCarrito').text("Total: " + total.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
+            }
+        });
+    }
+
+    // --- FINALIZAR VENTA ---
+    function finalizarVenta() {
+        $.post('@Url.Action("FinalizarVenta", "Ventas")', {}, function(res) {
+            if (res.success) {
+                alert(res.mensaje);
+                location.reload();
+            } else {
+                alert("Error al registrar la venta.");
+            }
+        });
+    }
+</script>

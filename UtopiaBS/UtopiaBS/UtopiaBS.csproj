@@ -118,10 +118,13 @@
     <Compile Include="Controllers\CitaController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ProductoController.cs" />
+    <Compile Include="Controllers\VentasController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Views\Ventas\ViewModels\LineaVentaViewModel.cs" />
+    <Compile Include="Views\Ventas\ViewModels\VentaViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\assets\favicon.ico" />
@@ -203,6 +206,12 @@
     <Content Include="Views\Producto\Listar.cshtml" />
     <Content Include="Views\Producto\Editar.cshtml" />
     <Content Include="Views\Cita\Listar.cshtml" />
+    <Content Include="Views\Ventas\PuntoVenta.cshtml" />
+    <Content Include="Views\Ventas\_ResultadosProductos.cshtml" />
+    <Content Include="Views\Ventas\_DetalleProducto.cshtml" />
+    <Content Include="Views\Ventas\_CarritoParcial.cshtml" />
+    <Content Include="Views\Ventas\_ResultadoServicio.cshtml" />
+    <Content Include="Views\Ventas\DetalleServicio.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

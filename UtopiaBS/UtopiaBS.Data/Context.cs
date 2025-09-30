@@ -17,5 +17,9 @@ namespace UtopiaBS.Data
 
         public DbSet<Empleado> Empleados { get; set; }
         public DbSet<Servicio> Servicios { get; set; }
+        public DbSet<Venta> Ventas { get; set; }
+        public DbSet<DetalleVentaProducto> DetalleVentaProductos { get; set; }
+        public DbSet<DetalleVentaServicio> DetalleVentaServicios { get; set; }
+
     }
 }
