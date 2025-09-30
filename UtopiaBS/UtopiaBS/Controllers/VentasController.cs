@@ -48,7 +48,7 @@ namespace UtopiaBS.Web.Controllers
                     {
                         IdServicio = s.IdServicio,
                         s.Nombre,
-                        PrecioUnitario = s.Precio, // mapeamos Precio -> PrecioUnitario para consistencia con la UI
+                        PrecioUnitario = s.Precio, 
                         s.Descripcion
                     })
                     .ToList();
@@ -87,11 +87,10 @@ namespace UtopiaBS.Web.Controllers
         {
             var carrito = Session["Carrito"] as VentaViewModel ?? new VentaViewModel();
 
-            // Buscar si ya existe la misma línea de servicio (mismo Id y EsServicio = true)
             var linea = carrito.Lineas.FirstOrDefault(x => x.EsServicio && x.IdProducto == idServicio);
             if (linea != null)
             {
-                linea.Cantidad++; // normalmente 1 por servicio, pero soportamos sumar si ya existe
+                linea.Cantidad++; 
             }
             else
             {
@@ -152,11 +151,20 @@ namespace UtopiaBS.Web.Controllers
             if (carrito == null || carrito.Lineas.Count == 0)
                 return new HttpStatusCodeResult(400, "Carrito vacío");
 
-            int idUsuario = 1; // reemplazar por usuario actual
+            int idUsuario = 1; 
 
             using (var db = new Context())
             {
-                // Calcular total real del carrito
+                foreach (var linea in carrito.Lineas.Where(l => !l.EsServicio))
+                {
+                    var producto = db.Productos.FirstOrDefault(p => p.IdProducto == linea.IdProducto);
+                    if (producto == null)
+                        return Json(new { success = false, mensaje = $"El producto {linea.NombreProducto} no existe" });
+
+                    if (producto.CantidadStock < linea.Cantidad)
+                        return Json(new { success = false, mensaje = $"No hay stock suficiente para el producto {producto.Nombre}. Stock disponible: {producto.CantidadStock}, solicitado: {linea.Cantidad}" });
+                }
+
                 decimal totalVenta = carrito.Lineas.Sum(l => l.PrecioUnitario * l.Cantidad);
 
                 var venta = new Venta
@@ -182,7 +190,7 @@ namespace UtopiaBS.Web.Controllers
                             PrecioUnitario = linea.PrecioUnitario
                         };
 
-                        // Asignamos subtotal mediante EF usando propiedad privada + BD
+                        
                         db.Entry(detalleServicio).Property("SubTotal").CurrentValue = subtotalLinea;
 
                         db.DetalleVentaServicios.Add(detalleServicio);
@@ -197,10 +205,13 @@ namespace UtopiaBS.Web.Controllers
                             PrecioUnitario = linea.PrecioUnitario
                         };
 
-                        // Asignamos subtotal mediante EF usando propiedad privada + BD
+                        
                         db.Entry(detalleProducto).Property("SubTotal").CurrentValue = subtotalLinea;
 
                         db.DetalleVentaProductos.Add(detalleProducto);
+
+                        var producto = db.Productos.First(p => p.IdProducto == linea.IdProducto);
+                        producto.CantidadStock -= linea.Cantidad;
                     }
                 }
 
