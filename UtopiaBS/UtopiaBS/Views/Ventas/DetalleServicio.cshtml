@@ -1,0 +1,22 @@
+﻿@model UtopiaBS.Web.ViewModels.LineaVentaViewModel
+
+<div class="card mt-2">
+    <div class="card-body">
+        <h5 class="card-title">@Model.NombreProducto</h5>
+        <p class="card-text">
+            <strong>Precio:</strong> @Model.PrecioUnitario.ToString("C")<br />
+            @if (!string.IsNullOrEmpty(Model.Descripcion))
+            {
+                <strong>Descripción:</strong> @Model.Descripcion
+            }
+        </p>
+        <div class="form-group">
+            <label>Cantidad:</label>
+            <input type="number" min="1" value="@Model.Cantidad"
+                   onchange="actualizarLinea(@Model.IdProducto, this.value)" class="form-control" />
+        </div>
+        <button class="btn btn-success mt-2" onclick="agregarServicio(@Model.IdProducto, '@Model.NombreProducto', @Model.PrecioUnitario)">
+            Agregar al carrito
+        </button>
+    </div>
+</div>
