@@ -1,0 +1,79 @@
+﻿@model UtopiaBS.Entities.Producto
+
+@{
+    ViewBag.Title = "Editar Producto";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-3">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">Editar Producto</h3>
+                </div>
+                <div class="card-body p-4">
+                    @using (Html.BeginForm("Editar", "Producto", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.IdProducto) 
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Nombre, new { @class = "form-label fw-bold" })
+                            @Html.EditorFor(m => m.Nombre, new { htmlAttributes = new { @class = "form-control", placeholder = "Ej. Mascarilla facial" } })
+                            @Html.ValidationMessageFor(m => m.Nombre, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Tipo, new { @class = "form-label fw-bold" })
+                            @Html.EditorFor(m => m.Tipo, new { htmlAttributes = new { @class = "form-control", placeholder = "Ej. Belleza, Higiene" } })
+                            @Html.ValidationMessageFor(m => m.Tipo, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.Proveedor, new { @class = "form-label fw-bold" })
+                            @Html.EditorFor(m => m.Proveedor, new { htmlAttributes = new { @class = "form-control", placeholder = "Nombre del proveedor" } })
+                            @Html.ValidationMessageFor(m => m.Proveedor, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.PrecioUnitario, new { @class = "form-label fw-bold" })
+                            @Html.EditorFor(m => m.PrecioUnitario, new { htmlAttributes = new { @class = "form-control", placeholder = "₡0.00" } })
+                            @Html.ValidationMessageFor(m => m.PrecioUnitario, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.CantidadStock, new { @class = "form-label fw-bold" })
+                            @Html.EditorFor(m => m.CantidadStock, new { htmlAttributes = new { @class = "form-control", placeholder = "0" } })
+                            @Html.ValidationMessageFor(m => m.CantidadStock, "", new { @class = "text-danger" })
+                        </div>
+
+                        <!-- Fecha automática, no editable -->
+                        @Html.HiddenFor(m => m.Fecha)
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Fecha de Creación</label>
+                            <input type="text" class="form-control" value="@Model.Fecha.ToString("dd/MM/yyyy")" readonly />
+                        </div>
+
+                        <!-- Threshold automático -->
+                        @Html.HiddenFor(m => m.Threshold)
+
+                        <div class="d-grid gap-2 mt-4">
+                            <input type="submit" value="Guardar Cambios" class="btn btn-primary btn-lg" />
+                            @Html.ActionLink("⬅ Volver al Listado", "Listar", "Producto", null, new { @class = "btn btn-secondary btn-lg" })
+                        </div>
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(ViewBag.Mensaje))
+                {
+                    <div class="card-footer">
+                        <div class="alert alert-info text-center mb-0">@ViewBag.Mensaje</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
