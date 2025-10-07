@@ -37,13 +37,33 @@ namespace UtopiaBS.Web.Controllers
             }
         }
 
+        // Buscar servicios por nombre o Id
+        public JsonResult BuscarServicio(string termino)
+        {
+            using (var db = new Context())
+            {
+                var servicios = db.Servicios
+                    .Where(s => s.Nombre.Contains(termino) || SqlFunctions.StringConvert((double)s.IdServicio).Contains(termino))
+                    .Select(s => new
+                    {
+                        IdServicio = s.IdServicio,
+                        s.Nombre,
+                        PrecioUnitario = s.Precio, 
+                        s.Descripcion
+                    })
+                    .ToList();
+
+                return Json(servicios, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         // Agregar producto al carrito
         [HttpPost]
         public ActionResult AgregarAlCarrito(int idProducto, string nombre, decimal precioUnitario)
         {
             var carrito = Session["Carrito"] as VentaViewModel ?? new VentaViewModel();
 
-            var linea = carrito.Lineas.FirstOrDefault(x => x.IdProducto == idProducto);
+            var linea = carrito.Lineas.FirstOrDefault(x => x.IdProducto == idProducto && !x.EsServicio);
             if (linea != null)
                 linea.Cantidad++;
             else
@@ -52,7 +72,8 @@ namespace UtopiaBS.Web.Controllers
                     IdProducto = idProducto,
                     NombreProducto = nombre,
                     PrecioUnitario = precioUnitario,
-                    Cantidad = 1
+                    Cantidad = 1,
+                    EsServicio = false
                 });
 
             Session["Carrito"] = carrito;
@@ -60,14 +81,41 @@ namespace UtopiaBS.Web.Controllers
             return Json(new { success = true });
         }
 
+        // Agregar servicio al carrito
+        [HttpPost]
+        public ActionResult AgregarServicioAlCarrito(int idServicio, string nombre, decimal precioUnitario)
+        {
+            var carrito = Session["Carrito"] as VentaViewModel ?? new VentaViewModel();
+
+            var linea = carrito.Lineas.FirstOrDefault(x => x.EsServicio && x.IdProducto == idServicio);
+            if (linea != null)
+            {
+                linea.Cantidad++; 
+            }
+            else
+            {
+                carrito.Lineas.Add(new LineaVentaViewModel
+                {
+                    IdProducto = idServicio,
+                    NombreProducto = nombre,
+                    EsServicio = true,
+                    PrecioUnitario = precioUnitario,
+                    Cantidad = 1
+                });
+            }
+
+            Session["Carrito"] = carrito;
+            return Json(new { success = true });
+        }
+
         // Actualizar cantidad o eliminar 
         [HttpPost]
-        public ActionResult ActualizarLinea(int idProducto, int cantidad)
+        public ActionResult ActualizarLinea(int idProducto, int cantidad, bool esServicio)
         {
             var carrito = Session["Carrito"] as VentaViewModel;
             if (carrito == null) return new HttpStatusCodeResult(400);
 
-            var linea = carrito.Lineas.FirstOrDefault(x => x.IdProducto == idProducto);
+            var linea = carrito.Lineas.FirstOrDefault(x => x.IdProducto == idProducto && x.EsServicio == esServicio);
             if (linea != null)
             {
                 if (cantidad <= 0)
@@ -82,12 +130,12 @@ namespace UtopiaBS.Web.Controllers
 
         // Eliminar línea
         [HttpPost]
-        public ActionResult EliminarLinea(int idProducto)
+        public ActionResult EliminarLinea(int idProducto, bool esServicio)
         {
             var carrito = Session["Carrito"] as VentaViewModel;
             if (carrito == null) return new HttpStatusCodeResult(400);
 
-            var linea = carrito.Lineas.FirstOrDefault(x => x.IdProducto == idProducto);
+            var linea = carrito.Lineas.FirstOrDefault(x => x.IdProducto == idProducto && x.EsServicio == esServicio);
             if (linea != null)
                 carrito.Lineas.Remove(linea);
 
@@ -103,34 +151,74 @@ namespace UtopiaBS.Web.Controllers
             if (carrito == null || carrito.Lineas.Count == 0)
                 return new HttpStatusCodeResult(400, "Carrito vacío");
 
-            int idUsuario = 1;
+            int idUsuario = 1; 
 
             using (var db = new Context())
             {
+                foreach (var linea in carrito.Lineas.Where(l => !l.EsServicio))
+                {
+                    var producto = db.Productos.FirstOrDefault(p => p.IdProducto == linea.IdProducto);
+                    if (producto == null)
+                        return Json(new { success = false, mensaje = $"El producto {linea.NombreProducto} no existe" });
+
+                    if (producto.CantidadStock < linea.Cantidad)
+                        return Json(new { success = false, mensaje = $"No hay stock suficiente para el producto {producto.Nombre}. Stock disponible: {producto.CantidadStock}, solicitado: {linea.Cantidad}" });
+                }
+
+                decimal totalVenta = carrito.Lineas.Sum(l => l.PrecioUnitario * l.Cantidad);
+
                 var venta = new Venta
                 {
                     IdUsuario = idUsuario,
                     FechaVenta = DateTime.Now,
-                    Total = carrito.Total
+                    Total = totalVenta
                 };
                 db.Ventas.Add(venta);
                 db.SaveChanges();
 
                 foreach (var linea in carrito.Lineas)
                 {
-                    var detalle = new DetalleVentaProducto
+                    var subtotalLinea = linea.PrecioUnitario * linea.Cantidad;
+
+                    if (linea.EsServicio)
                     {
-                        IdVenta = venta.IdVenta,
-                        IdProducto = linea.IdProducto,
-                        Cantidad = linea.Cantidad,
-                        PrecioUnitario = linea.PrecioUnitario
-                    };
-                    db.DetalleVentaProductos.Add(detalle);
+                        var detalleServicio = new DetalleVentaServicio
+                        {
+                            IdVenta = venta.IdVenta,
+                            IdServicio = linea.IdProducto,
+                            Cantidad = linea.Cantidad,
+                            PrecioUnitario = linea.PrecioUnitario
+                        };
+
+                        
+                        db.Entry(detalleServicio).Property("SubTotal").CurrentValue = subtotalLinea;
+
+                        db.DetalleVentaServicios.Add(detalleServicio);
+                    }
+                    else
+                    {
+                        var detalleProducto = new DetalleVentaProducto
+                        {
+                            IdVenta = venta.IdVenta,
+                            IdProducto = linea.IdProducto,
+                            Cantidad = linea.Cantidad,
+                            PrecioUnitario = linea.PrecioUnitario
+                        };
+
+                        
+                        db.Entry(detalleProducto).Property("SubTotal").CurrentValue = subtotalLinea;
+
+                        db.DetalleVentaProductos.Add(detalleProducto);
+
+                        var producto = db.Productos.First(p => p.IdProducto == linea.IdProducto);
+                        producto.CantidadStock -= linea.Cantidad;
+                    }
                 }
 
                 db.SaveChanges();
             }
 
+            // Limpiar carrito
             Session["Carrito"] = new VentaViewModel();
             return Json(new { success = true, mensaje = "Venta registrada correctamente." });
         }

@@ -19,6 +19,9 @@ namespace UtopiaBS.Entities
 
         public decimal Precio { get; set; }
 
+        public int IdEstado { get; set; }
+
+
         // Navegación
         public virtual ICollection<Cita> Citas { get; set; }
     }
