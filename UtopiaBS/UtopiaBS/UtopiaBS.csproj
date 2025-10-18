@@ -116,6 +116,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\CitaController.cs" />
+    <Compile Include="Controllers\ContabilidadController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ProductoController.cs" />
     <Compile Include="Controllers\VentasController.cs" />
@@ -212,6 +213,11 @@
     <Content Include="Views\Ventas\_CarritoParcial.cshtml" />
     <Content Include="Views\Ventas\_ResultadoServicio.cshtml" />
     <Content Include="Views\Ventas\DetalleServicio.cshtml" />
+    <Content Include="Views\Contabilidad\AgregarIngreso.cshtml" />
+    <Content Include="Views\Contabilidad\AgregarEgreso.cshtml" />
+    <Content Include="Views\Contabilidad\ResumenDiario.cshtml" />
+    <Content Include="Views\Contabilidad\GenerarCierreSemanal.cshtml" />
+    <Content Include="Views\Contabilidad\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace UtopiaBS.Entities
 
 
+
 {
     [Table("Producto")] 
     public class Producto
