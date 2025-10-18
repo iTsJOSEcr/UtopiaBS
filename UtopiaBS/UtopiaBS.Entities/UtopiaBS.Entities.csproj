@@ -52,6 +52,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Citas\Cita.cs" />
+    <Compile Include="Contabilidad\CierreSemanal.cs" />
+    <Compile Include="Contabilidad\Egreso.cs" />
+    <Compile Include="Contabilidad\Ingreso.cs" />
+    <Compile Include="Contabilidad\ResumenDiarioViewModel.cs" />
     <Compile Include="Empleados\Empleado.cs" />
     <Compile Include="Producto\Producto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

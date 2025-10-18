@@ -1,0 +1,15 @@
+﻿@{
+    ViewBag.Title = "Contabilidad - Dashboard";
+}
+
+<h2>Contabilidad</h2>
+
+<p>Seleccione la acción que desea realizar:</p>
+
+<ul>
+    <li>@Html.ActionLink("Agregar Ingreso", "AgregarIngreso", "Contabilidad", null, new { @class = "btn btn-primary mb-2" })</li>
+    <li>@Html.ActionLink("Agregar Egreso", "AgregarEgreso", "Contabilidad", null, new { @class = "btn btn-warning mb-2" })</li>
+    <li>@Html.ActionLink("Generar Cierre Semanal", "GenerarCierreSemanal", "Contabilidad", null, new { @class = "btn btn-success mb-2" })</li>
+    <li>@Html.ActionLink("Resumen Diario", "ResumenDiario", "Contabilidad", null, new { @class = "btn btn-info mb-2" })</li>
+</ul>
+

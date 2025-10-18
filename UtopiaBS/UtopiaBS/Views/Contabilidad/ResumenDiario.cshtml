@@ -1,0 +1,37 @@
+﻿@model dynamic
+@{
+    ViewBag.Title = "Resumen Diario";
+}
+
+<h2>Resumen Diario</h2>
+
+@using (Html.BeginForm("ResumenDiario", "Contabilidad", FormMethod.Get))
+{
+    <div class="form-group">
+        <label>Seleccionar fecha:</label>
+        <input type="date" name="fecha" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+    </div>
+    <button type="submit" class="btn btn-primary">Generar Resumen</button>
+}
+
+@if (ViewBag.Mensaje != null)
+{
+    <div class="alert alert-warning">@ViewBag.Mensaje</div>
+}
+else if (Model != null)
+{
+    <table class="table table-bordered mt-3">
+        <tr>
+            <th>Total Ingresos</th>
+            <td>@Model.TotalIngresos.ToString("C")</td>
+        </tr>
+        <tr>
+            <th>Total Egresos</th>
+            <td>@Model.TotalEgresos.ToString("C")</td>
+        </tr>
+        <tr>
+            <th>Balance</th>
+            <td>@Model.Balance.ToString("C")</td>
+        </tr>
+    </table>
+}
