@@ -53,7 +53,10 @@
                                 <td class="text-center"><span class="badge bg-warning text-dark">@item.Threshold</span></td>
                                 <td class="text-center">
                                     @Html.ActionLink("✏️", "Editar", new { id = item.IdProducto }, new { @class = "btn btn-sm btn-outline-warning me-1", title = "Editar" })
-                                    @Html.ActionLink("🗑️", "Eliminar", new { id = item.IdProducto }, new { @class = "btn btn-sm btn-outline-danger", onclick = "return confirm('¿Seguro que desea eliminar este producto?');", title = "Eliminar" })
+                                    <button type="button" class="btn btn-sm btn-outline-danger eliminar-btn"
+                                            data-id="@item.IdProducto" data-nombre="@item.Nombre" title="Eliminar">
+                                        🗑️
+                                    </button>
                                 </td>
                             </tr>
                         }
@@ -63,3 +66,55 @@
         </div>
     </div>
 </div>
+
+<!-- Modal de eliminación -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalEliminarLabel">Eliminar Producto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro que desea eliminar el producto <strong><span id="modalNombreProducto"></span></strong>?
+            </div>
+            <div class="modal-footer">
+                <form id="formEliminar" method="post" action="@Url.Action("Eliminar", "Producto")">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="inputIdProducto" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = new bootstrap.Modal(document.getElementById("modalEliminar"));
+        const inputIdProducto = document.getElementById("inputIdProducto");
+        const nombreProductoEl = document.getElementById("modalNombreProducto");
+
+        document.querySelectorAll(".eliminar-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+                inputIdProducto.value = this.dataset.id;
+                nombreProductoEl.textContent = this.dataset.nombre;
+                modal.show();
+            });
+        });
+    });
+</script>
+
+<style>
+    .table-dark th {
+        background-color: #4e73df;
+        color: white;
+    }
+
+    .btn-outline-warning, .btn-outline-danger {
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+</style>
