@@ -1,0 +1,34 @@
+﻿@model UtopiaBS.Entities.Contabilidad.Ingreso
+
+@{
+    ViewBag.Title = "Agregar Ingreso";
+}
+
+<h2>Agregar Ingreso</h2>
+
+@if (ViewBag.Mensaje != null)
+{
+    <div class="alert alert-info">@ViewBag.Mensaje</div>
+}
+
+@using (Html.BeginForm("AgregarIngreso", "Contabilidad", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Monto)
+        @Html.TextBoxFor(m => m.Monto, new { @class = "form-control", type = "number", step = "0.01" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Categoria)
+        @Html.TextBoxFor(m => m.Categoria, new { @class = "form-control" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Descripcion)
+        @Html.TextAreaFor(m => m.Descripcion, new { @class = "form-control", rows = 3 })
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar Ingreso</button>
+}

@@ -116,6 +116,7 @@
     <Compile Include="App_Start\FilterConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\CitaController.cs" />
+    <Compile Include="Controllers\ContabilidadController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ProductoController.cs" />
     <Compile Include="Controllers\VentasController.cs" />
@@ -176,11 +177,13 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
-    <None Include="Scripts\jquery-3.6.0.intellisense.js" />
-    <Content Include="Scripts\jquery-3.6.0.js" />
-    <Content Include="Scripts\jquery-3.6.0.min.js" />
-    <Content Include="Scripts\jquery-3.6.0.slim.js" />
-    <Content Include="Scripts\jquery-3.6.0.slim.min.js" />
+    <None Include="Scripts\jquery-3.7.1.intellisense.js" />
+    <Content Include="Scripts\jquery-3.7.1.js" />
+    <Content Include="Scripts\jquery-3.7.1.min.js" />
+    <Content Include="Scripts\jquery-3.7.1.slim.js" />
+    <Content Include="Scripts\jquery-3.7.1.slim.min.js" />
+    <Content Include="Scripts\jquery-3.7.1.slim.min.map" />
+    <Content Include="Scripts\jquery-3.7.1.min.map" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
     <Content Include="Scripts\jquery.validate.js" />
     <Content Include="Scripts\jquery.validate.min.js" />
@@ -212,6 +215,15 @@
     <Content Include="Views\Ventas\_CarritoParcial.cshtml" />
     <Content Include="Views\Ventas\_ResultadoServicio.cshtml" />
     <Content Include="Views\Ventas\DetalleServicio.cshtml" />
+    <Content Include="Views\Contabilidad\AgregarIngreso.cshtml" />
+    <Content Include="Views\Contabilidad\AgregarEgreso.cshtml" />
+    <Content Include="Views\Contabilidad\ResumenDiario.cshtml" />
+    <Content Include="Views\Contabilidad\GenerarCierreSemanal.cshtml" />
+    <Content Include="Views\Contabilidad\Index.cshtml" />
+    <Content Include="Views\Cita\ListarAgendadas.cshtml" />
+    <Content Include="Views\Cita\Administrar.cshtml" />
+    <Content Include="Views\Cita\Agregar.cshtml" />
+    <Content Include="Views\Cita\Editar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -255,8 +267,6 @@
     <Content Include="Scripts\bootstrap.esm.js.map" />
     <Content Include="Scripts\bootstrap.bundle.min.js.map" />
     <Content Include="Scripts\bootstrap.bundle.js.map" />
-    <Content Include="Scripts\jquery-3.6.0.slim.min.map" />
-    <Content Include="Scripts\jquery-3.6.0.min.map" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

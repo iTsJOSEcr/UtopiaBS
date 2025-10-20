@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Citas\CitaService.cs" />
+    <Compile Include="Contabilidad\ContabilidadService.cs" />
     <Compile Include="Empleados\EmpleadoService.cs" />
     <Compile Include="Producto.B\ProductoService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
