@@ -3,76 +3,91 @@
     ViewBag.Title = "Punto de Venta";
 }
 
-<h2>Punto de Venta</h2>
+<div class="container mt-5">
+    <h2 class="text-center mb-4" style="color:#3A7CA5;">🛒 Punto de Venta</h2>
 
-<div class="row">
-    <div class="col-md-6">
-        <!-- Tabs -->
-        <ul class="nav nav-tabs" id="tabsBusqueda">
-            <li class="nav-item">
-                <a class="nav-link active" data-bs-toggle="tab" href="#tabProductos">Productos</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#tabServicios">Servicios</a>
-            </li>
-        </ul>
+    <div class="row g-4">
+        <!-- Búsqueda de Productos y Servicios -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm rounded-4 p-3" style="background-color:#F7FAFC;">
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#tabProductos" style="color:#3A7CA5;">Productos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#tabServicios" style="color:#3A7CA5;">Servicios</a>
+                    </li>
+                </ul>
 
-        <div class="tab-content mt-3">
-            <!-- Buscar Producto -->
-            <div class="tab-pane fade show active" id="tabProductos">
-                <h4>Buscar Producto</h4>
-                <input type="text" id="txtBuscarProducto" placeholder="Nombre o código" class="form-control" />
-                <button class="btn btn-primary mt-2" onclick="buscarProducto()">Buscar</button>
-                <ul id="resultadoBusquedaProductos" class="list-group mt-2"></ul>
-            </div>
+                <div class="tab-content mt-3">
+                    <!-- Productos -->
+                    <div class="tab-pane fade show active" id="tabProductos">
+                        <div class="input-group mb-2">
+                            <input type="text" id="txtBuscarProducto" class="form-control" placeholder="Nombre o código">
+                            <button class="btn btn-primary" style="background-color:#3A7CA5; border:none;" onclick="buscarProducto()">Buscar</button>
+                        </div>
+                        <ul id="resultadoBusquedaProductos" class="list-group"></ul>
+                    </div>
 
-            <!-- Buscar Servicio -->
-            <div class="tab-pane fade" id="tabServicios">
-                <h4>Buscar Servicio</h4>
-                <input type="text" id="txtBuscarServicio" placeholder="Nombre o código" class="form-control" />
-                <button class="btn btn-primary mt-2" onclick="buscarServicio()">Buscar</button>
-                <ul id="resultadoBusquedaServicios" class="list-group mt-2"></ul>
+                    <!-- Servicios -->
+                    <div class="tab-pane fade" id="tabServicios">
+                        <div class="input-group mb-2">
+                            <input type="text" id="txtBuscarServicio" class="form-control" placeholder="Nombre o código">
+                            <button class="btn btn-primary" style="background-color:#3A7CA5; border:none;" onclick="buscarServicio()">Buscar</button>
+                        </div>
+                        <ul id="resultadoBusquedaServicios" class="list-group"></ul>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-6">
-        <h4>Carrito</h4>
-        <table class="table table-bordered" id="tblCarrito">
-            <thead>
-                <tr>
-                    <th>Tipo</th>
-                    <th>Nombre</th>
-                    <th>Cantidad</th>
-                    <th>Precio Unitario</th>
-                    <th>Subtotal</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var linea in Model.Lineas)
-                {
-                    <tr data-id="@linea.IdProducto">
-                        <td>@(linea.EsServicio ? "Servicio" : "Producto")</td>
-                        <td>@linea.NombreProducto</td>
-                        <td>
-                            <input type="number" min="1" value="@linea.Cantidad"
-                                   onchange="actualizarCantidad(this, @linea.IdProducto, @linea.PrecioUnitario, @linea.EsServicio.ToString().ToLower())" />
-                        </td>
-                        <td>@linea.PrecioUnitario.ToString("C")</td>
-                        <td class="subtotal">@linea.SubTotal.ToString("C")</td>
-                        <td>
-                            <button class="btn btn-danger btn-sm"
-                                    onclick="eliminarLinea(@linea.IdProducto, @linea.EsServicio.ToString().ToLower())">
-                                Eliminar
-                            </button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-        <h5 id="totalCarrito">Total: @Model.Total.ToString("C")</h5>
-        <button class="btn btn-success mt-3" onclick="finalizarVenta()">Finalizar Venta</button>
+        <!-- Carrito -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm rounded-4 p-3" style="background-color:#F7FAFC;">
+                <h4 class="mb-3" style="color:#3A7CA5;">Carrito</h4>
+                <div class="table-responsive" style="max-height: 400px; overflow-y:auto;">
+                    <table class="table align-middle mb-0" id="tblCarrito">
+                        <thead class="text-center" style="background-color:#A8DADC; color:#1D3557;">
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Nombre</th>
+                                <th>Cantidad</th>
+                                <th>Precio</th>
+                                <th>Subtotal</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var linea in Model.Lineas)
+                            {
+                                <tr data-id="@linea.IdProducto">
+                                    <td>@(linea.EsServicio ? "Servicio" : "Producto")</td>
+                                    <td>@linea.NombreProducto</td>
+                                    <td class="text-center">
+                                        <input type="number" min="1" value="@linea.Cantidad"
+                                               class="form-control form-control-sm text-center"
+                                               onchange="actualizarCantidad(this, @linea.IdProducto, @linea.PrecioUnitario, @linea.EsServicio.ToString().ToLower())" />
+                                    </td>
+                                    <td class="text-end">@linea.PrecioUnitario.ToString("C")</td>
+                                    <td class="text-end subtotal">@linea.SubTotal.ToString("C")</td>
+                                    <td class="text-center">
+                                        <button class="btn btn-danger btn-sm eliminar-linea-btn"
+                                                data-id="@linea.IdProducto"
+                                                data-esservicio="@linea.EsServicio.ToString().ToLower()">
+                                            🗑️
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <h5 class="mt-3 text-end" id="totalCarrito">Total: @Model.Total.ToString("C")</h5>
+                <div class="d-grid">
+                    <button class="btn btn-success btn-lg" style="background-color:#52B788; border:none;" onclick="finalizarVenta()">Finalizar Venta</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -81,15 +96,29 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // --- BUSQUEDA ---
+    $(document).ready(function () {
+        var tabActivo = sessionStorage.getItem('tabActivo');
+        if(tabActivo){
+            var triggerEl = document.querySelector(`a[href='${tabActivo}']`);
+            if(triggerEl){ new bootstrap.Tab(triggerEl).show(); }
+        }
+
+        $('.eliminar-linea-btn').click(function(){
+            const idProducto = $(this).data('id');
+            const esServicio = $(this).data('esservicio');
+            eliminarLinea(idProducto, esServicio);
+        });
+    });
+
+    function guardarTabActivo(tabId){ sessionStorage.setItem('tabActivo', tabId); }
     function buscarProducto() {
         var termino = $("#txtBuscarProducto").val();
         $.get('@Url.Action("BuscarProducto", "Ventas")', { termino: termino }, function(res) {
             var html = "";
             res.forEach(function(p) {
                 html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>${p.Nombre} - ${p.PrecioUnitario.toFixed(2)}</span>
-                            <button class="btn btn-sm btn-primary" onclick="agregarProducto(${p.IdProducto}, '${p.Nombre}', ${p.PrecioUnitario})">Agregar</button>
+                            ${p.Nombre} - ${p.PrecioUnitario.toFixed(2)}
+                            <button class="btn btn-sm btn-primary" style="background-color:#3A7CA5; border:none;" onclick="agregarProducto(${p.IdProducto}, '${p.Nombre}', ${p.PrecioUnitario})">Agregar</button>
                         </li>`;
             });
             $("#resultadoBusquedaProductos").html(html);
@@ -102,98 +131,86 @@
             var html = "";
             res.forEach(function(s) {
                 html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>${s.Nombre} - ${s.PrecioUnitario.toFixed(2)}</span>
-                            <button class="btn btn-sm btn-primary" onclick="agregarServicio(${s.IdServicio}, '${s.Nombre}', ${s.PrecioUnitario})">Agregar</button>
+                            ${s.Nombre} - ${s.PrecioUnitario.toFixed(2)}
+                            <button class="btn btn-sm btn-primary" style="background-color:#3A7CA5; border:none;" onclick="agregarServicio(${s.IdServicio}, '${s.Nombre}', ${s.PrecioUnitario})">Agregar</button>
                         </li>`;
             });
             $("#resultadoBusquedaServicios").html(html);
         });
     }
 
-    // --- TAB ACTIVO ---
-    function guardarTabActivo(tabId) {
-        sessionStorage.setItem('tabActivo', tabId);
-    }
-
-    function restaurarTabActivo() {
-        var tabActivo = sessionStorage.getItem('tabActivo');
-        if (tabActivo) {
-            var triggerEl = document.querySelector(`a[href='${tabActivo}']`);
-            if (triggerEl) {
-                var tab = new bootstrap.Tab(triggerEl);
-                tab.show();
-            }
-        }
-    }
-
-    $(document).ready(function () {
-        restaurarTabActivo();
-    });
-
-    // --- AGREGAR PRODUCTO/SERVICIO ---
-    function agregarProducto(idProducto, nombre, precioUnitario) {
+    function agregarProducto(idProducto, nombre, precioUnitario){
         guardarTabActivo('#tabProductos');
-        $.post('@Url.Action("AgregarAlCarrito", "Ventas")', { idProducto, nombre, precioUnitario }, function(res) {
-            if (res.success) location.reload();
-        });
+        $.post('@Url.Action("AgregarAlCarrito", "Ventas")', { idProducto, nombre, precioUnitario }, function(res){ if(res.success) location.reload(); });
     }
 
-    function agregarServicio(idServicio, nombre, precioUnitario) {
+    function agregarServicio(idServicio, nombre, precioUnitario){
         guardarTabActivo('#tabServicios');
-        $.post('@Url.Action("AgregarServicioAlCarrito", "Ventas")', { idServicio, nombre, precioUnitario }, function(res) {
-            if (res.success) location.reload();
-        });
+        $.post('@Url.Action("AgregarServicioAlCarrito", "Ventas")', { idServicio, nombre, precioUnitario }, function(res){ if(res.success) location.reload(); });
     }
 
-    // --- ACTUALIZAR CANTIDAD EN TIEMPO REAL ---
-    function actualizarCantidad(input, idProducto, precioUnitario, esServicio) {
-        var cantidad = parseInt(input.value);
-        if (cantidad <= 0) cantidad = 1;
-        input.value = cantidad;
-
-        // Actualizar subtotal de la fila en tiempo real
+    function actualizarCantidad(input, idProducto, precioUnitario, esServicio){
+        var cantidad = parseInt(input.value); if(cantidad <= 0) cantidad = 1; input.value = cantidad;
         var fila = $(input).closest('tr');
-        var subtotal = precioUnitario * cantidad;
-        fila.find('.subtotal').text(subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
-
-        // Actualizar total
+        fila.find('.subtotal').text((precioUnitario*cantidad).toLocaleString('en-US',{style:'currency',currency:'USD'}));
         var total = 0;
-        $('#tblCarrito tbody tr').each(function () {
-            var sub = parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g, ""));
-            total += sub;
-        });
-        $('#totalCarrito').text("Total: " + total.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
-
-        // Actualizar en servidor
-        $.post('@Url.Action("ActualizarLinea", "Ventas")', { idProducto: idProducto, cantidad: cantidad, esServicio: esServicio });
+        $('#tblCarrito tbody tr').each(function(){ total += parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g,"")); });
+        $('#totalCarrito').text("Total: "+total.toLocaleString('en-US',{style:'currency',currency:'USD'}));
+        $.post('@Url.Action("ActualizarLinea", "Ventas")', { idProducto, cantidad, esServicio });
     }
 
-    // --- ELIMINAR ---
-    function eliminarLinea(idProducto, esServicio) {
-        $.post('@Url.Action("EliminarLinea", "Ventas")', { idProducto: idProducto, esServicio: esServicio }, function(res) {
-            if (res.success) {
+    function eliminarLinea(idProducto, esServicio){
+        $.post('@Url.Action("EliminarLinea", "Ventas")', { idProducto, esServicio }, function(res){
+            if(res.success){
                 $(`tr[data-id='${idProducto}']`).remove();
-
-                // Recalcular total
                 var total = 0;
-                $('#tblCarrito tbody tr').each(function () {
-                    var sub = parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g, ""));
-                    total += sub;
-                });
-                $('#totalCarrito').text("Total: " + total.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
+                $('#tblCarrito tbody tr').each(function(){ total += parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g,"")); });
+                $('#totalCarrito').text("Total: "+total.toLocaleString('en-US',{style:'currency',currency:'USD'}));
             }
         });
     }
 
-    // --- FINALIZAR VENTA ---
-    function finalizarVenta() {
-        $.post('@Url.Action("FinalizarVenta", "Ventas")', {}, function(res) {
-            if (res.success) {
-                alert(res.mensaje);
-                location.reload();
-            } else {
-                alert("Error al registrar la venta.");
-            }
+    function finalizarVenta(){
+        $.post('@Url.Action("FinalizarVenta", "Ventas")', {}, function(res){
+            if(res.success){ alert(res.mensaje); location.reload(); }
+            else alert("Error al registrar la venta.");
         });
     }
 </script>
+
+<style>
+    .card {
+        padding: 1rem;
+    }
+
+    .list-group-item button {
+        border-radius: 20px;
+    }
+
+    #tblCarrito input {
+        width: 60px;
+    }
+
+    .input-group button {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    .table-primary th {
+        background-color: #A8DADC !important;
+        color: #1D3557;
+    }
+
+    h2, h4 {
+        font-weight: 600;
+    }
+
+    .btn-danger {
+        background-color: #E63946;
+        border: none;
+    }
+
+        .btn-danger:hover {
+            background-color: #D62828;
+        }
+</style>

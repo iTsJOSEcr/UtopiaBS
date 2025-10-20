@@ -1,0 +1,58 @@
+﻿@model UtopiaBS.Entities.Cita
+@{
+    ViewBag.Title = "Editar Cita";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-warning text-dark">
+            <h3>✏️ Editar Cita</h3>
+        </div>
+        <div class="card-body">
+            @using (Html.BeginForm("Editar", "Cita", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.IdCita)
+
+                <div class="mb-3">
+                    <label>Fecha y Hora</label>
+                    @Html.TextBoxFor(m => m.FechaHora, new { @class = "form-control", type = "datetime-local" })
+                </div>
+                <div class="mb-3">
+                    <label>Empleado</label>
+                    <select class="form-control" name="IdEmpleado" required>
+                        <option value="">-- Seleccione --</option>
+                        @foreach (var emp in ViewBag.Empleados as SelectList)
+                        {
+                            <option value="@emp.Value" @(emp.Value == Model.IdEmpleado.ToString() ? "selected" : "")>@emp.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label>Servicio</label>
+                    <select class="form-control" name="IdServicio" required>
+                        <option value="">-- Seleccione --</option>
+                        @foreach (var serv in ViewBag.Servicios as SelectList)
+                        {
+                            <option value="@serv.Value" @(serv.Value == Model.IdServicio.ToString() ? "selected" : "")>@serv.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label>Estado</label>
+                    <select class="form-control" name="IdEstadoCita">
+                        <option value="1" @(Model.IdEstadoCita == 1 ? "selected" : "")>Pendiente</option>
+                        <option value="2" @(Model.IdEstadoCita == 2 ? "selected" : "")>Confirmada</option>
+                        <option value="3" @(Model.IdEstadoCita == 3 ? "selected" : "")>Cancelada</option>
+                        <option value="4" @(Model.IdEstadoCita == 4 ? "selected" : "")>Disponible</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label>Observaciones</label>
+                    @Html.TextAreaFor(m => m.Observaciones, new { @class = "form-control" })
+                </div>
+                <button type="submit" class="btn btn-success w-100">💾 Guardar</button>
+            }
+        </div>
+    </div>
+</div>

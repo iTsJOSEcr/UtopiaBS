@@ -29,5 +29,11 @@ namespace UtopiaBS.Entities
 
         [ForeignKey("IdServicio")]
         public virtual Servicio Servicio { get; set; }
+
+        public DateTime? FechaUltimoRecordatorio { get; set; }
+
+
+        [MaxLength(100)]
+        public string RegistradoPor { get; set; }
     }
 }
