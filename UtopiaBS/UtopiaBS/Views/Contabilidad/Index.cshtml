@@ -2,14 +2,55 @@
     ViewBag.Title = "Contabilidad - Dashboard";
 }
 
-<h2>Contabilidad</h2>
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">💰 Contabilidad - Dashboard</h3>
+        </div>
+        <div class="card-body">
+            <p>Seleccione la acción que desea realizar:</p>
 
-<p>Seleccione la acción que desea realizar:</p>
+            <div class="d-flex flex-wrap gap-2">
+                @Html.ActionLink("Agregar Ingreso", "AgregarIngreso", "Contabilidad", null, new { @class = "btn btn-primary mb-2" })
+                @Html.ActionLink("Agregar Egreso", "AgregarEgreso", "Contabilidad", null, new { @class = "btn btn-danger mb-2" })
+                @Html.ActionLink("Generar Cierre Semanal", "GenerarCierreSemanal", "Contabilidad", null, new { @class = "btn btn-success mb-2" })
+                @Html.ActionLink("Resumen Diario", "ResumenDiario", "Contabilidad", null, new { @class = "btn btn-warning mb-2" })
+            </div>
 
-<ul>
-    <li>@Html.ActionLink("Agregar Ingreso", "AgregarIngreso", "Contabilidad", null, new { @class = "btn btn-primary mb-2" })</li>
-    <li>@Html.ActionLink("Agregar Egreso", "AgregarEgreso", "Contabilidad", null, new { @class = "btn btn-warning mb-2" })</li>
-    <li>@Html.ActionLink("Generar Cierre Semanal", "GenerarCierreSemanal", "Contabilidad", null, new { @class = "btn btn-success mb-2" })</li>
-    <li>@Html.ActionLink("Resumen Diario", "ResumenDiario", "Contabilidad", null, new { @class = "btn btn-info mb-2" })</li>
-</ul>
+            @if (TempData["Mensaje"] != null)
+            {
+                <div class="alert alert-warning mt-3">@TempData["Mensaje"]</div>
+            }
+
+            @if (TempData["DebugRuta"] != null)
+            {
+                <div class="alert alert-info mt-3">
+                    Archivo debug guardado en: <strong>@TempData["DebugRuta"]</strong>
+                    (@TempData["DebugTamKb"])
+                </div>
+            }
+
+            @if (TempData["DebugErrorEscribir"] != null)
+            {
+                <div class="alert alert-danger mt-3">Error al escribir debug: @TempData["DebugErrorEscribir"]</div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-header {
+        font-weight: 600;
+        font-size: 1.5rem;
+    }
+
+    .btn {
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .alert {
+        font-size: 0.9rem;
+    }
+</style>
 
