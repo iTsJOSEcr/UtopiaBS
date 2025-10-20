@@ -1,0 +1,47 @@
+﻿@model UtopiaBS.Entities.Cita
+@{
+    ViewBag.Title = "Agregar Cita";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-primary text-white">
+            <h3>➕ Agregar Cita</h3>
+        </div>
+        <div class="card-body">
+            @using (Html.BeginForm("Agregar", "Cita", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label>Fecha y Hora</label>
+                    <input type="datetime-local" class="form-control" name="FechaHora" required />
+                </div>
+                <div class="mb-3">
+                    <label>Empleado</label>
+                    <select class="form-control" name="IdEmpleado" required>
+                        <option value="">-- Seleccione --</option>
+                        @foreach (var emp in ViewBag.Empleados as SelectList)
+                        {
+                            <option value="@emp.Value">@emp.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label>Servicio</label>
+                    <select class="form-control" name="IdServicio" required>
+                        <option value="">-- Seleccione --</option>
+                        @foreach (var serv in ViewBag.Servicios as SelectList)
+                        {
+                            <option value="@serv.Value">@serv.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label>Observaciones</label>
+                    <textarea class="form-control" name="Observaciones"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success w-100">💾 Guardar</button>
+            }
+        </div>
+    </div>
+</div>

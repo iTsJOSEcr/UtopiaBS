@@ -16,7 +16,7 @@ namespace UtopiaBS.Business
                 var query = db.Citas
                               .Include(c => c.Empleado)
                               .Include(c => c.Servicio)
-                              .Where(c => c.IdEstadoCita == 1) // disponibles
+                              .Where(c => c.IdEstadoCita == 4) 
                               .AsQueryable();
 
                 if (empleadoId.HasValue)
@@ -28,6 +28,27 @@ namespace UtopiaBS.Business
                 return query.OrderBy(c => c.FechaHora).ToList();
             }
         }
+
+        public List<Cita> ListarPendientes(int? empleadoId = null, int? servicioId = null)
+        {
+            using (var db = new Context())
+            {
+                var query = db.Citas
+                              .Include(c => c.Empleado)
+                              .Include(c => c.Servicio)
+                              .Where(c => c.IdEstadoCita == 1)
+                              .AsQueryable();
+
+                if (empleadoId.HasValue)
+                    query = query.Where(c => c.IdEmpleado == empleadoId.Value);
+
+                if (servicioId.HasValue)
+                    query = query.Where(c => c.IdServicio == servicioId.Value);
+
+                return query.OrderBy(c => c.FechaHora).ToList();
+            }
+        }
+
         public string ReservarCita(int idCita, int idCliente, int? idEmpleado, int? idServicio)
         {
             try
@@ -38,16 +59,17 @@ namespace UtopiaBS.Business
                     if (cita == null)
                         return "No se encontró la cita.";
 
-                    if (cita.IdEstadoCita != 1)
+                   
+                    if (cita.IdEstadoCita != 4 && cita.IdEstadoCita != 1)
                         return "La cita ya no está disponible.";
 
                     cita.IdCliente = idCliente;
                     cita.IdEmpleado = idEmpleado;
                     cita.IdServicio = idServicio;
-                    cita.IdEstadoCita = 2; 
+                    cita.IdEstadoCita = 1;
 
                     db.SaveChanges();
-                    return "Cita reservada exitosamente.";
+                    return "Cita reservada exitosamente. Pendiente de Confirmación";
                 }
             }
             catch (Exception ex)
@@ -55,5 +77,83 @@ namespace UtopiaBS.Business
                 return $"Error al reservar la cita: {ex.Message}";
             }
         }
+        public string AgregarCita(Cita nuevaCita)
+        {
+            try
+            {
+                using (var db = new Context())
+                {
+                    db.Citas.Add(nuevaCita);
+                    db.SaveChanges();
+                    return "Cita agregada correctamente.";
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error al agregar la cita: {ex.Message}";
+            }
+        }
+
+
+        public string ConfirmarCita(int idCita)
+        {
+            using (var db = new Context())
+            {
+                var cita = db.Citas.Find(idCita);
+                if (cita == null) return "Cita no encontrada.";
+
+                cita.IdEstadoCita = 3; 
+                cita.FechaUltimoRecordatorio = DateTime.Now;
+                db.SaveChanges();
+                return "Cita confirmada correctamente.";
+            }
+        }
+
+        public string CancelarCita(int idCita)
+        {
+            using (var db = new Context())
+            {
+                var cita = db.Citas.Find(idCita);
+                if (cita == null) return "Cita no encontrada.";
+
+                cita.IdEstadoCita = 4;
+                cita.FechaUltimoRecordatorio = DateTime.Now;
+                db.SaveChanges();
+                return "Cita cancelada correctamente.";
+            }
+        }
+
+        public List<Cita> ListarTodas(int? empleadoId = null, int? servicioId = null)
+        {
+            using (var db = new Context())
+            {
+                var query = db.Citas
+                              .Include(c => c.Empleado)
+                              .Include(c => c.Servicio)
+                              .AsQueryable();
+
+                if (empleadoId.HasValue)
+                    query = query.Where(c => c.IdEmpleado == empleadoId.Value);
+
+                if (servicioId.HasValue)
+                    query = query.Where(c => c.IdServicio == servicioId.Value);
+
+                return query.OrderBy(c => c.FechaHora).ToList();
+            }
+        }
+
+        public string EliminarCita(int idCita)
+        {
+            using (var db = new Context())
+            {
+                var cita = db.Citas.Find(idCita);
+                if (cita == null) return "Cita no encontrada.";
+
+                db.Citas.Remove(cita);
+                db.SaveChanges();
+                return "Cita eliminada correctamente.";
+            }
+        }
+
     }
 }

@@ -1,0 +1,153 @@
+﻿@model IEnumerable<UtopiaBS.Entities.Cita>
+@{
+    ViewBag.Title = "Administrar Citas";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">📋 Administrar Citas</h3>
+            @Html.ActionLink("➕ Agregar Cita", "Agregar", "Cita", null, new { @class = "btn btn-light btn-sm rounded-pill px-3" })
+        </div>
+        <div class="card-body">
+
+            @if (TempData["Mensaje"] != null)
+            {
+                <div class="alert alert-success text-center py-2">@TempData["Mensaje"]</div>
+            }
+
+            <div class="table-responsive shadow-sm rounded" style="max-height: 500px; overflow-y:auto;">
+                <table class="table table-hover align-middle text-center mb-0">
+                    <thead class="table-primary text-uppercase small">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Cliente</th>
+                            <th>Empleado</th>
+                            <th>Servicio</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="7" class="text-muted small">No hay citas registradas</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var cita in Model.OrderBy(c => c.FechaHora))
+                            {
+                                <tr>
+                                    <td>@cita.FechaHora.ToString("dd/MM/yyyy")</td>
+                                    <td>@cita.FechaHora.ToString("HH:mm")</td>
+                                    <td>@(cita.IdCliente ?? 0)</td>
+                                    <td>@(cita.Empleado?.Nombre ?? "Sin asignar")</td>
+                                    <td>@(cita.Servicio?.Nombre ?? "Sin asignar")</td>
+                                    <td>
+                                        @{
+                                            string estadoBadge = cita.IdEstadoCita switch
+                                            {
+                                                1 => "<span class='badge bg-secondary'>Pendiente</span>",
+                                                2 => "<span class='badge bg-success'>Confirmada</span>",
+                                                3 => "<span class='badge bg-danger'>Cancelada</span>",
+                                                4 => "<span class='badge bg-info'>Disponible</span>",
+                                                _ => "<span class='badge bg-warning'>Otro</span>"
+                                            };
+                                        }
+                                        @Html.Raw(estadoBadge)
+                                    </td>
+                                    <td>
+                                        @Html.ActionLink("✏️ Editar", "Editar", new { id = cita.IdCita }, new { @class = "btn btn-warning btn-sm me-1 rounded-pill px-3" })
+                                        <button type="button" class="btn btn-danger btn-sm rounded-pill px-3 eliminar-btn"
+                                                data-id="@cita.IdCita" data-fecha="@cita.FechaHora.ToString("dd/MM/yyyy")" data-hora="@cita.FechaHora.ToString("HH:mm")">
+                                            🗑️ Eliminar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal de eliminación -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalEliminarLabel">Eliminar Cita</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Está seguro que desea eliminar esta cita? <br />
+                <strong>Fecha:</strong> <span id="modalFecha"></span> <br />
+                <strong>Hora:</strong> <span id="modalHora"></span>
+            </div>
+            <div class="modal-footer">
+                <form id="formEliminar" method="post" action="@Url.Action("Eliminar", "Cita")">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="inputIdCita" />
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = new bootstrap.Modal(document.getElementById("modalEliminar"));
+        const inputIdCita = document.getElementById("inputIdCita");
+        const fechaEl = document.getElementById("modalFecha");
+        const horaEl = document.getElementById("modalHora");
+
+        document.querySelectorAll(".eliminar-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+                inputIdCita.value = this.dataset.id;
+                fechaEl.textContent = this.dataset.fecha;
+                horaEl.textContent = this.dataset.hora;
+                modal.show();
+            });
+        });
+    });
+</script>
+
+<style>
+    .table-primary th {
+        background-color: #4e73df;
+        color: white;
+    }
+
+    .table-responsive {
+        scrollbar-width: thin;
+        scrollbar-color: #4e73df #f1f1f1;
+    }
+
+        .table-responsive::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .table-responsive::-webkit-scrollbar-thumb {
+            background-color: #4e73df;
+            border-radius: 4px;
+        }
+
+    .btn-warning, .btn-danger, .btn-light {
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+</style>
