@@ -16,24 +16,37 @@ namespace UtopiaBS.Web.Controllers
         // ------------------- INDEX / DASHBOARD -------------------
         public ActionResult Index()
         {
-            return View(); // Vista con links a ingresos, egresos y cierre semanal
+            return View();
         }
 
         // ------------------- INGRESO -------------------
-        public ActionResult AgregarIngreso() => View();
+        // GET
+        public ActionResult AgregarIngreso()
+        {
+            // Mostrar mensaje si existe en TempData
+            if (TempData["Mensaje"] != null)
+                ViewBag.Mensaje = TempData["Mensaje"];
 
+            return View();
+        }
+
+        // POST
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult AgregarIngreso(Ingreso ingreso)
         {
             if (ModelState.IsValid)
             {
-                ViewBag.Mensaje = service.AgregarIngreso(ingreso);
-                if (ViewBag.Mensaje.ToString().Contains("exitosamente"))
-                    ModelState.Clear();
+                var mensaje = service.AgregarIngreso(ingreso);
+                TempData["Mensaje"] = mensaje;
+
+                if (!string.IsNullOrEmpty(mensaje) && mensaje.Contains("exitosamente"))
+                    return RedirectToAction("AgregarIngreso"); // PRG: redirige al GET
             }
-            return View(ingreso);
+
+            return View(ingreso); // si hay error, se queda en POST
         }
+
 
         // ------------------- EGRESO -------------------
         public ActionResult AgregarEgreso() => View();
@@ -44,8 +57,9 @@ namespace UtopiaBS.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                ViewBag.Mensaje = service.AgregarEgreso(egreso);
-                if (ViewBag.Mensaje.ToString().Contains("exitosamente"))
+                var mensaje = service.AgregarEgreso(egreso);
+                TempData["Mensaje"] = mensaje;
+                if (!string.IsNullOrEmpty(mensaje) && mensaje.Contains("exitosamente"))
                     ModelState.Clear();
             }
             return View(egreso);
@@ -58,11 +72,13 @@ namespace UtopiaBS.Web.Controllers
             var resumen = service.ObtenerResumenDiario(fechaSeleccionada);
 
             if (resumen == null)
-                ViewBag.Mensaje = "No hay registros para la fecha seleccionada o ocurrió un error.";
+            {
+                TempData["Mensaje"] = "No hay registros para la fecha seleccionada o ocurrió un error.";
+                return View();
+            }
 
             return View(resumen);
         }
-
         // ------------------- CIERRE SEMANAL -------------------
         public ActionResult GenerarCierreSemanal() => View();
 
@@ -70,19 +86,70 @@ namespace UtopiaBS.Web.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult GenerarCierreSemanal(DateTime inicio, DateTime fin)
         {
-            ViewBag.Mensaje = service.GenerarCierreSemanal(inicio, fin);
+            CierreSemanal cierre = null;
 
-            // Traer el cierre generado para pasarlo a la vista
-            var cierre = service.ObtenerCierreSemanal(inicio, fin);
+            if (inicio == default || fin == default)
+            {
+                TempData["Mensaje"] = "Debe seleccionar fecha de inicio y fecha de fin.";
+            }
+            else if (inicio.Date > fin.Date)
+            {
+                TempData["Mensaje"] = "La fecha de inicio no puede ser mayor a la fecha fin.";
+            }
+            else
+            {
+                // Genera el cierre (puedes dejar mensaje opcional)
+                TempData["Mensaje"] = service.GenerarCierreSemanal(inicio, fin);
+
+                // Obtén el cierre filtrado por el rango exacto
+                cierre = service.ObtenerCierreSemanal(inicio, fin);
+
+                if (cierre == null)
+                {
+                    TempData["Mensaje"] = string.IsNullOrEmpty(TempData["Mensaje"] as string)
+                        ? "No se encontró un cierre para las fechas especificadas."
+                        : TempData["Mensaje"];
+                }
+            }
+
+            // Siempre devuelve la vista con el modelo (puede ser null)
             return View(cierre);
         }
+
 
         // ------------------- DESCARGAR CIERRE -------------------
         public ActionResult DescargarCierre(DateTime inicio, DateTime fin, string formato)
         {
-            var archivo = service.DescargarCierreSemanal(inicio, fin, formato);
-            string nombreArchivo = $"Cierre_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.{(formato.ToLower() == "excel" ? "xlsx" : "pdf")}";
-            return File(archivo, "application/octet-stream", nombreArchivo);
+            try
+            {
+                formato = string.IsNullOrWhiteSpace(formato) ? "pdf" : formato.Trim().ToLower();
+                var archivo = service.DescargarCierreSemanal(inicio, fin, formato);
+
+                if (archivo == null || archivo.Length == 0)
+                {
+                    TempData["Mensaje"] = "No se pudo generar el archivo o el archivo está vacío.";
+                    return RedirectToAction("GenerarCierreSemanal");
+                }
+
+                string nombreArchivo = formato == "excel"
+                    ? $"Cierre_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.xlsx"
+                    : $"Cierre_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.pdf";
+
+                string mimeType = formato == "excel"
+                    ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    : "application/pdf";
+
+                return File(archivo, mimeType, nombreArchivo);
+            }
+            catch (Exception ex)
+            {
+                TempData["Mensaje"] = $"Error al descargar el cierre: {ex.Message}";
+                return RedirectToAction("GenerarCierreSemanal");
+            }
         }
     }
 }
+
+
+
+
