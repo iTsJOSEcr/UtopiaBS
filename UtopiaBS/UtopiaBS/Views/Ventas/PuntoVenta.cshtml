@@ -3,11 +3,11 @@
     ViewBag.Title = "Punto de Venta";
 }
 
-<div class="container mt-5">
+<div class="container mt-4">
     <h2 class="text-center mb-4" style="color:#3A7CA5;">🛒 Punto de Venta</h2>
 
     <div class="row g-4">
-        <!-- Búsqueda de Productos y Servicios -->
+        <!-- Búsqueda Productos/Servicios -->
         <div class="col-lg-6">
             <div class="card shadow-sm rounded-4 p-3" style="background-color:#F7FAFC;">
                 <ul class="nav nav-tabs">
@@ -24,7 +24,7 @@
                     <div class="tab-pane fade show active" id="tabProductos">
                         <div class="input-group mb-2">
                             <input type="text" id="txtBuscarProducto" class="form-control" placeholder="Nombre o código">
-                            <button class="btn btn-primary" style="background-color:#3A7CA5; border:none;" onclick="buscarProducto()">Buscar</button>
+                            <button id="btnBuscarProducto" class="btn btn-primary" style="background-color:#3A7CA5; border:none;">Buscar</button>
                         </div>
                         <ul id="resultadoBusquedaProductos" class="list-group"></ul>
                     </div>
@@ -33,7 +33,7 @@
                     <div class="tab-pane fade" id="tabServicios">
                         <div class="input-group mb-2">
                             <input type="text" id="txtBuscarServicio" class="form-control" placeholder="Nombre o código">
-                            <button class="btn btn-primary" style="background-color:#3A7CA5; border:none;" onclick="buscarServicio()">Buscar</button>
+                            <button id="btnBuscarServicio" class="btn btn-primary" style="background-color:#3A7CA5; border:none;">Buscar</button>
                         </div>
                         <ul id="resultadoBusquedaServicios" class="list-group"></ul>
                     </div>
@@ -45,46 +45,14 @@
         <div class="col-lg-6">
             <div class="card shadow-sm rounded-4 p-3" style="background-color:#F7FAFC;">
                 <h4 class="mb-3" style="color:#3A7CA5;">Carrito</h4>
-                <div class="table-responsive" style="max-height: 400px; overflow-y:auto;">
-                    <table class="table align-middle mb-0" id="tblCarrito">
-                        <thead class="text-center" style="background-color:#A8DADC; color:#1D3557;">
-                            <tr>
-                                <th>Tipo</th>
-                                <th>Nombre</th>
-                                <th>Cantidad</th>
-                                <th>Precio</th>
-                                <th>Subtotal</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var linea in Model.Lineas)
-                            {
-                                <tr data-id="@linea.IdProducto">
-                                    <td>@(linea.EsServicio ? "Servicio" : "Producto")</td>
-                                    <td>@linea.NombreProducto</td>
-                                    <td class="text-center">
-                                        <input type="number" min="1" value="@linea.Cantidad"
-                                               class="form-control form-control-sm text-center"
-                                               onchange="actualizarCantidad(this, @linea.IdProducto, @linea.PrecioUnitario, @linea.EsServicio.ToString().ToLower())" />
-                                    </td>
-                                    <td class="text-end">@linea.PrecioUnitario.ToString("C")</td>
-                                    <td class="text-end subtotal">@linea.SubTotal.ToString("C")</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-danger btn-sm eliminar-linea-btn"
-                                                data-id="@linea.IdProducto"
-                                                data-esservicio="@linea.EsServicio.ToString().ToLower()">
-                                            🗑️
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+
+                <!-- contenedor del partial -->
+                <div id="carritoContainer">
+                    @Html.Partial("_CarritoParcial", Model)
                 </div>
-                <h5 class="mt-3 text-end" id="totalCarrito">Total: @Model.Total.ToString("C")</h5>
-                <div class="d-grid">
-                    <button class="btn btn-success btn-lg" style="background-color:#52B788; border:none;" onclick="finalizarVenta()">Finalizar Venta</button>
+
+                <div class="d-grid mt-2">
+                    <button class="btn btn-success btn-lg" id="btnFinalizarVenta" style="background-color:#52B788; border:none;">Finalizar Venta</button>
                 </div>
             </div>
         </div>
@@ -96,86 +64,251 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    $(document).ready(function () {
+    // URL helpers
+    var urlBuscarProducto = '@Url.Action("BuscarProducto","Ventas")';
+    var urlBuscarServicio = '@Url.Action("BuscarServicio","Ventas")';
+    var urlAgregarProducto = '@Url.Action("AgregarAlCarrito","Ventas")';
+    var urlAgregarServicio = '@Url.Action("AgregarServicioAlCarrito","Ventas")';
+    var urlCarritoParcial = '@Url.Action("CarritoParcial","Ventas")';
+    var urlActualizarLinea = '@Url.Action("ActualizarLinea","Ventas")';
+    var urlEliminarLinea = '@Url.Action("EliminarLinea","Ventas")';
+    var urlAplicarCupon = '@Url.Action("AplicarCupon","Ventas")';
+    var urlQuitarCupon = '@Url.Action("QuitarCupon","Ventas")';
+    var urlFinalizarVenta = '@Url.Action("FinalizarVenta","Ventas")';
+
+    function formatCurrency(value) {
+        return (value || 0).toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+    }
+
+    // refresca el partial del carrito
+    function refreshCarritoPartial(callback) {
+        $('#carritoContainer').load(urlCarritoParcial, function () {
+            attachCarritoEvents();
+            if (typeof callback === 'function') callback();
+        });
+    }
+
+    // attach handlers delegados / iniciales (se llama cada vez que se carga el partial)
+    function attachCarritoEvents() {
+        // eliminación (delegada)
+        $('#carritoContainer').off('click', '.btn-eliminar').on('click', '.btn-eliminar', function (e) {
+            e.preventDefault();
+            var id = $(this).closest('tr').data('id');
+            var esServicio = $(this).closest('tr').data('esservicio') === true || $(this).closest('tr').data('esservicio') === 'true';
+            eliminarLinea(id, esServicio);
+        });
+
+        // cambios de cantidad (delegado)
+        $('#carritoContainer').off('change', 'input[data-id]').on('change', 'input[data-id]', function () {
+            onCantidadChange(this);
+        });
+
+        // botones de cupón del partial (si existen)
+        $('#carritoContainer').off('click', '#btnAplicarCupon').on('click', '#btnAplicarCupon', function () {
+            aplicarCupon();
+        });
+        $('#carritoContainer').off('click', '#btnQuitarCupon').on('click', '#btnQuitarCupon', function () {
+            quitarCupon();
+        });
+    }
+
+    $(function () {
+        // Inicializar eventos principales
+        $('#btnBuscarProducto').on('click', buscarProducto);
+        $('#btnBuscarServicio').on('click', buscarServicio);
+        $('#btnFinalizarVenta').on('click', finalizarVenta);
+
+        // Restaurar tab activo (si aplica)
         var tabActivo = sessionStorage.getItem('tabActivo');
-        if(tabActivo){
-            var triggerEl = document.querySelector(`a[href='${tabActivo}']`);
-            if(triggerEl){ new bootstrap.Tab(triggerEl).show(); }
+        if (tabActivo) {
+            var el = document.querySelector(`a[href='${tabActivo}']`);
+            if (el) new bootstrap.Tab(el).show();
         }
 
-        $('.eliminar-linea-btn').click(function(){
-            const idProducto = $(this).data('id');
-            const esServicio = $(this).data('esservicio');
-            eliminarLinea(idProducto, esServicio);
-        });
+        // attach events for initially rendered partial
+        attachCarritoEvents();
     });
 
-    function guardarTabActivo(tabId){ sessionStorage.setItem('tabActivo', tabId); }
+    // ---------- BÚSQUEDA ----------
     function buscarProducto() {
-        var termino = $("#txtBuscarProducto").val();
-        $.get('@Url.Action("BuscarProducto", "Ventas")', { termino: termino }, function(res) {
-            var html = "";
-            res.forEach(function(p) {
-                html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                            ${p.Nombre} - ${p.PrecioUnitario.toFixed(2)}
-                            <button class="btn btn-sm btn-primary" style="background-color:#3A7CA5; border:none;" onclick="agregarProducto(${p.IdProducto}, '${p.Nombre}', ${p.PrecioUnitario})">Agregar</button>
-                        </li>`;
+        var termino = $('#txtBuscarProducto').val();
+        $.get(urlBuscarProducto, { termino: termino }, function (res) {
+            var $list = $('#resultadoBusquedaProductos').empty();
+            if (!res || !res.length) {
+                $list.append('<li class="list-group-item">No se encontraron productos.</li>');
+                return;
+            }
+            res.forEach(function (p) {
+                // construimos elementos con jQuery para evitar escapar manual de comillas
+                var $li = $('<li>').addClass('list-group-item d-flex justify-content-between align-items-center');
+                var texto = `${p.Nombre} - ${p.PrecioUnitario.toFixed(2)} (Disponible: ${p.CantidadStock})`;
+                $li.append($('<span>').text(texto));
+                var $btn = $('<button>').addClass('btn btn-sm btn-primary').text('Agregar');
+                $btn.on('click', function () { agregarProducto(p.IdProducto, p.Nombre, p.PrecioUnitario, p.CantidadStock); });
+                $li.append($btn);
+                $list.append($li);
             });
-            $("#resultadoBusquedaProductos").html(html);
+        }).fail(function () {
+            alert('Error buscando productos.');
         });
     }
 
     function buscarServicio() {
-        var termino = $("#txtBuscarServicio").val();
-        $.get('@Url.Action("BuscarServicio", "Ventas")', { termino: termino }, function(res) {
-            var html = "";
-            res.forEach(function(s) {
-                html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                            ${s.Nombre} - ${s.PrecioUnitario.toFixed(2)}
-                            <button class="btn btn-sm btn-primary" style="background-color:#3A7CA5; border:none;" onclick="agregarServicio(${s.IdServicio}, '${s.Nombre}', ${s.PrecioUnitario})">Agregar</button>
-                        </li>`;
-            });
-            $("#resultadoBusquedaServicios").html(html);
-        });
-    }
-
-    function agregarProducto(idProducto, nombre, precioUnitario){
-        guardarTabActivo('#tabProductos');
-        $.post('@Url.Action("AgregarAlCarrito", "Ventas")', { idProducto, nombre, precioUnitario }, function(res){ if(res.success) location.reload(); });
-    }
-
-    function agregarServicio(idServicio, nombre, precioUnitario){
-        guardarTabActivo('#tabServicios');
-        $.post('@Url.Action("AgregarServicioAlCarrito", "Ventas")', { idServicio, nombre, precioUnitario }, function(res){ if(res.success) location.reload(); });
-    }
-
-    function actualizarCantidad(input, idProducto, precioUnitario, esServicio){
-        var cantidad = parseInt(input.value); if(cantidad <= 0) cantidad = 1; input.value = cantidad;
-        var fila = $(input).closest('tr');
-        fila.find('.subtotal').text((precioUnitario*cantidad).toLocaleString('en-US',{style:'currency',currency:'USD'}));
-        var total = 0;
-        $('#tblCarrito tbody tr').each(function(){ total += parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g,"")); });
-        $('#totalCarrito').text("Total: "+total.toLocaleString('en-US',{style:'currency',currency:'USD'}));
-        $.post('@Url.Action("ActualizarLinea", "Ventas")', { idProducto, cantidad, esServicio });
-    }
-
-    function eliminarLinea(idProducto, esServicio){
-        $.post('@Url.Action("EliminarLinea", "Ventas")', { idProducto, esServicio }, function(res){
-            if(res.success){
-                $(`tr[data-id='${idProducto}']`).remove();
-                var total = 0;
-                $('#tblCarrito tbody tr').each(function(){ total += parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g,"")); });
-                $('#totalCarrito').text("Total: "+total.toLocaleString('en-US',{style:'currency',currency:'USD'}));
+        var termino = $('#txtBuscarServicio').val();
+        $.get(urlBuscarServicio, { termino: termino }, function (res) {
+            var $list = $('#resultadoBusquedaServicios').empty();
+            if (!res || !res.length) {
+                $list.append('<li class="list-group-item">No se encontraron servicios.</li>');
+                return;
             }
+            res.forEach(function (s) {
+                var $li = $('<li>').addClass('list-group-item d-flex justify-content-between align-items-center');
+                var texto = `${s.Nombre} - ${s.PrecioUnitario.toFixed(2)}`;
+                $li.append($('<span>').text(texto));
+                var $btn = $('<button>').addClass('btn btn-sm btn-primary').text('Agregar');
+                $btn.on('click', function () { agregarServicio(s.IdServicio, s.Nombre, s.PrecioUnitario); });
+                $li.append($btn);
+                $list.append($li);
+            });
+        }).fail(function () {
+            alert('Error buscando servicios.');
         });
     }
 
-    function finalizarVenta(){
-        $.post('@Url.Action("FinalizarVenta", "Ventas")', {}, function(res){
-            if(res.success){ alert(res.mensaje); location.reload(); }
-            else alert("Error al registrar la venta.");
+    // ---------- AGREGAR ----------
+    function agregarProducto(idProducto, nombre, precioUnitario, cantidadStock) {
+        guardarTabActivo('#tabProductos');
+        if (cantidadStock !== undefined && cantidadStock <= 0) {
+            alert('Stock insuficiente para agregar este producto.');
+            return;
+        }
+        $.post(urlAgregarProducto, { idProducto: idProducto, nombre: nombre, precioUnitario: precioUnitario }, function (res) {
+            if (res && res.success) {
+                refreshCarritoPartial();
+            } else {
+                alert(res && res.mensaje ? res.mensaje : 'No se pudo agregar el producto.');
+            }
+        }).fail(function () {
+            alert('Error al conectar con el servidor.');
         });
     }
+
+    function agregarServicio(idServicio, nombre, precioUnitario) {
+        guardarTabActivo('#tabServicios');
+        $.post(urlAgregarServicio, { idServicio: idServicio, nombre: nombre, precioUnitario: precioUnitario }, function (res) {
+            if (res && res.success) {
+                refreshCarritoPartial();
+            } else {
+                alert(res && res.mensaje ? res.mensaje : 'No se pudo agregar el servicio.');
+            }
+        }).fail(function () {
+            alert('Error al conectar con el servidor.');
+        });
+    }
+
+    // ---------- CANTIDAD ----------
+    function onCantidadChange(input) {
+        var $input = $(input);
+        var idProducto = $input.data('id');
+        var precio = parseFloat($input.data('precio'));
+        var esServicio = ($input.data('esservicio') === true || $input.data('esservicio') === 'true');
+        var max = parseInt($input.data('max')) || null;
+
+        var cantidad = parseInt($input.val());
+        if (isNaN(cantidad) || cantidad <= 0) cantidad = 1;
+        if (max && cantidad > max) {
+            alert('No puede agregar más unidades. Stock disponible: ' + max);
+            cantidad = max;
+            $input.val(cantidad);
+        } else {
+            $input.val(cantidad);
+        }
+
+        // actualizar subtotal visual
+        var fila = $input.closest('tr');
+        fila.find('.subtotal').text(formatCurrency(precio * cantidad));
+
+        // enviar al servidor
+        $.post(urlActualizarLinea, { idProducto: idProducto, cantidad: cantidad, esServicio: esServicio }, function (res) {
+            if (res && res.success) {
+                // refrescar partial para sincronizar totales y cupón
+                refreshCarritoPartial();
+            } else {
+                alert(res && res.mensaje ? res.mensaje : 'No se pudo actualizar la cantidad.');
+                refreshCarritoPartial();
+            }
+        }).fail(function () {
+            alert('Error comunicándose con el servidor.');
+        });
+    }
+
+    // ---------- ELIMINAR ----------
+    function eliminarLinea(idProducto, esServicio) {
+        $.post(urlEliminarLinea, { idProducto: idProducto, esServicio: esServicio }, function (res) {
+            if (res && res.success) {
+                refreshCarritoPartial();
+            } else {
+                alert(res && res.mensaje ? res.mensaje : 'No se pudo eliminar la línea.');
+            }
+        }).fail(function () {
+            alert('Error comunicándose con el servidor.');
+        });
+    }
+
+    // ---------- CUPÓN ----------
+    function aplicarCupon() {
+        var codigo = $('#carritoContainer').find('#txtCupon').val() || $('#txtCupon').val();
+        if (!codigo || codigo.trim() === '') {
+            $('#carritoContainer').find('#mensajeCupon').text('Ingrese un código de cupón.').css('color', 'red');
+            return;
+        }
+
+        $.post(urlAplicarCupon, { codigo: codigo }, function (res) {
+            if (res && res.success) {
+                // actualizar UI del partial (servidor tiene la lógica principal)
+                refreshCarritoPartial(function () {
+                    // opcional: mostrar mensaje breve (el partial normalmente tiene #mensajeCupon)
+                    $('#carritoContainer').find('#mensajeCupon').text(res.mensaje).css('color', 'green');
+                });
+            } else {
+                // mostrar error en el partial
+                $('#carritoContainer').find('#mensajeCupon').text(res && res.mensaje ? res.mensaje : 'Cupón no válido.').css('color', 'red');
+            }
+        }).fail(function () {
+            $('#carritoContainer').find('#mensajeCupon').text('Error comunicándose con el servidor.').css('color', 'red');
+        });
+    }
+
+    function quitarCupon() {
+        $.post(urlQuitarCupon, {}, function (res) {
+            if (res && res.success) {
+                refreshCarritoPartial();
+            } else {
+                $('#carritoContainer').find('#mensajeCupon').text(res && res.mensaje ? res.mensaje : 'No se pudo quitar el cupón.').css('color', 'red');
+            }
+        }).fail(function () {
+            $('#carritoContainer').find('#mensajeCupon').text('Error comunicándose con el servidor.').css('color', 'red');
+        });
+    }
+
+    // ---------- FINALIZAR ----------
+    function finalizarVenta() {
+        if (!confirm('¿Desea finalizar la venta?')) return;
+        $.post(urlFinalizarVenta, {}, function (res) {
+            if (res && res.success) {
+                alert(res.mensaje);
+                refreshCarritoPartial();
+            } else {
+                alert(res && res.mensaje ? res.mensaje : 'Error al registrar la venta.');
+            }
+        }).fail(function () {
+            alert('Error comunicándose con el servidor.');
+        });
+    }
+
+    // guardar/restaurar tab activo
+    function guardarTabActivo(tabId) { sessionStorage.setItem('tabActivo', tabId); }
+    $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) { guardarTabActivo($(e.target).attr('href')); });
 </script>
 
 <style>

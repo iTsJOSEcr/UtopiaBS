@@ -5,75 +5,65 @@
         <tr>
             <th>Tipo</th>
             <th>Nombre</th>
-            <th>Cantidad</th>
-            <th>Precio Unitario</th>
-            <th>Subtotal</th>
-            <th>Acciones</th>
+            <th style="width:120px">Cantidad</th>
+            <th class="text-end">Precio Unitario</th>
+            <th class="text-end">Subtotal</th>
+            <th class="text-center">Acciones</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var linea in Model.Lineas)
         {
-            <tr data-id="@linea.IdProducto">
+            <tr data-id="@linea.IdProducto" data-esservicio="@linea.EsServicio.ToString().ToLower()">
                 <td>@(linea.EsServicio ? "Servicio" : "Producto")</td>
                 <td>@linea.NombreProducto</td>
-                <td>
-                    <input type="number" min="1" value="@linea.Cantidad"
-                           onchange="actualizarCantidad(this, @linea.IdProducto, @linea.PrecioUnitario, @linea.EsServicio.ToString().ToLower())" />
+                <td class="text-center">
+                    @* Si NO es servicio, agregamos max y data-max; si ES servicio, no los ponemos *@
+                    @if (!linea.EsServicio)
+                    {
+                        <input type="number"
+                               min="1"
+                               value="@linea.Cantidad"
+                               max="@linea.CantidadStock"
+                               data-id="@linea.IdProducto"
+                               data-precio="@linea.PrecioUnitario"
+                               data-esservicio="@linea.EsServicio.ToString().ToLower()"
+                               data-max="@linea.CantidadStock"
+                               class="form-control form-control-sm text-center" />
+                        <small class="text-muted d-block">Disponible: @linea.CantidadStock</small>
+                    }
+                    else
+                    {
+                        <input type="number"
+                               min="1"
+                               value="@linea.Cantidad"
+                               data-id="@linea.IdProducto"
+                               data-precio="@linea.PrecioUnitario"
+                               data-esservicio="@linea.EsServicio.ToString().ToLower()"
+                               class="form-control form-control-sm text-center" />
+                    }
                 </td>
-                <td>@linea.PrecioUnitario.ToString("C")</td>
-                <td class="subtotal">@linea.SubTotal.ToString("C")</td>
-                <td>
-                    <button class="btn btn-danger btn-sm"
-                            onclick="eliminarLinea(@linea.IdProducto, @linea.EsServicio.ToString().ToLower())">
-                        Eliminar
-                    </button>
+                <td class="text-end">@linea.PrecioUnitario.ToString("C")</td>
+                <td class="text-end subtotal">@linea.SubTotal.ToString("C")</td>
+                <td class="text-center">
+                    <button class="btn btn-danger btn-sm btn-eliminar" type="button">Eliminar</button>
                 </td>
             </tr>
         }
     </tbody>
 </table>
 
-<h4 id="totalCarrito">Total: @Model.Total.ToString("C")</h4>
+<div class="mt-3">
+    <div class="input-group mb-2">
+        <input type="text" id="txtCupon" class="form-control" placeholder="Código de cupón" value="@Model.CuponAplicado" />
+        <button class="btn btn-primary" id="btnAplicarCupon">Aplicar</button>
+        <button class="btn btn-secondary" id="btnQuitarCupon">Quitar</button>
+    </div>
+    <div id="mensajeCupon" class="mb-2" style="min-height:1em"></div>
 
-<script>
-function actualizarCantidad(input, idProducto, precioUnitario, esServicio) {
-    var cantidad = parseInt(input.value);
-    if (cantidad <= 0) cantidad = 1;
-    input.value = cantidad;
-
-    // Recalcular subtotal en tiempo real
-    var fila = $(input).closest('tr');
-    var subtotal = precioUnitario * cantidad;
-    fila.find('.subtotal').text(subtotal.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
-
-    // Recalcular total
-    var total = 0;
-    $('#tblCarrito tbody tr').each(function() {
-        var sub = parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g,""));
-        total += sub;
-    });
-    $('#totalCarrito').text("Total: " + total.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
-
-    // Actualizar cantidad en servidor (sin recargar)
-    $.post('@Url.Action("ActualizarLinea", "Ventas")', { idProducto: idProducto, cantidad: cantidad, esServicio: esServicio }, function(res) {
-        // No necesitamos hacer nada aquí; la UI ya se actualizó
-    });
-}
-
-function eliminarLinea(idProducto, esServicio) {
-    $.post('@Url.Action("EliminarLinea", "Ventas")', { idProducto: idProducto, esServicio: esServicio }, function(res) {
-        if (res.success) {
-            $(`tr[data-id='${idProducto}']`).remove();
-
-            // Recalcular total
-            var total = 0;
-            $('#tblCarrito tbody tr').each(function() {
-                var sub = parseFloat($(this).find('.subtotal').text().replace(/[^0-9.-]+/g,""));
-                total += sub;
-            });
-            $('#totalCarrito').text("Total: " + total.toLocaleString('en-US', { style: 'currency', currency: 'USD' }));
-        }
-    });
-}
-</script>
+    <div class="text-end">
+        <p>Subtotal: <span id="subtotalTexto">@Model.SubTotal.ToString("C")</span></p>
+        <p id="filaDescuento" style="display:@(Model.Descuento > 0 ? "block" : "none")">Descuento: <span id="descuentoTexto">- @Model.Descuento.ToString("C")</span></p>
+        <h5>Total: <span id="totalTexto">@Model.Total.ToString("C")</span></h5>
+    </div>
+</div>
