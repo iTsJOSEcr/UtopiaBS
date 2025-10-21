@@ -2,7 +2,6 @@
 using UtopiaBS.Entities;
 using UtopiaBS.Entities.Contabilidad;
 
-
 namespace UtopiaBS.Data
 {
     public class Context : DbContext
@@ -25,8 +24,6 @@ namespace UtopiaBS.Data
         public DbSet<UtopiaBS.Entities.Contabilidad.Ingreso> Ingresos { get; set; }
         public DbSet<UtopiaBS.Entities.Contabilidad.Egreso> Egresos { get; set; }
         public DbSet<UtopiaBS.Entities.Contabilidad.CierreSemanal> CierresSemanales { get; set; }
-
-
-
+        public DbSet<CuponDescuento> CuponDescuento { get; set; }
     }
 }
