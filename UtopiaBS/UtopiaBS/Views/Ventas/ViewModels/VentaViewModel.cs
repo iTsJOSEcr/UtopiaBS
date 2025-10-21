@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace UtopiaBS.Web.ViewModels
 {
@@ -13,10 +12,9 @@ namespace UtopiaBS.Web.ViewModels
             FechaCreacion = DateTime.Now;
         }
 
-        // Lista de líneas que conforman la venta (temporal, en memoria / session)
         public List<LineaVentaViewModel> Lineas { get; set; }
 
-        // Subtotal calculado: suma de SubTotal de cada linea
+        // Subtotal antes de descuentos
         public decimal SubTotal
         {
             get
@@ -28,14 +26,58 @@ namespace UtopiaBS.Web.ViewModels
             }
         }
 
-        // Aquí podrías agregar propiedades para descuentos, impuestos, etc.
-        // Por ahora dejamos Total == SubTotal (ya que no pediste impuestos ni movimientos)
-        public decimal Total => SubTotal;
+        // Cupón aplicado (código)
+        public string CuponAplicado { get; set; }
 
-        // Fecha de creación del carrito (solo informativa)
+        // Tipo de cupón ("Porcentaje" o "Monto")
+        public string CuponTipo { get; set; }
+
+        // Valor original del cupón (porcentaje o monto)
+        public decimal CuponValor { get; set; }
+
+        // Monto de descuento aplicado (valor monetario)
+        public decimal Descuento { get; set; } = 0m;
+
+        // Total después de descuento
+        public decimal Total
+        {
+            get
+            {
+                var total = SubTotal - Descuento;
+                if (total < 0) total = 0;
+                return total;
+            }
+        }
+
         public DateTime FechaCreacion { get; set; }
 
-        // Si en UI vamos a asociar cliente, aquí podríamos tener IdCliente (opcional)
         public int? IdCliente { get; set; }
+
+        // Aplica cupón a este carrito (calcula Descuento a partir del SubTotal)
+        public void AplicarCupon(string codigo, string tipo, decimal valor)
+        {
+            CuponAplicado = codigo;
+            CuponTipo = tipo;
+            CuponValor = valor;
+
+            if (string.Equals(tipo, "Porcentaje", StringComparison.OrdinalIgnoreCase))
+            {
+                Descuento = Math.Round(SubTotal * (valor / 100m), 2);
+            }
+            else
+            {
+                Descuento = Math.Round(valor, 2);
+                if (Descuento > SubTotal) Descuento = SubTotal;
+            }
+        }
+
+        // Limpia cupón
+        public void LimpiarCupon()
+        {
+            CuponAplicado = null;
+            CuponTipo = null;
+            CuponValor = 0m;
+            Descuento = 0m;
+        }
     }
 }
