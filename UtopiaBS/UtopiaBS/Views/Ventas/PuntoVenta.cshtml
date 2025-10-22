@@ -59,22 +59,58 @@
     </div>
 </div>
 
+<!-- Modal de confirmación -->
+<div class="modal fade" id="modalConfirmarVenta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow-lg">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Confirmar Venta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                ¿Desea finalizar la venta?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmarVenta">Sí, finalizar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de mensaje -->
+<div class="modal fade" id="modalMensajeVenta" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow-lg">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Información</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="mensajeVentaBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // URL helpers
-    var urlBuscarProducto = '@Url.Action("BuscarProducto","Ventas")';
-    var urlBuscarServicio = '@Url.Action("BuscarServicio","Ventas")';
-    var urlAgregarProducto = '@Url.Action("AgregarAlCarrito","Ventas")';
-    var urlAgregarServicio = '@Url.Action("AgregarServicioAlCarrito","Ventas")';
-    var urlCarritoParcial = '@Url.Action("CarritoParcial","Ventas")';
-    var urlActualizarLinea = '@Url.Action("ActualizarLinea","Ventas")';
-    var urlEliminarLinea = '@Url.Action("EliminarLinea","Ventas")';
-    var urlAplicarCupon = '@Url.Action("AplicarCupon","Ventas")';
-    var urlQuitarCupon = '@Url.Action("QuitarCupon","Ventas")';
-    var urlFinalizarVenta = '@Url.Action("FinalizarVenta","Ventas")';
+    // URLs de Razor correctamente
+    var urlBuscarProducto = '@Url.Action("BuscarProducto", "Ventas")';
+    var urlBuscarServicio = '@Url.Action("BuscarServicio", "Ventas")';
+    var urlAgregarProducto = '@Url.Action("AgregarAlCarrito", "Ventas")';
+    var urlAgregarServicio = '@Url.Action("AgregarServicioAlCarrito", "Ventas")';
+    var urlCarritoParcial = '@Url.Action("CarritoParcial", "Ventas")';
+    var urlActualizarLinea = '@Url.Action("ActualizarLinea", "Ventas")';
+    var urlEliminarLinea = '@Url.Action("EliminarLinea", "Ventas")';
+    var urlAplicarCupon = '@Url.Action("AplicarCupon", "Ventas")';
+    var urlQuitarCupon = '@Url.Action("QuitarCupon", "Ventas")';
+    var urlFinalizarVenta = '@Url.Action("FinalizarVenta", "Ventas")';
 
     function formatCurrency(value) {
         return (value || 0).toLocaleString(undefined, { style: 'currency', currency: 'USD' });
@@ -88,9 +124,7 @@
         });
     }
 
-    // attach handlers delegados / iniciales (se llama cada vez que se carga el partial)
     function attachCarritoEvents() {
-        // eliminación (delegada)
         $('#carritoContainer').off('click', '.btn-eliminar').on('click', '.btn-eliminar', function (e) {
             e.preventDefault();
             var id = $(this).closest('tr').data('id');
@@ -98,12 +132,10 @@
             eliminarLinea(id, esServicio);
         });
 
-        // cambios de cantidad (delegado)
         $('#carritoContainer').off('change', 'input[data-id]').on('change', 'input[data-id]', function () {
             onCantidadChange(this);
         });
 
-        // botones de cupón del partial (si existen)
         $('#carritoContainer').off('click', '#btnAplicarCupon').on('click', '#btnAplicarCupon', function () {
             aplicarCupon();
         });
@@ -113,19 +145,9 @@
     }
 
     $(function () {
-        // Inicializar eventos principales
         $('#btnBuscarProducto').on('click', buscarProducto);
         $('#btnBuscarServicio').on('click', buscarServicio);
         $('#btnFinalizarVenta').on('click', finalizarVenta);
-
-        // Restaurar tab activo (si aplica)
-        var tabActivo = sessionStorage.getItem('tabActivo');
-        if (tabActivo) {
-            var el = document.querySelector(`a[href='${tabActivo}']`);
-            if (el) new bootstrap.Tab(el).show();
-        }
-
-        // attach events for initially rendered partial
         attachCarritoEvents();
     });
 
@@ -139,9 +161,8 @@
                 return;
             }
             res.forEach(function (p) {
-                // construimos elementos con jQuery para evitar escapar manual de comillas
                 var $li = $('<li>').addClass('list-group-item d-flex justify-content-between align-items-center');
-                var texto = `${p.Nombre} - ${p.PrecioUnitario.toFixed(2)} (Disponible: ${p.CantidadStock})`;
+                var texto = p.Nombre + ' - ' + formatCurrency(p.PrecioUnitario) + ' (Disponible: ' + p.CantidadStock + ')';
                 $li.append($('<span>').text(texto));
                 var $btn = $('<button>').addClass('btn btn-sm btn-primary').text('Agregar');
                 $btn.on('click', function () { agregarProducto(p.IdProducto, p.Nombre, p.PrecioUnitario, p.CantidadStock); });
@@ -163,7 +184,7 @@
             }
             res.forEach(function (s) {
                 var $li = $('<li>').addClass('list-group-item d-flex justify-content-between align-items-center');
-                var texto = `${s.Nombre} - ${s.PrecioUnitario.toFixed(2)}`;
+                var texto = s.Nombre + ' - ' + formatCurrency(s.PrecioUnitario);
                 $li.append($('<span>').text(texto));
                 var $btn = $('<button>').addClass('btn btn-sm btn-primary').text('Agregar');
                 $btn.on('click', function () { agregarServicio(s.IdServicio, s.Nombre, s.PrecioUnitario); });
@@ -178,16 +199,13 @@
     // ---------- AGREGAR ----------
     function agregarProducto(idProducto, nombre, precioUnitario, cantidadStock) {
         guardarTabActivo('#tabProductos');
-        if (cantidadStock !== undefined && cantidadStock <= 0) {
+        if (cantidadStock <= 0) {
             alert('Stock insuficiente para agregar este producto.');
             return;
         }
         $.post(urlAgregarProducto, { idProducto: idProducto, nombre: nombre, precioUnitario: precioUnitario }, function (res) {
-            if (res && res.success) {
-                refreshCarritoPartial();
-            } else {
-                alert(res && res.mensaje ? res.mensaje : 'No se pudo agregar el producto.');
-            }
+            if (res && res.success) refreshCarritoPartial();
+            else alert(res && res.mensaje ? res.mensaje : 'No se pudo agregar el producto.');
         }).fail(function () {
             alert('Error al conectar con el servidor.');
         });
@@ -196,11 +214,8 @@
     function agregarServicio(idServicio, nombre, precioUnitario) {
         guardarTabActivo('#tabServicios');
         $.post(urlAgregarServicio, { idServicio: idServicio, nombre: nombre, precioUnitario: precioUnitario }, function (res) {
-            if (res && res.success) {
-                refreshCarritoPartial();
-            } else {
-                alert(res && res.mensaje ? res.mensaje : 'No se pudo agregar el servicio.');
-            }
+            if (res && res.success) refreshCarritoPartial();
+            else alert(res && res.mensaje ? res.mensaje : 'No se pudo agregar el servicio.');
         }).fail(function () {
             alert('Error al conectar con el servidor.');
         });
@@ -220,23 +235,13 @@
             alert('No puede agregar más unidades. Stock disponible: ' + max);
             cantidad = max;
             $input.val(cantidad);
-        } else {
-            $input.val(cantidad);
-        }
+        } else $input.val(cantidad);
 
-        // actualizar subtotal visual
         var fila = $input.closest('tr');
         fila.find('.subtotal').text(formatCurrency(precio * cantidad));
 
-        // enviar al servidor
         $.post(urlActualizarLinea, { idProducto: idProducto, cantidad: cantidad, esServicio: esServicio }, function (res) {
-            if (res && res.success) {
-                // refrescar partial para sincronizar totales y cupón
-                refreshCarritoPartial();
-            } else {
-                alert(res && res.mensaje ? res.mensaje : 'No se pudo actualizar la cantidad.');
-                refreshCarritoPartial();
-            }
+            refreshCarritoPartial();
         }).fail(function () {
             alert('Error comunicándose con el servidor.');
         });
@@ -245,11 +250,8 @@
     // ---------- ELIMINAR ----------
     function eliminarLinea(idProducto, esServicio) {
         $.post(urlEliminarLinea, { idProducto: idProducto, esServicio: esServicio }, function (res) {
-            if (res && res.success) {
-                refreshCarritoPartial();
-            } else {
-                alert(res && res.mensaje ? res.mensaje : 'No se pudo eliminar la línea.');
-            }
+            if (res && res.success) refreshCarritoPartial();
+            else alert(res && res.mensaje ? res.mensaje : 'No se pudo eliminar la línea.');
         }).fail(function () {
             alert('Error comunicándose con el servidor.');
         });
@@ -265,13 +267,10 @@
 
         $.post(urlAplicarCupon, { codigo: codigo }, function (res) {
             if (res && res.success) {
-                // actualizar UI del partial (servidor tiene la lógica principal)
                 refreshCarritoPartial(function () {
-                    // opcional: mostrar mensaje breve (el partial normalmente tiene #mensajeCupon)
                     $('#carritoContainer').find('#mensajeCupon').text(res.mensaje).css('color', 'green');
                 });
             } else {
-                // mostrar error en el partial
                 $('#carritoContainer').find('#mensajeCupon').text(res && res.mensaje ? res.mensaje : 'Cupón no válido.').css('color', 'red');
             }
         }).fail(function () {
@@ -281,11 +280,8 @@
 
     function quitarCupon() {
         $.post(urlQuitarCupon, {}, function (res) {
-            if (res && res.success) {
-                refreshCarritoPartial();
-            } else {
-                $('#carritoContainer').find('#mensajeCupon').text(res && res.mensaje ? res.mensaje : 'No se pudo quitar el cupón.').css('color', 'red');
-            }
+            if (res && res.success) refreshCarritoPartial();
+            else $('#carritoContainer').find('#mensajeCupon').text(res && res.mensaje ? res.mensaje : 'No se pudo quitar el cupón.').css('color', 'red');
         }).fail(function () {
             $('#carritoContainer').find('#mensajeCupon').text('Error comunicándose con el servidor.').css('color', 'red');
         });
@@ -293,17 +289,23 @@
 
     // ---------- FINALIZAR ----------
     function finalizarVenta() {
-        if (!confirm('¿Desea finalizar la venta?')) return;
-        $.post(urlFinalizarVenta, {}, function (res) {
-            if (res && res.success) {
-                alert(res.mensaje);
-                refreshCarritoPartial();
-            } else {
-                alert(res && res.mensaje ? res.mensaje : 'Error al registrar la venta.');
-            }
-        }).fail(function () {
-            alert('Error comunicándose con el servidor.');
-        });
+        const modalConfirm = new bootstrap.Modal(document.getElementById('modalConfirmarVenta'));
+        const modalMensaje = new bootstrap.Modal(document.getElementById('modalMensajeVenta'));
+        const mensajeBody = document.getElementById('mensajeVentaBody');
+
+        modalConfirm.show();
+
+        document.getElementById('btnConfirmarVenta').onclick = function () {
+            modalConfirm.hide();
+            $.post(urlFinalizarVenta, {}, function (res) {
+                mensajeBody.textContent = res && res.mensaje ? res.mensaje : 'Venta finalizada.';
+                modalMensaje.show();
+                if (res && res.success) refreshCarritoPartial();
+            }).fail(function () {
+                mensajeBody.textContent = 'Error comunicándose con el servidor.';
+                modalMensaje.show();
+            });
+        };
     }
 
     // guardar/restaurar tab activo
