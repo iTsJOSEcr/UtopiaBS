@@ -16,7 +16,7 @@ namespace UtopiaBS.Business
                 var query = db.Citas
                               .Include(c => c.Empleado)
                               .Include(c => c.Servicio)
-                              .Where(c => c.IdEstadoCita == 4) 
+                              .Where(c => c.IdEstadoCita == 4)
                               .AsQueryable();
 
                 if (empleadoId.HasValue)
@@ -59,7 +59,7 @@ namespace UtopiaBS.Business
                     if (cita == null)
                         return "No se encontró la cita.";
 
-                   
+
                     if (cita.IdEstadoCita != 4 && cita.IdEstadoCita != 1)
                         return "La cita ya no está disponible.";
 
@@ -102,7 +102,7 @@ namespace UtopiaBS.Business
                 var cita = db.Citas.Find(idCita);
                 if (cita == null) return "Cita no encontrada.";
 
-                cita.IdEstadoCita = 3; 
+                cita.IdEstadoCita = 3;
                 cita.FechaUltimoRecordatorio = DateTime.Now;
                 db.SaveChanges();
                 return "Cita confirmada correctamente.";
@@ -139,6 +139,35 @@ namespace UtopiaBS.Business
                     query = query.Where(c => c.IdServicio == servicioId.Value);
 
                 return query.OrderBy(c => c.FechaHora).ToList();
+            }
+        }
+
+        public string CambiarCita(int idCitaActual, int idNuevaCita)
+        {
+            using (var db = new Context())
+            {
+                var citaActual = db.Citas.Find(idCitaActual);
+                var nuevaCita = db.Citas.Find(idNuevaCita);
+
+                if (citaActual == null || nuevaCita == null)
+                    return "No se encontraron las citas especificadas.";
+
+                if (nuevaCita.IdEstadoCita != 4)
+                    return "La nueva cita ya no está disponible.";
+
+
+                int? clienteId = citaActual.IdCliente;
+
+
+                citaActual.IdCliente = null;
+                citaActual.IdEstadoCita = 4;
+
+
+                nuevaCita.IdCliente = clienteId;
+                nuevaCita.IdEstadoCita = 1;
+
+                db.SaveChanges();
+                return "Cita cambiada exitosamente.";
             }
         }
 

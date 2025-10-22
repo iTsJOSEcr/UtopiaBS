@@ -222,6 +222,7 @@
     <Content Include="Views\Cita\Administrar.cshtml" />
     <Content Include="Views\Cita\Agregar.cshtml" />
     <Content Include="Views\Cita\Editar.cshtml" />
+    <Content Include="Views\Cita\MisCitas.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

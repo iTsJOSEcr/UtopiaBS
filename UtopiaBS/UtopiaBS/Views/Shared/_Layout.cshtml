@@ -37,19 +37,49 @@
                     <li class="nav-item">
                         <a class="nav-link" href="@Url.Action("Index","Home")"><i class="fas fa-home me-1"></i> Inicio</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("Listar","Cita")"><i class="fas fa-calendar-check me-1"></i> Citas</a>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarCitasCliente"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-calendar-alt me-1"></i> Citas
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarCitasCliente">
+                            <li>
+                                <a class="dropdown-item" href="@Url.Action("Listar", "Cita")">
+                                    <i class="fas fa-calendar-plus me-2 text-success"></i> Citas Disponibles
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="@Url.Action("MisCitas", "Cita")">
+                                    <i class="fas fa-user-clock me-2 text-primary"></i> Mis Citas
+                                </a>
+                            </li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("ListarAgendadas","Cita")"><i class="fas fa-calendar-check me-1"></i>Citas admin</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("Administrar","Cita")"><i class="fas fa-calendar-check me-1"></i>Administrar Citas</a>
+
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarCitasAdmin" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-calendar-cog me-1"></i> Gestión de Citas
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarCitasAdmin">
+                            <li>
+                                <a class="dropdown-item" href="@Url.Action("ListarAgendadas", "Cita")">
+                                    <i class="fas fa-calendar-check me-2 text-primary"></i> Citas Agendadas
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="@Url.Action("Administrar", "Cita")">
+                                    <i class="fas fa-tools me-2 text-primary"></i> Administrar Citas
+                                </a>
+                            </li>
+                        </ul>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link" href="@Url.Action("Listar","Producto")"><i class="fas fa-boxes me-1"></i> Inventario</a>
                     </li>
+
                     <li class="nav-item">
                         <a class="nav-link" href="@Url.Action("PuntoVenta", "Ventas")"> <i class="fas fa-cash-register me-1"></i> Punto de Venta </a>
                     </li>
@@ -60,8 +90,6 @@
                         </a>
                     </li>
 
-
-
                 </ul>
             </div>
         </div>
@@ -69,11 +97,11 @@
 
     <style>
         body {
-            padding-top: 60px; 
+            padding-top: 60px;
         }
     </style>
 
-   
+
     @RenderBody()
 
     <!-- Footer-->
@@ -95,10 +123,10 @@
     </footer>
 
     <!-- Bootstrap core JS-->
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-                <!-- Core theme JS-->
-                <script src="~/Scripts/js/scripts.js"></script>
-                @RenderSection("Scripts", required: false)
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Core theme JS-->
+    <script src="~/Scripts/js/scripts.js"></script>
+    @RenderSection("Scripts", required: false)
 
 </body>
 </html>
