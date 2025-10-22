@@ -7,6 +7,12 @@ namespace UtopiaBS.Web.ViewModels
         public int IdProducto { get; set; }
 
         public string NombreProducto { get; set; }
+
+        public string Descripcion { get; set; }
+
+        // Solo para mostrar stock en la UI (actualizado desde DB)
+        public int CantidadStock { get; set; } = 0;
+
         public bool EsServicio { get; set; } = false;
 
         [Required]
