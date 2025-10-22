@@ -40,6 +40,7 @@
                                 <td class="text-center">@item.Proveedor</td>
                                 <td class="text-center"><span class="badge bg-success">₡@item.PrecioUnitario</span></td>
                                 <td class="text-center">
+                                    @* Alerta de stock bajo *@
                                     @if (item.CantidadStock > item.Threshold)
                                     {
                                         <span class="badge bg-warning text-dark">@item.CantidadStock</span>
@@ -47,6 +48,12 @@
                                     else
                                     {
                                         <span class="badge bg-danger">@item.CantidadStock</span>
+                                    }
+
+                                    @* Alerta de producto antiguo (>90 días) *@
+                                    @if ((DateTime.Now - item.Fecha).TotalDays > 90)
+                                    {
+                                        <span class="badge bg-secondary ms-1" title="Producto antiguo">⌛</span>
                                     }
                                 </td>
                                 <td class="text-center">@item.Fecha.ToShortDateString()</td>
@@ -116,5 +123,9 @@
     .btn-outline-warning, .btn-outline-danger {
         font-size: 0.85rem;
         font-weight: 500;
+    }
+
+    .badge {
+        font-size: 0.9rem;
     }
 </style>
