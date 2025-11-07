@@ -1,0 +1,28 @@
+﻿@model UtopiaBS.Models.LoginViewModel
+@{
+    ViewBag.Title = "Iniciar sesión";
+}
+
+<h2>@ViewBag.Title</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    <div>
+        <label>Email</label>
+        @Html.TextBoxFor(m => m.Email, new { @class = "form-control" })
+    </div>
+    <div>
+        <label>Contraseña</label>
+        @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Ingresar</button>
+
+    <div class="text-center mt-3">
+        <p>¿No tienes cuenta?</p>
+        <a href="@Url.Action("Register", "Account")" class="btn btn-outline-primary">
+            <i class="fas fa-user-plus me-1"></i> Crear cuenta
+        </a>
+    </div>
+
+}
