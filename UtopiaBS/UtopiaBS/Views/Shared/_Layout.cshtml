@@ -1,4 +1,5 @@
-﻿@{
+﻿@using Microsoft.AspNet.Identity
+@{
     Layout = null;
 }
 
@@ -15,92 +16,117 @@
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
     <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" type="text/css" />
     <link href="@Url.Content("~/Content/css/styles.css")" rel="stylesheet" />
-
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales/es.js"></script>
-
 </head>
 <body id="page-top">
     <!-- Navigation-->
-    <nav id="mainNav" class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-white" href="@Url.Action("Index","Home")">Utopia Beauty</a>
+    @if (Request.IsAuthenticated)
+    {
+        <nav id="mainNav" class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
+            <div class="container">
+                <a class="navbar-brand fw-bold text-white" href="@Url.Action("Index","Home")">Utopia Beauty</a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
-                    aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
+                        aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-            <div class="collapse navbar-collapse" id="navbarResponsive">
-                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("Index","Home")"><i class="fas fa-home me-1"></i> Inicio</a>
-                    </li>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarCitasCliente"
-                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-calendar-alt me-1"></i> Citas
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarCitasCliente">
-                            <li>
-                                <a class="dropdown-item" href="@Url.Action("Listar", "Cita")">
-                                    <i class="fas fa-calendar-plus me-2 text-success"></i> Citas Disponibles
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="@Url.Action("MisCitas", "Cita")">
-                                    <i class="fas fa-user-clock me-2 text-primary"></i> Mis Citas
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Index","Home")"><i class="fas fa-home me-1"></i> Inicio</a>
+                        </li>
 
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="navbarCitasCliente"
+                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-calendar-alt me-1"></i> Citas
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarCitasCliente">
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("Listar", "Cita")">
+                                        <i class="fas fa-calendar-plus me-2 text-success"></i> Citas Disponibles
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("MisCitas", "Cita")">
+                                        <i class="fas fa-user-clock me-2 text-primary"></i> Mis Citas
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarCitasAdmin" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-calendar-cog me-1"></i> Gestión de Citas
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarCitasAdmin">
-                            <li>
-                                <a class="dropdown-item" href="@Url.Action("ListarAgendadas", "Cita")">
-                                    <i class="fas fa-calendar-check me-2 text-primary"></i> Citas Agendadas
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item" href="@Url.Action("Administrar", "Cita")">
-                                    <i class="fas fa-tools me-2 text-primary"></i> Administrar Citas
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarCitasAdmin" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-calendar-cog me-1"></i> Gestión de Citas
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarCitasAdmin">
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("ListarAgendadas", "Cita")">
+                                        <i class="fas fa-calendar-check me-2 text-primary"></i> Citas Agendadas
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("Administrar", "Cita")">
+                                        <i class="fas fa-tools me-2 text-primary"></i> Administrar Citas
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("Listar","Producto")"><i class="fas fa-boxes me-1"></i> Inventario</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Listar","Producto")"><i class="fas fa-boxes me-1"></i> Inventario</a>
+                        </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("PuntoVenta", "Ventas")"> <i class="fas fa-cash-register me-1"></i> Punto de Venta </a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("PuntoVenta", "Ventas")"> <i class="fas fa-cash-register me-1"></i> Punto de Venta </a>
+                        </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="@Url.Action("Index", "Contabilidad")">
-                            <i class="fas fa-money-bill-wave me-1"></i> Contabilidad
-                        </a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Index", "Contabilidad")">
+                                <i class="fas fa-money-bill-wave me-1"></i> Contabilidad
+                            </a>
+                        </li>
 
-                </ul>
+                        <!-- Botón de usuario -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-1"></i> @User.Identity.GetUserName()
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="@Url.Action("Perfil", "Account")"><i class="fas fa-id-card me-2 text-info"></i> Perfil</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Logout", "Account")"><i class="fas fa-sign-out-alt me-2 text-danger"></i> Cerrar sesión</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    }
+    else
+    {
+        <!-- Navbar solo con Login -->
+        <nav id="mainNav" class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top shadow-sm">
+            <div class="container">
+                <a class="navbar-brand fw-bold text-white" href="@Url.Action("Index","Home")">Utopia Beauty</a>
+                <div class="d-flex ms-auto">
+                    <a class="btn btn-outline-light me-2" href="@Url.Action("Login", "Account")">
+                        <i class="fas fa-sign-in-alt me-1"></i> Iniciar sesión
+                    </a>
+                </div>
+            </div>
+        </nav>
+    }
 
     <style>
         body {
             padding-top: 60px;
         }
     </style>
-
 
     @RenderBody()
 
@@ -109,11 +135,6 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-4 text-lg-end">Copyright &copy; Utopia Beauty Salon @DateTime.Now.Year</div>
-                <!--      <div class="col-lg-4 my-3 my-lg-0">
-                    <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-                    <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a class="btn btn-dark btn-social mx-2" href="#!" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                </div> -->
                 <div class="col-lg-4 text-lg-end">
                     <a class="link-dark text-decoration-none me-3" href="#!">Privacy Policy</a>
                     <a class="link-dark text-decoration-none" href="#!">Terms of Use</a>

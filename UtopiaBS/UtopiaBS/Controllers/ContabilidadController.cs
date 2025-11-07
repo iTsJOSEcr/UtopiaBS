@@ -66,6 +66,8 @@ namespace UtopiaBS.Web.Controllers
         }
 
         // ------------------- RESUMEN DIARIO -------------------
+
+        [Authorize(Roles = "Administrador")]
         public ActionResult ResumenDiario(DateTime? fecha)
         {
             var fechaSeleccionada = fecha ?? DateTime.Now;
