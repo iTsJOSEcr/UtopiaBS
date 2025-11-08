@@ -8,19 +8,24 @@ namespace UtopiaBS.Models
 {
     public class RegisterViewModel
     {
+
+        [Required, Display(Name = "Nombre de Usuario")]
+        public string UserName { get; set; }
+
         [Required]
         [EmailAddress]
-        [Display(Name = "Correo electrónico")]
         public string Email { get; set; }
 
+        [Required(ErrorMessage = "El número de teléfono es obligatorio.")]
+        public string PhoneNumber { get; set; }
+
         [Required]
-        [StringLength(100, ErrorMessage = "La {0} debe tener al menos {2} caracteres.", MinimumLength = 6)]
         [DataType(DataType.Password)]
-        [Display(Name = "Contraseña")]
+        [StringLength(100, MinimumLength = 6)]
         public string Password { get; set; }
 
+        [Required]
         [DataType(DataType.Password)]
-        [Display(Name = "Confirmar contraseña")]
         [Compare("Password", ErrorMessage = "Las contraseñas no coinciden.")]
         public string ConfirmPassword { get; set; }
     }

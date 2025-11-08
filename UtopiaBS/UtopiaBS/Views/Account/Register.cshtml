@@ -4,32 +4,116 @@
     ViewBag.Title = "Registro de Cliente";
 }
 
-<h2 class="text-center mb-4">Crear cuenta de cliente</h2>
+<style>
+    body {
+        background: #f6f6f6;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #333;
+        font-family: 'Segoe UI', sans-serif;
+        margin: 0;
+    }
 
-@using (Html.BeginForm("Register", "Account", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-{
-    @Html.AntiForgeryToken()
+    footer {
+        display: none;
+    }
 
-    <div class="form-group mb-3">
-        @Html.LabelFor(m => m.Email, new { @class = "control-label" })
-        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Correo electrónico" })
-        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
-    </div>
+    .register-card {
+        width: 420px;
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 35px;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        animation: fadeIn .45s ease;
+    }
 
-    <div class="form-group mb-3">
-        @Html.LabelFor(m => m.Password, new { @class = "control-label" })
-        @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Contraseña" })
-        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-    </div>
+    .form-control {
+        background: #fff;
+        border: 1px solid #ccc;
+        color: #333;
+        border-radius: 8px;
+        padding: .5rem .75rem;
+    }
 
-    <div class="form-group mb-3">
-        @Html.LabelFor(m => m.ConfirmPassword, new { @class = "control-label" })
-        @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "Confirmar contraseña" })
-        @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
-    </div>
+    .form-control:focus {
+        border: 1px solid #6a11cb;
+        box-shadow: 0 0 6px rgba(106,17,203,0.18);
+        outline: none;
+    }
 
-    <button type="submit" class="btn btn-primary w-100">Registrarme</button>
-}
+    .btn-register {
+        background: #6a11cb;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        width: 100%;
+        padding: 10px 0;
+        font-weight: 600;
+    }
+
+    .btn-register:hover {
+        background: #5712a8;
+    }
+
+    @* ESTA ES LA LÍNEA CRÍTICA — OBLIGATORIO DOBLE @ *@
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="register-card">
+    <h3 class="text-center mb-4">Crear cuenta de cliente</h3>
+
+    @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { role = "form" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="mb-3">
+            @Html.LabelFor(m => m.UserName)
+            @Html.TextBoxFor(m => m.UserName, new { @class = "form-control", placeholder = "Nombre de Usuario" })
+            @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="mb-3">
+            @Html.LabelFor(m => m.PhoneNumber)
+            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "Teléfono" })
+            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="mb-3">
+            @Html.LabelFor(m => m.Email)
+            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Correo electrónico" })
+            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="mb-3">
+            @Html.LabelFor(m => m.Password)
+            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Contraseña" })
+            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="mb-4">
+            @Html.LabelFor(m => m.ConfirmPassword)
+            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "Confirmar contraseña" })
+            @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
+        </div>
+
+        <button type="submit" class="btn-register mb-3">Registrarme</button>
+
+        <div class="text-center">
+            <a href="@Url.Action("Login", "Account")" class="text-muted" style="text-decoration:none;">
+                ¿Ya tienes cuenta? Iniciar sesión
+            </a>
+        </div>
+
+        <div class="text-center text-muted mt-4" style="font-size:14px;">
+            © Utopia Beauty Salon 2025
+        </div>
+    }
+</div>
 
 @section Scripts {
     @Scripts.Render("~/bundles/jqueryval")

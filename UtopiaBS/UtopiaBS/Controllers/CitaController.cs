@@ -8,6 +8,7 @@ using UtopiaBS.Entities;
 
 namespace UtopiaBS.Web.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class CitaController : Controller
     {
         private readonly CitaService _citaService = new CitaService();

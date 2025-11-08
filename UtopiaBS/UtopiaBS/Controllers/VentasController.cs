@@ -8,6 +8,7 @@ using UtopiaBS.Web.ViewModels;
 
 namespace UtopiaBS.Web.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class VentasController : Controller
     {
         // GET: Ventas/PuntoVenta

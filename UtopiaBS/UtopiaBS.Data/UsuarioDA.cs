@@ -10,7 +10,6 @@ namespace UtopiaBS.Data
         public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<UsuarioDA> manager)
         {
             var userIdentity = await manager.CreateIdentityAsync(this, DefaultAuthenticationTypes.ApplicationCookie);
-            // Aquí puedes agregar Claims personalizados si lo necesitas
             return userIdentity;
         }
     }

@@ -7,6 +7,7 @@ using UtopiaBS.Data;
 
 namespace UtopiaBS.Web.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class ProductoController : Controller
     {
         private readonly ProductoService service = new ProductoService();

@@ -28,8 +28,7 @@
             <div class="container">
                 <a class="navbar-brand fw-bold text-white" href="@Url.Action("Index","Home")">Utopia Beauty</a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"
-                        aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -40,58 +39,66 @@
                             <a class="nav-link" href="@Url.Action("Index","Home")"><i class="fas fa-home me-1"></i> Inicio</a>
                         </li>
 
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-white" href="#" id="navbarCitasCliente"
-                               role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-calendar-alt me-1"></i> Citas
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarCitasCliente">
-                                <li>
-                                    <a class="dropdown-item" href="@Url.Action("Listar", "Cita")">
-                                        <i class="fas fa-calendar-plus me-2 text-success"></i> Citas Disponibles
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="@Url.Action("MisCitas", "Cita")">
-                                        <i class="fas fa-user-clock me-2 text-primary"></i> Mis Citas
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
+                        <!-- ✅ MENU PARA CLIENTE -->
+                        @if (User.IsInRole("Cliente"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-white" href="#" id="navbarCitasCliente"
+                                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-calendar-alt me-1"></i> Citas
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarCitasCliente">
+                                    <li>
+                                        <a class="dropdown-item" href="@Url.Action("Listar", "CitaCliente")">
+                                            <i class="fas fa-calendar-plus me-2 text-success"></i> Citas Disponibles
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="@Url.Action("MisCitas", "CitaCliente")">
+                                            <i class="fas fa-user-clock me-2 text-primary"></i> Mis Citas
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
 
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarCitasAdmin" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-calendar-cog me-1"></i> Gestión de Citas
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarCitasAdmin">
-                                <li>
-                                    <a class="dropdown-item" href="@Url.Action("ListarAgendadas", "Cita")">
-                                        <i class="fas fa-calendar-check me-2 text-primary"></i> Citas Agendadas
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item" href="@Url.Action("Administrar", "Cita")">
-                                        <i class="fas fa-tools me-2 text-primary"></i> Administrar Citas
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
+                        <!-- ✅ MENU PARA ADMIN -->
+                        @if (User.IsInRole("Administrador"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarCitasAdmin" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-calendar-cog me-1"></i> Gestión de Citas
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarCitasAdmin">
+                                    <li>
+                                        <a class="dropdown-item" href="@Url.Action("ListarAgendadas", "Cita")">
+                                            <i class="fas fa-calendar-check me-2 text-primary"></i> Citas Agendadas
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="@Url.Action("Administrar", "Cita")">
+                                            <i class="fas fa-tools me-2 text-primary"></i> Administrar Citas
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("Listar","Producto")"><i class="fas fa-boxes me-1"></i> Inventario</a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="@Url.Action("Listar","Producto")"><i class="fas fa-boxes me-1"></i> Inventario</a>
+                            </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("PuntoVenta", "Ventas")"> <i class="fas fa-cash-register me-1"></i> Punto de Venta </a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="@Url.Action("PuntoVenta", "Ventas")"> <i class="fas fa-cash-register me-1"></i> Punto de Venta </a>
+                            </li>
 
-                        <li class="nav-item">
-                            <a class="nav-link" href="@Url.Action("Index", "Contabilidad")">
-                                <i class="fas fa-money-bill-wave me-1"></i> Contabilidad
-                            </a>
-                        </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="@Url.Action("Index", "Contabilidad")">
+                                    <i class="fas fa-money-bill-wave me-1"></i> Contabilidad
+                                </a>
+                            </li>
+                        }
 
-                        <!-- Botón de usuario -->
+                        <!-- Usuario: visible para cualquiera logueado -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-white" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-user-circle me-1"></i> @User.Identity.GetUserName()
@@ -102,10 +109,12 @@
                                 <li><a class="dropdown-item" href="@Url.Action("Logout", "Account")"><i class="fas fa-sign-out-alt me-2 text-danger"></i> Cerrar sesión</a></li>
                             </ul>
                         </li>
+
                     </ul>
                 </div>
             </div>
         </nav>
+
     }
     else
     {
