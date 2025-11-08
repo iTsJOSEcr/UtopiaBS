@@ -19,8 +19,5 @@ namespace UtopiaBS.Data
             return new ApplicationDbContext();
         }
 
-        // Si quieres que Identity comparta tus tablas existentes:
-        // public DbSet<Empleado> Empleados { get; set; }
-        // public DbSet<Servicio> Servicios { get; set; }
     }
 }

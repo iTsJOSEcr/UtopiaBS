@@ -53,12 +53,19 @@ namespace UtopiaBS.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = new UsuarioDA { UserName = model.Email, Email = model.Email };
+            var user = new UsuarioDA
+            {
+                UserName = model.UserName,
+                Email = model.Email,
+                PhoneNumber = model.PhoneNumber,
+                PhoneNumberConfirmed = true 
+            };
+
             var result = await _userManager.CreateAsync(user, model.Password);
+
 
             if (result.Succeeded)
             {
-                // 👇 Asignar automáticamente el rol "Cliente"
                 await _userManager.AddToRoleAsync(user.Id, "Cliente");
 
                 var identity = await _userManager.CreateIdentityAsync(user, DefaultAuthenticationTypes.ApplicationCookie);
@@ -83,6 +90,15 @@ namespace UtopiaBS.Controllers
             {
                 ModelState.AddModelError("", error);
             }
+        }
+
+        [Authorize]
+        public async Task<ActionResult> Perfil()
+        {
+            var userId = User.Identity.GetUserId();
+            var usuario = await _userManager.FindByIdAsync(userId);
+
+            return View(usuario);
         }
     }
 }
