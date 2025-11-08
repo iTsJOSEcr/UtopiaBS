@@ -8,6 +8,7 @@ using UtopiaBS.Data;
 
 namespace UtopiaBS.Controllers
 {
+    [Authorize(Roles = "Cliente")]
     public class CitaClienteController : Controller
     {
 
@@ -16,7 +17,7 @@ namespace UtopiaBS.Controllers
         private readonly ServicioService _servicioService = new ServicioService();
         private readonly Context _context = new Context();
 
-        // GET: Cita/Listar 
+        // GET: CitaCliente/Listar 
         public ActionResult Listar(int? empleadoId, int? servicioId)
         {
             var citas = _citaService.ListarDisponibles(empleadoId, servicioId);
@@ -27,14 +28,14 @@ namespace UtopiaBS.Controllers
             return View(citas);
         }
 
-        // POST: Cita/Reservar
+        // POST: CitaCliente/Reservar
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Reservar(int idCita, int idCliente, int? idEmpleado, int? idServicio)
         {
             var resultado = _citaService.ReservarCita(idCita, idCliente, idEmpleado, idServicio);
             TempData["Mensaje"] = resultado;
-            return RedirectToAction("ListarAgendadas");
+            return RedirectToAction("Listar");
         }
 
         public ActionResult MisCitas(int? idCliente)
@@ -61,7 +62,7 @@ namespace UtopiaBS.Controllers
             return View(citasPendientes);
         }
 
-        // POST: Cita/CambiarCita
+        // POST: CitaCliente/CambiarCita
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CambiarCita(int idCitaActual, int idNuevaCita, int idCliente)

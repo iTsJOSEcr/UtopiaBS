@@ -30,7 +30,7 @@ namespace UtopiaBS.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            var user = await _userManager.FindAsync(model.Email, model.Password);
+            var user = await _userManager.FindAsync(model.UserName, model.Password);
             if (user != null)
             {
                 var identity = await _userManager.CreateIdentityAsync(user, DefaultAuthenticationTypes.ApplicationCookie);
