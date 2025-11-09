@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNet.Identity.EntityFramework;
 using System.Data.Entity;
+using UtopiaBS.Entities.Clientes;
 
 namespace UtopiaBS.Data
 {
@@ -13,7 +14,6 @@ namespace UtopiaBS.Data
         public ApplicationDbContext() : base("Contexto", throwIfV1Schema: false)
         {
         }
-
         public static ApplicationDbContext Create()
         {
             return new ApplicationDbContext();

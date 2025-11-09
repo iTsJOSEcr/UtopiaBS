@@ -259,6 +259,7 @@
     <Content Include="Views\Account\Perfil.cshtml" />
     <Content Include="Views\CitaCliente\MisCitas.cshtml" />
     <Content Include="Views\CitaCliente\Listar.cshtml" />
+    <Content Include="Views\Cita\Reportes.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

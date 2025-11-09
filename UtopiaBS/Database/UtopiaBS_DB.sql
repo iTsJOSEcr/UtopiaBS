@@ -239,23 +239,6 @@ CREATE TABLE [dbo].[CuponDescuento](
 GO
 
 
-------------------------- Tablas puente -------------------------
-
-CREATE TABLE UsuarioEmpleados (
-    IdUsuario INT NOT NULL,
-    IdEmpleado INT NOT NULL,
-    CONSTRAINT FK_UE_Usuario FOREIGN KEY (IdUsuario) REFERENCES Usuarios(IdUsuario),
-    CONSTRAINT FK_UE_Empleado FOREIGN KEY (IdEmpleado) REFERENCES Empleados(IdEmpleado)
-);
-GO
-
-CREATE TABLE UsuarioClientes (
-    IdUsuario INT NOT NULL,
-    IdCliente INT NOT NULL,
-    CONSTRAINT FK_UC_Usuario FOREIGN KEY (IdUsuario) REFERENCES Usuarios(IdUsuario),
-    CONSTRAINT FK_UC_Cliente FOREIGN KEY (IdCliente) REFERENCES Clientes(IdCliente)
-);
-
 ------------------------CAMBIOS/ ALTER TABLES
 
 --Agregar Tipo, Fecha y Threshold a la tabla Producto
@@ -386,3 +369,75 @@ VALUES
     ('PRIMERA20', 'Porcentaje', 20, GETDATE(), DATEADD(DAY, 60, GETDATE()), 1, 200, 0),
     ('VIP30', 'Porcentaje', 30, GETDATE(), DATEADD(DAY, 45, GETDATE()), 1, 20, 0),
     ('DESCUENTO5K', 'Monto', 5000, GETDATE(), DATEADD(DAY, 10, GETDATE()), 1, 10, 0);
+
+INSERT INTO EstadoCita ( NombreEstado)
+VALUES ('Completada');
+
+
+ALTER TABLE AspNetUsers
+ADD Nombre NVARCHAR(100) NULL,
+    Apellido NVARCHAR(100) NULL,
+    Cedula NVARCHAR(50) NULL,
+    FechaNacimiento DATE NULL;
+
+
+    USE UtopiaBS_DB;
+GO
+
+---------------------------------------------------
+-- 1. Eliminar las llaves foráneas existentes
+---------------------------------------------------
+
+ALTER TABLE Ventas DROP CONSTRAINT FK_Ventas_Usuario;
+ALTER TABLE Reportes DROP CONSTRAINT FK_Reportes_Usuario;
+
+---------------------------------------------------
+-- 2. Cambiar columna IdUsuario / GeneradoPor a NVARCHAR(450)
+--   (Tipo de clave de AspNetUsers.Id)
+---------------------------------------------------
+
+ALTER TABLE Ventas ALTER COLUMN IdUsuario NVARCHAR(128) NOT NULL;
+ALTER TABLE Reportes ALTER COLUMN GeneradoPor NVARCHAR(128) NOT NULL;
+
+
+---------------------------------------------------
+-- 3. Crear nueva relación con AspNetUsers
+---------------------------------------------------
+
+ALTER TABLE Ventas
+ADD CONSTRAINT FK_Ventas_AspNetUsers FOREIGN KEY (IdUsuario)
+REFERENCES AspNetUsers(Id);
+
+ALTER TABLE Reportes
+ADD CONSTRAINT FK_Reportes_AspNetUsers FOREIGN KEY (GeneradoPor)
+REFERENCES AspNetUsers(Id);
+
+---------------------------------------------------
+ALTER TABLE Clientes
+ADD IdUsuario NVARCHAR(128) NULL
+    CONSTRAINT FK_Clientes_AspNetUsers
+    REFERENCES AspNetUsers(Id);
+
+    ALTER TABLE Empleados
+ADD IdUsuario NVARCHAR(128) NULL
+    CONSTRAINT FK_Empleados_AspNetUsers
+    REFERENCES AspNetUsers(Id);
+
+---------------------------------------------------
+
+ALTER TABLE Usuarios DROP CONSTRAINT [FK_Usuarios_Rol];
+ALTER TABLE Usuarios DROP CONSTRAINT [FK_Usuarios_Estado];
+ALTER TABLE Usuarios DROP CONSTRAINT [UQ__Usuarios__60695A19532DD380];
+
+drop table UsuarioEmpleados
+drop table UsuarioClientes
+drop table Usuarios
+drop table Rol
+
+-- Debe devolver una fila
+SELECT kc.name AS PKName
+FROM sys.key_constraints kc
+JOIN sys.tables t ON kc.parent_object_id = t.object_id
+WHERE kc.[type] = 'PK' AND t.name = 'Clientes';
+
+CREATE INDEX IX_Clientes_IdUsuario ON Clientes(IdUsuario);

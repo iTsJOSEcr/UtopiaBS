@@ -5,6 +5,7 @@ using System.Web.Mvc;
 using UtopiaBS.Business;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
+using UtopiaBS.Models;
 
 namespace UtopiaBS.Web.Controllers
 {
@@ -149,5 +150,41 @@ namespace UtopiaBS.Web.Controllers
             TempData["Mensaje"] = "Cita eliminada correctamente.";
             return RedirectToAction("Administrar");
         }
+
+        public ActionResult Reportes()
+        {
+            return View();
+        }
+
+        public ActionResult DescargarReporteCitas(DateTime inicio, DateTime fin, string formato)
+        {
+            try
+            {
+                formato = string.IsNullOrWhiteSpace(formato) ? "pdf" : formato.Trim().ToLower();
+                var archivo = _citaService.DescargarReporteCitas(inicio, fin, formato);
+
+                if (archivo == null || archivo.Length == 0)
+                {
+                    TempData["Mensaje"] = "No se encontraron registros.";
+                    return RedirectToAction("Reportes");
+                }
+
+                string nombreArchivo = formato == "excel"
+                    ? $"Reporte_Citas_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.xlsx"
+                    : $"Reporte_Citas_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.pdf";
+
+                string mimeType = formato == "excel"
+                    ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    : "application/pdf";
+
+                return File(archivo, mimeType, nombreArchivo);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al generar reporte: " + ex.Message;
+                return RedirectToAction("Reportes");
+            }
+        }
+
     }
 }

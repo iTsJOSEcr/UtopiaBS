@@ -69,46 +69,66 @@
 
     @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { role = "form" }))
     {
-        @Html.AntiForgeryToken()
+            @Html.AntiForgeryToken()
 
-        <div class="mb-3">
-            @Html.LabelFor(m => m.UserName)
-            @Html.TextBoxFor(m => m.UserName, new { @class = "form-control", placeholder = "Nombre de Usuario" })
-            @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
-        </div>
+            @Html.ValidationSummary(true, "", new { @class = "text-danger mb-2" })
 
-        <div class="mb-3">
-            @Html.LabelFor(m => m.PhoneNumber)
-            @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "Teléfono" })
-            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
-        </div>
+            <div class="mb-3">
+                @Html.LabelFor(m => m.UserName)
+                @Html.TextBoxFor(m => m.UserName, new { @class = "form-control", placeholder = "Nombre de Usuario" })
+                @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
+            </div>
 
-        <div class="mb-3">
-            @Html.LabelFor(m => m.Email)
-            @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Correo electrónico" })
-            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
-        </div>
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Nombre)
+                @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", placeholder = "Nombre" })
+                @Html.ValidationMessageFor(m => m.Nombre, "", new { @class = "text-danger" })
+            </div>
 
-        <div class="mb-3">
-            @Html.LabelFor(m => m.Password)
-            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Contraseña" })
-            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-        </div>
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Apellido)
+                @Html.TextBoxFor(m => m.Apellido, new { @class = "form-control", placeholder = "Apellido" })
+                @Html.ValidationMessageFor(m => m.Apellido, "", new { @class = "text-danger" })
+            </div>
 
-        <div class="mb-4">
-            @Html.LabelFor(m => m.ConfirmPassword)
-            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "Confirmar contraseña" })
-            @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
-        </div>
+            <div class="mb-3">
+                @Html.LabelFor(m => m.FechaNacimiento)
+                @Html.TextBoxFor(m => m.FechaNacimiento, new { @class = "form-control", type = "date" })
+                @Html.ValidationMessageFor(m => m.FechaNacimiento, "", new { @class = "text-danger" })
+            </div>
 
-        <button type="submit" class="btn-register mb-3">Registrarme</button>
+            <div class="mb-3">
+                @Html.LabelFor(m => m.PhoneNumber)
+                @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "Teléfono" })
+                @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+            </div>
 
-        <div class="text-center">
-            <a href="@Url.Action("Login", "Account")" class="text-muted" style="text-decoration:none;">
-                ¿Ya tienes cuenta? Iniciar sesión
-            </a>
-        </div>
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Email)
+                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Correo electrónico" })
+                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+            </div>
 
+            <div class="mb-3">
+                @Html.LabelFor(m => m.Password)
+                @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Contraseña" })
+                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+            </div>
+
+            <div class="mb-4">
+                @Html.LabelFor(m => m.ConfirmPassword)
+                @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "Confirmar contraseña" })
+                @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
+            </div>
+
+            <button type="submit" class="btn-register mb-3">Registrarme</button>
+
+            <div class="text-center">
+                <a href="@Url.Action("Login", "Account")" class="text-muted" style="text-decoration:none;">
+                    ¿Ya tienes cuenta? Iniciar sesión
+                </a>
+            </div>
+      
         <div class="text-center text-muted mt-4" style="font-size:14px;">
             © Utopia Beauty Salon 2025
         </div>

@@ -83,6 +83,16 @@
         <div class="profile-label">Correo Electrónico</div>
         <div class="profile-value">@Model.Email</div>
 
+        <div class="profile-label">Nombre Completo</div>
+        <div class="profile-value">@($"{Model.Nombre} {Model.Apellido}")</div>
+
+        <div class="profile-label">Fecha de nacimiento</div>
+        <div class="profile-value">
+            @(Model.FechaNacimiento?.ToString("dd/MM/yyyy"))
+        </div>
+
+
+
         <div class="profile-label">Teléfono</div>
         <div class="profile-value">@Model.PhoneNumber</div>
     </div>
