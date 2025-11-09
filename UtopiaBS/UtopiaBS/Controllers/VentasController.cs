@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNet.Identity;
+using System;
 using System.Data.Entity.SqlServer;
 using System.Linq;
 using System.Web.Mvc;
@@ -334,30 +335,21 @@ namespace UtopiaBS.Web.Controllers
             if (carrito == null || carrito.Lineas.Count == 0)
                 return Json(new { success = false, mensaje = "Carrito vacío" });
 
-            int idUsuario = 1; // remplazar por usuario real si aplica
+            var userId = User.Identity.GetUserId(); // ✅ obtiene el Id del usuario logueado
 
             using (var db = new Context())
             {
-                // Validar stock para productos
-                foreach (var linea in carrito.Lineas.Where(l => !l.EsServicio))
-                {
-                    var producto = db.Productos.FirstOrDefault(p => p.IdProducto == linea.IdProducto);
-                    if (producto == null)
-                        return Json(new { success = false, mensaje = $"El producto {linea.NombreProducto} no existe" });
-
-                    if (producto.CantidadStock < linea.Cantidad)
-                        return Json(new { success = false, mensaje = $"No hay stock suficiente para {producto.Nombre}. Disponible: {producto.CantidadStock}, solicitado: {linea.Cantidad}" });
-                }
-
-                // Crear la venta: Total ya debe considerar el descuento aplicado en el carrito (carrito.Total)
+                // Crear la venta con el Id real del usuario
                 var venta = new Venta
                 {
-                    IdUsuario = idUsuario,
+                    IdUsuario = userId,
                     FechaVenta = DateTime.Now,
                     Total = carrito.Total,
                     CuponId = null,
                     MontoDescuento = 0m
                 };
+
+                // ... resto del código igual
 
                 // Si el carrito tiene cupón aplicado, tratar de obtener su id y monto descontado
                 if (!string.IsNullOrEmpty(carrito.CuponAplicado))
