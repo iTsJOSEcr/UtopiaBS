@@ -370,6 +370,11 @@ VALUES
     ('VIP30', 'Porcentaje', 30, GETDATE(), DATEADD(DAY, 45, GETDATE()), 1, 20, 0),
     ('DESCUENTO5K', 'Monto', 5000, GETDATE(), DATEADD(DAY, 10, GETDATE()), 1, 10, 0);
 
+    ALTER TABLE Ventas
+ADD CuponId INT NULL,
+    MontoDescuento DECIMAL(10,2) NULL,
+    FOREIGN KEY (CuponId) REFERENCES CuponDescuento(CuponId);
+
 INSERT INTO EstadoCita ( NombreEstado)
 VALUES ('Completada');
 
