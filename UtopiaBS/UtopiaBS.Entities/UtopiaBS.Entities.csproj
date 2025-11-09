@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Citas\Cita.cs" />
+    <Compile Include="Clientes\Cliente.cs" />
     <Compile Include="Contabilidad\CierreSemanal.cs" />
     <Compile Include="Contabilidad\Egreso.cs" />
     <Compile Include="Contabilidad\Ingreso.cs" />

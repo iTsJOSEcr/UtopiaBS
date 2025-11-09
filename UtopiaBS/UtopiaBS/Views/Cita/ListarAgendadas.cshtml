@@ -38,25 +38,25 @@
                         {
                             foreach (var cita in Model.OrderBy(c => c.FechaHora))
                             {
-                                <tr>
-                                    <td>@cita.FechaHora.ToString("dd/MM/yyyy")</td>
-                                    <td>@cita.FechaHora.ToString("HH:mm")</td>
-                                    <td>@(cita.IdCliente ?? 0)</td>
-                                    <td>@(cita.Empleado?.Nombre ?? "Sin asignar")</td>
-                                    <td>@(cita.Servicio?.Nombre ?? "Sin asignar")</td>
-                                    <td>
-                                        <form method="post" style="display:inline;" action="@Url.Action("ConfirmarCita", "Cita")">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@cita.IdCita" />
-                                            <button type="submit" class="btn btn-success btn-sm me-1 rounded-pill px-3">Confirmar</button>
-                                        </form>
-                                        <form method="post" style="display:inline;" action="@Url.Action("CancelarCita", "Cita")">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@cita.IdCita" />
-                                            <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3">Cancelar</button>
-                                        </form>
-                                    </td>
-                                </tr>
+                    <tr>
+                        <td>@cita.FechaHora.ToString("dd/MM/yyyy")</td>
+                        <td>@cita.FechaHora.ToString("HH:mm")</td>
+                        <td>@(cita.Cliente?.Nombre ?? "Sin cliente")</td>
+                        <td>@(cita.Empleado?.Nombre ?? "Sin asignar")</td>
+                        <td>@(cita.Servicio?.Nombre ?? "Sin asignar")</td>
+                        <td>
+                            <form method="post" style="display:inline;" action="@Url.Action("ConfirmarCita", "Cita")">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@cita.IdCita" />
+                                <button type="submit" class="btn btn-success btn-sm me-1 rounded-pill px-3">Confirmar</button>
+                            </form>
+                            <form method="post" style="display:inline;" action="@Url.Action("CancelarCita", "Cita")">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@cita.IdCita" />
+                                <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3">Cancelar</button>
+                            </form>
+                        </td>
+                    </tr>
                             }
                         }
                     </tbody>

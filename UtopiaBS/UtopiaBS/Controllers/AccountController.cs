@@ -2,10 +2,12 @@
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
+using System;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using UtopiaBS.Data;
+using UtopiaBS.Entities.Clientes;
 using UtopiaBS.Models;
 
 namespace UtopiaBS.Controllers
@@ -58,25 +60,58 @@ namespace UtopiaBS.Controllers
                 UserName = model.UserName,
                 Email = model.Email,
                 PhoneNumber = model.PhoneNumber,
-                PhoneNumberConfirmed = true 
+                PhoneNumberConfirmed = true,
+                Nombre = model.Nombre,
+                Apellido = model.Apellido,
+                FechaNacimiento = model.FechaNacimiento
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
 
-
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user.Id, "Cliente");
+                var roleManager = new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(new ApplicationDbContext()));
+                if (!await roleManager.RoleExistsAsync("Cliente"))
+                {
+                    await roleManager.CreateAsync(new IdentityRole("Cliente"));
+                }
 
-                var identity = await _userManager.CreateIdentityAsync(user, DefaultAuthenticationTypes.ApplicationCookie);
-                HttpContext.GetOwinContext().Authentication.SignIn(new AuthenticationProperties { IsPersistent = false }, identity);
-                return RedirectToAction("Index", "Home");
+                var addToRole = await _userManager.AddToRoleAsync(user.Id, "Cliente");
+                if (!addToRole.Succeeded)
+                {
+                    AddErrors(addToRole);
+                    return View(model);
+                }
+
+                // Guardar Cliente vinculado
+                try
+                {
+                    using (var db = new Context())
+                    {
+                        var cliente = new Cliente
+                        {
+                            Nombre = model.Nombre + " " + model.Apellido,
+                            IdTipoMembresia = null,
+                            IdUsuario = user.Id
+                        };
+
+                        db.Clientes.Add(cliente);
+                        db.SaveChanges();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Error creando el perfil de cliente: " + ex.Message);
+                    return View(model);
+                }
+
+                TempData["RegisterSuccess"] = "Cuenta creada correctamente. Ahora puedes iniciar sesión.";
+                return RedirectToAction("Login", "Account");
             }
 
             AddErrors(result);
             return View(model);
         }
-
         [Authorize]
         public ActionResult Logout()
         {

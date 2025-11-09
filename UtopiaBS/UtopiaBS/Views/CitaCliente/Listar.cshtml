@@ -114,10 +114,10 @@
                 </ul>
             </div>
             <div class="modal-footer">
-                <form method="post" action="@Url.Action("Reservar", "Cita")" id="formReserva">
+                <form method="post" action="@Url.Action("Reservar", "CitaCliente")" id="formReserva">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="idCita" id="inputIdCita" />
-                    <input type="hidden" name="idCliente" value="1" />
+                    <!-- ¡NO enviar idCliente! Se obtiene del usuario autenticado en el servidor -->
                     <input type="hidden" name="idEmpleado" id="inputIdEmpleado" />
                     <input type="hidden" name="idServicio" id="inputIdServicio" />
 
@@ -132,7 +132,7 @@
 <!-- JS -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const modal = new bootstrap.Modal(document.getElementById("modalReserva"));
+        const bsModal = new bootstrap.Modal(document.getElementById("modalReserva"));
         const fechaEl = document.getElementById("modalFecha");
         const horaEl = document.getElementById("modalHora");
         const empleadoEl = document.getElementById("modalEmpleado");
@@ -143,16 +143,16 @@
 
         document.querySelectorAll(".reservar-btn").forEach(btn => {
             btn.addEventListener("click", function () {
-                fechaEl.textContent = this.dataset.fecha;
-                horaEl.textContent = this.dataset.hora;
-                empleadoEl.textContent = this.dataset.empleado;
-                servicioEl.textContent = this.dataset.servicio;
+                fechaEl.textContent = this.dataset.fecha || "";
+                horaEl.textContent = this.dataset.hora || "";
+                empleadoEl.textContent = this.dataset.empleado || "Sin asignar";
+                servicioEl.textContent = this.dataset.servicio || "Sin asignar";
 
-                inputIdCita.value = this.dataset.id;
-                inputIdEmpleado.value = this.dataset.empleadoid;
-                inputIdServicio.value = this.dataset.servicioid;
+                inputIdCita.value = this.dataset.id || "";
+                inputIdEmpleado.value = this.dataset.empleadoid || "";
+                inputIdServicio.value = this.dataset.servicioid || "";
 
-                modal.show();
+                bsModal.show();
             });
         });
     });
