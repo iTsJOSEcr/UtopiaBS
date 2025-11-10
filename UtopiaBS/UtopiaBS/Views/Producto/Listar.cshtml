@@ -1,20 +1,29 @@
 ﻿@model IEnumerable<UtopiaBS.Entities.Producto>
-
 @{
-    ViewBag.Title = "Listado de Productos";
+    ViewBag.Title = "Inventario (Productos y Cupones)";
+    var cupones = ViewBag.Cupones as IEnumerable<UtopiaBS.Entities.CuponDescuento>;
+    if (cupones == null)
+    {
+        using (var _db = new UtopiaBS.Data.Context())
+        {
+            cupones = _db.CuponDescuento.ToList();
+        }
+    }
 }
 
 <div class="container mt-5">
-    <div class="card shadow-lg border-0 rounded-3">
+
+    <!-- === PRODUCTOS === -->
+    <div class="card shadow-lg border-0 rounded-3 mb-5">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h3 class="mb-0">📦 Listado de Productos</h3>
             @Html.ActionLink("➕ Agregar Producto", "Agregar", "Producto", null, new { @class = "btn btn-light btn-sm" })
         </div>
         <div class="card-body">
 
-            @if (TempData["Mensaje"] != null)
+            @if (TempData["MensajeProducto"] != null)
             {
-                <div class="alert alert-success">@TempData["Mensaje"]</div>
+                <div class="alert alert-success">@TempData["MensajeProducto"]</div>
             }
 
             <div class="table-responsive">
@@ -40,7 +49,6 @@
                                 <td class="text-center">@item.Proveedor</td>
                                 <td class="text-center"><span class="badge bg-success">₡@item.PrecioUnitario</span></td>
                                 <td class="text-center">
-                                    @* Alerta de stock bajo *@
                                     @if (item.CantidadStock > item.Threshold)
                                     {
                                         <span class="badge bg-warning text-dark">@item.CantidadStock</span>
@@ -50,7 +58,6 @@
                                         <span class="badge bg-danger">@item.CantidadStock</span>
                                     }
 
-                                    @* Alerta de producto antiguo (>90 días) *@
                                     @if ((DateTime.Now - item.Fecha).TotalDays > 90)
                                     {
                                         <span class="badge bg-secondary ms-1" title="Producto antiguo">⌛</span>
@@ -59,9 +66,9 @@
                                 <td class="text-center">@item.Fecha.ToShortDateString()</td>
                                 <td class="text-center"><span class="badge bg-warning text-dark">@item.Threshold</span></td>
                                 <td class="text-center">
-                                    @Html.ActionLink("✏️", "Editar", new { id = item.IdProducto }, new { @class = "btn btn-sm btn-outline-warning me-1", title = "Editar" })
+                                    @Html.ActionLink("✏️", "Editar", "Producto", new { id = item.IdProducto }, new { @class = "btn btn-sm btn-outline-warning me-1", title = "Editar" })
                                     <button type="button" class="btn btn-sm btn-outline-danger eliminar-btn"
-                                            data-id="@item.IdProducto" data-nombre="@item.Nombre" title="Eliminar">
+                                            data-id="@item.IdProducto" data-nombre="@item.Nombre" data-tipo="producto" title="Eliminar">
                                         🗑️
                                     </button>
                                 </td>
@@ -72,23 +79,104 @@
             </div>
         </div>
     </div>
+
+
+    <!-- === CUPONES === -->
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">🎟️ Listado de Cupones de Descuento</h3>
+            <a class="btn btn-light btn-sm" href="@Url.Action("Agregar", "CuponDescuento")">➕ Agregar Cupón</a>
+        </div>
+        <div class="card-body">
+
+            @if (TempData["Mensaje"] != null)
+            {
+                <div class="alert alert-success">@TempData["Mensaje"]</div>
+            }
+            @if (TempData["MensajeCupon"] != null)
+            {
+                <div class="alert alert-success">@TempData["MensajeCupon"]</div>
+            }
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-center">Código</th>
+                            <th class="text-center">Tipo / Valor</th>
+                            <th class="text-center">Fecha Inicio</th>
+                            <th class="text-center">Fecha Fin</th>
+                            <th class="text-center">Activo</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (cupones != null && cupones.Any())
+                        {
+                            foreach (var cupon in cupones)
+                            {
+                                <tr>
+                                    <td class="text-center"><strong>@cupon.Codigo</strong></td>
+                                    <td class="text-center">
+                                        @if (string.Equals(cupon.Tipo, "Porcentaje", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-info">@cupon.Valor %</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-info">₡@cupon.Valor</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">@cupon.FechaInicio.ToShortDateString()</td>
+                                    <td class="text-center">@cupon.FechaFin.ToShortDateString()</td>
+                                    <td class="text-center">
+                                        @using (Html.BeginForm("CambiarEstado", "CuponDescuento", FormMethod.Post))
+                                        {
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("id", cupon.CuponId)
+                                            <button type="submit" class="btn btn-sm @(cupon.Activo ? "btn-success" : "btn-secondary")">
+                                                @(cupon.Activo ? "Activo" : "Inactivo")
+                                            </button>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @Html.ActionLink("✏️", "Editar", "CuponDescuento", new { id = cupon.CuponId }, new { @class = "btn btn-sm btn-outline-warning me-1", title = "Editar" })
+                                        <button type="button" class="btn btn-sm btn-outline-danger eliminar-btn"
+                                                data-id="@cupon.CuponId" data-nombre="@cupon.Codigo" data-tipo="cupon" title="Eliminar">
+                                            🗑️
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No hay cupones registrados.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Modal de eliminación -->
+<!-- === MODAL DE ELIMINACIÓN === -->
 <div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="modalEliminarLabel">Eliminar Producto</h5>
+                <h5 class="modal-title" id="modalEliminarLabel">Confirmar eliminación</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                ¿Está seguro que desea eliminar el producto <strong><span id="modalNombreProducto"></span></strong>?
+                ¿Está seguro que desea eliminar <strong><span id="modalNombre"></span></strong>?
             </div>
             <div class="modal-footer">
-                <form id="formEliminar" method="post" action="@Url.Action("Eliminar", "Producto")">
+                <form id="formEliminar" method="post">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" id="inputIdProducto" />
+                    <input type="hidden" name="id" id="inputId" />
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-danger">Eliminar</button>
                 </form>
@@ -97,18 +185,24 @@
     </div>
 </div>
 
-<!-- JS -->
+<!-- === JS === -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const modal = new bootstrap.Modal(document.getElementById("modalEliminar"));
-        const inputIdProducto = document.getElementById("inputIdProducto");
-        const nombreProductoEl = document.getElementById("modalNombreProducto");
+        const modalEl = document.getElementById("modalEliminar");
+        const bsModal = new bootstrap.Modal(modalEl);
+        const inputId = document.getElementById("inputId");
+        const nombreEl = document.getElementById("modalNombre");
+        const formEliminar = document.getElementById("formEliminar");
 
         document.querySelectorAll(".eliminar-btn").forEach(btn => {
             btn.addEventListener("click", function () {
-                inputIdProducto.value = this.dataset.id;
-                nombreProductoEl.textContent = this.dataset.nombre;
-                modal.show();
+                inputId.value = this.dataset.id;
+                nombreEl.textContent = this.dataset.nombre;
+                const tipo = this.dataset.tipo;
+                formEliminar.action = tipo === "producto"
+                    ? "@Url.Action("Eliminar", "Producto")"
+                    : "@Url.Action("Eliminar", "CuponDescuento")";
+                bsModal.show();
             });
         });
     });
