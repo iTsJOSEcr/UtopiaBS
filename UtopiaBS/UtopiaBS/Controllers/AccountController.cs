@@ -23,7 +23,6 @@ namespace UtopiaBS.Controllers
 
         [AllowAnonymous]
         public ActionResult Login() => View();
-
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -37,12 +36,23 @@ namespace UtopiaBS.Controllers
             {
                 var identity = await _userManager.CreateIdentityAsync(user, DefaultAuthenticationTypes.ApplicationCookie);
                 HttpContext.GetOwinContext().Authentication.SignIn(new AuthenticationProperties { IsPersistent = false }, identity);
-                return RedirectToAction("Index", "Home");
+
+                // ✅ Redirección según el rol
+                if (await _userManager.IsInRoleAsync(user.Id, "Administrador"))
+                {
+                    return RedirectToAction("AdminHome", "Home");
+                }
+                else
+                {
+                    return RedirectToAction("Index", "Home");
+                }
             }
 
+            // Si no se encuentra el usuario o credenciales incorrectas
             ModelState.AddModelError("", "Usuario o contraseña incorrectos.");
             return View(model);
         }
+
 
         [AllowAnonymous]
         public ActionResult Register() => View();
