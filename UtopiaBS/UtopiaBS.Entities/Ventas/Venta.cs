@@ -22,8 +22,6 @@ namespace UtopiaBS.Entities
 
         public int? CuponId { get; set; }
 
-        // Monto monetario que se descontó en esta venta (si aplica)
-        // No use "decimal(18,2)" en Column; la precisión se define en OnModelCreating
         public decimal MontoDescuento { get; set; }
     }
 }

@@ -148,6 +148,7 @@
     <Compile Include="Controllers\CitaClienteController.cs" />
     <Compile Include="Controllers\CitaController.cs" />
     <Compile Include="Controllers\ContabilidadController.cs" />
+    <Compile Include="Controllers\CuponDescuentoController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ProductoController.cs" />
     <Compile Include="Controllers\VentasController.cs" />
@@ -260,6 +261,8 @@
     <Content Include="Views\CitaCliente\MisCitas.cshtml" />
     <Content Include="Views\CitaCliente\Listar.cshtml" />
     <Content Include="Views\Cita\Reportes.cshtml" />
+    <Content Include="Views\CuponDescuento\Agregar.cshtml" />
+    <Content Include="Views\CuponDescuento\Editar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
