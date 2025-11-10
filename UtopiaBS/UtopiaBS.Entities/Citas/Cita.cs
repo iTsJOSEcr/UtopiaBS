@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using UtopiaBS.Entities.Clientes;
+
 
 namespace UtopiaBS.Entities
 {
@@ -14,7 +16,7 @@ namespace UtopiaBS.Entities
         [Required]
         public DateTime FechaHora { get; set; }
 
-        public int? IdCliente { get; set; }   
+        public int? IdCliente { get; set; }
         public int? IdEmpleado { get; set; }
         public int? IdServicio { get; set; }
 
@@ -24,6 +26,9 @@ namespace UtopiaBS.Entities
         [MaxLength(500)]
         public string Observaciones { get; set; }
 
+        [ForeignKey("IdCliente")]
+        public virtual Cliente Cliente { get; set; }
+
         [ForeignKey("IdEmpleado")]
         public virtual Empleado Empleado { get; set; }
 
@@ -31,7 +36,6 @@ namespace UtopiaBS.Entities
         public virtual Servicio Servicio { get; set; }
 
         public DateTime? FechaUltimoRecordatorio { get; set; }
-
 
         [MaxLength(100)]
         public string RegistradoPor { get; set; }

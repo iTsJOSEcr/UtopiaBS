@@ -9,6 +9,7 @@ using UtopiaBS.Business.Contabilidad;
 
 namespace UtopiaBS.Web.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class ContabilidadController : Controller
     {
         private readonly ContabilidadService service = new ContabilidadService();
@@ -66,6 +67,8 @@ namespace UtopiaBS.Web.Controllers
         }
 
         // ------------------- RESUMEN DIARIO -------------------
+
+        [Authorize(Roles = "Administrador")]
         public ActionResult ResumenDiario(DateTime? fecha)
         {
             var fechaSeleccionada = fecha ?? DateTime.Now;
@@ -98,10 +101,9 @@ namespace UtopiaBS.Web.Controllers
             }
             else
             {
-                // Genera el cierre (puedes dejar mensaje opcional)
+           
                 TempData["Mensaje"] = service.GenerarCierreSemanal(inicio, fin);
-
-                // Obtén el cierre filtrado por el rango exacto
+            
                 cierre = service.ObtenerCierreSemanal(inicio, fin);
 
                 if (cierre == null)
@@ -112,7 +114,6 @@ namespace UtopiaBS.Web.Controllers
                 }
             }
 
-            // Siempre devuelve la vista con el modelo (puede ser null)
             return View(cierre);
         }
 

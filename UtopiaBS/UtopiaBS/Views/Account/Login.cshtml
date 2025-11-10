@@ -1,0 +1,85 @@
+﻿@model UtopiaBS.Models.LoginViewModel
+@{
+    ViewBag.Title = "Iniciar sesión";
+}
+
+<div class="login-light-card">
+    <h3 class="text-center mb-4">@ViewBag.Title</h3>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <label class="form-label">Nombre de Usuario</label>
+        @Html.TextBoxFor(m => m.UserName, new { @class = "form-control mb-3", placeholder = "Usuario" })
+
+        <label class="form-label">Contraseña</label>
+        @Html.PasswordFor(m => m.Password, new { @class = "form-control mb-4", placeholder = "********" })
+
+        <button type="submit" class="btn-main mb-3">
+            Ingresar
+        </button>
+
+        <div class="text-center">
+            <p class="text-muted mb-1">¿No tienes cuenta?</p>
+            <a href="@Url.Action("Register", "Account")" class="btn btn-outline-primary" style="border-radius: 8px;">
+                Crear cuenta
+            </a>
+        </div>
+
+        <div class="text-center text-muted mt-4" style="font-size:14px;">
+            © Utopia Beauty Salon 2025
+        </div>
+    }
+</div>
+
+<style>
+    footer {
+        display: none;
+    }
+
+    body {
+        background: #f4f4f8;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Segoe UI', sans-serif;
+        color: #333;
+    }
+
+    .login-light-card {
+        width: 390px;
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 35px;
+        border: 1px solid #e6e6e6;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+    }
+
+    .form-control {
+        background: #ffffff;
+        border-radius: 8px;
+        border: 1px solid #cfcfcf;
+        color: #333;
+    }
+
+        .form-control:focus {
+            border-color: #6a11cb;
+            box-shadow: 0 0 4px rgba(106, 17, 203, 0.4);
+        }
+
+    .btn-main {
+        background: #6a11cb;
+        color: #fff;
+        border-radius: 8px;
+        width: 100%;
+        border: none;
+        padding: 10px 0;
+        font-weight: 500;
+    }
+
+        .btn-main:hover {
+            background: #5712a8;
+        }
+</style>

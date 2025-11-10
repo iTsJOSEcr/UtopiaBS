@@ -1,39 +1,22 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 using UtopiaBS.Business;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
+using UtopiaBS.Models;
 
 namespace UtopiaBS.Web.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class CitaController : Controller
     {
         private readonly CitaService _citaService = new CitaService();
         private readonly EmpleadoService _empleadoService = new EmpleadoService();
         private readonly ServicioService _servicioService = new ServicioService();
+        private readonly Context _context = new Context();
 
-        // GET: Cita/Listar 
-        public ActionResult Listar(int? empleadoId, int? servicioId)
-        {
-            var citas = _citaService.ListarDisponibles(empleadoId, servicioId);
-            ViewBag.Empleados = _empleadoService.ObtenerTodos();
-            ViewBag.Servicios = new ServicioService().ObtenerTodos(); 
-            ViewBag.EmpleadoSeleccionado = empleadoId;
-            ViewBag.ServicioSeleccionado = servicioId;
-            return View(citas);
-        }
-
-
-        // POST: Cita/Reservar
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Reservar(int idCita, int idCliente, int? idEmpleado, int? idServicio)
-        {
-            var resultado = _citaService.ReservarCita(idCita, idCliente, idEmpleado, idServicio);
-            TempData["Mensaje"] = resultado;
-            return RedirectToAction("ListarAgendadas");
-        }
 
         // GET: Cita/Agregar
         public ActionResult Agregar()
@@ -105,7 +88,7 @@ namespace UtopiaBS.Web.Controllers
             using (var db = new Context())
             {
                 var cita = db.Citas.Find(id);
-                if (cita != null) cita.IdEstadoCita = 4; 
+                if (cita != null) cita.IdEstadoCita = 4;
                 db.SaveChanges();
             }
             TempData["Mensaje"] = "Cita cancelada.";
@@ -167,5 +150,41 @@ namespace UtopiaBS.Web.Controllers
             TempData["Mensaje"] = "Cita eliminada correctamente.";
             return RedirectToAction("Administrar");
         }
+
+        public ActionResult Reportes()
+        {
+            return View();
+        }
+
+        public ActionResult DescargarReporteCitas(DateTime inicio, DateTime fin, string formato)
+        {
+            try
+            {
+                formato = string.IsNullOrWhiteSpace(formato) ? "pdf" : formato.Trim().ToLower();
+                var archivo = _citaService.DescargarReporteCitas(inicio, fin, formato);
+
+                if (archivo == null || archivo.Length == 0)
+                {
+                    TempData["Mensaje"] = "No se encontraron registros.";
+                    return RedirectToAction("Reportes");
+                }
+
+                string nombreArchivo = formato == "excel"
+                    ? $"Reporte_Citas_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.xlsx"
+                    : $"Reporte_Citas_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.pdf";
+
+                string mimeType = formato == "excel"
+                    ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    : "application/pdf";
+
+                return File(archivo, mimeType, nombreArchivo);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al generar reporte: " + ex.Message;
+                return RedirectToAction("Reportes");
+            }
+        }
+
     }
 }

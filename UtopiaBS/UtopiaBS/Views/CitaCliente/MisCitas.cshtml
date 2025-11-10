@@ -1,0 +1,150 @@
+﻿@model IEnumerable<UtopiaBS.Entities.Cita>
+@{
+    ViewBag.Title = "Mis Citas";
+    var citasDisponibles = ViewBag.CitasDisponibles as List<UtopiaBS.Entities.Cita> ?? new List<UtopiaBS.Entities.Cita>();
+    int idCliente = ViewBag.IdCliente != null ? (int)ViewBag.IdCliente : 0;
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-primary text-white">
+            <h3 class="mb-0">📅 Mis Citas Pendientes</h3>
+        </div>
+        <div class="card-body">
+
+            @if (TempData["Mensaje"] != null)
+            {
+                <div class="alert alert-info text-center">@TempData["Mensaje"]</div>
+            }
+
+            @if (!Model.Any())
+            {
+                <p class="text-muted text-center">No tienes citas pendientes.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover text-center align-middle">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Empleado</th>
+                                <th>Servicio</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var cita in Model)
+                            {
+                                <tr>
+                                    <td>@cita.FechaHora.ToString("dd/MM/yyyy")</td>
+                                    <td>@cita.FechaHora.ToString("HH:mm")</td>
+                                    <td>@(cita.Empleado?.Nombre ?? "No asignado")</td>
+                                    <td>@(cita.Servicio?.Nombre ?? "No asignado")</td>
+                                    <td>
+                                        <span class="badge bg-secondary">Pendiente</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-warning btn-sm cambiar-btn"
+                                                data-id="@cita.IdCita"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalCambiar">
+                                            🔄 Cambiar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal para cambiar cita -->
+<div class="modal fade" id="modalCambiar" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow-lg">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">Seleccionar nueva cita disponible</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formCambiarCita" method="post" action="@Url.Action("CambiarCita", "Cita")">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="idCitaActual" id="inputIdCitaActual" />
+                    <input type="hidden" name="idCliente" value="@idCliente" />
+
+                    @if (!citasDisponibles.Any())
+                    {
+                        <p class="text-muted text-center">No hay citas disponibles para cambiar.</p>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover text-center">
+                                <thead class="table-info">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Hora</th>
+                                        <th>Empleado</th>
+                                        <th>Servicio</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var disp in citasDisponibles)
+                                    {
+                                        <tr>
+                                            <td>@disp.FechaHora.ToString("dd/MM/yyyy")</td>
+                                            <td>@disp.FechaHora.ToString("HH:mm")</td>
+                                            <td>@(disp.Empleado?.Nombre ?? "No asignado")</td>
+                                            <td>@(disp.Servicio?.Nombre ?? "No asignado")</td>
+                                            <td>
+                                                <button type="submit" name="idNuevaCita" value="@disp.IdCita"
+                                                        class="btn btn-success btn-sm rounded-pill">
+                                                    Seleccionar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Cuando se abre el modal, ponemos la cita actual
+        document.querySelectorAll(".cambiar-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.getElementById("inputIdCitaActual").value = btn.dataset.id;
+            });
+        });
+    });
+</script>
+
+<style>
+    .table-primary th {
+        background-color: #4e73df;
+        color: white;
+    }
+
+    .table-info th {
+        background-color: #36b9cc;
+        color: white;
+    }
+
+    .btn-sm {
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+</style>

@@ -1,0 +1,101 @@
+﻿@model UtopiaBS.Data.UsuarioDA
+
+@{
+    ViewBag.Title = "Mi Perfil";
+}
+
+<style>
+    .profile-card {
+        max-width: 450px;
+        margin: 50px auto;
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 35px;
+        text-align: center;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        animation: fadeIn .4s ease-in-out;
+    }
+
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 32px;
+        font-weight: 600;
+        margin: 0 auto 20px;
+    }
+
+    .profile-label {
+        font-size: 13px;
+        text-transform: uppercase;
+        color: #888;
+        margin-bottom: -2px;
+    }
+
+    .profile-value {
+        font-size: 17px;
+        font-weight: 600;
+        margin-bottom: 18px;
+        color: #333;
+    }
+
+    .btn-edit {
+        background: #6a11cb;
+        color: #fff;
+        border-radius: 10px;
+        padding: 10px 20px;
+        text-decoration: none;
+        display: inline-block;
+        transition: .2s;
+    }
+
+        .btn-edit:hover {
+            background: #5712a8;
+            color: #fff;
+        }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="profile-card">
+    <div class="profile-avatar">
+        @Model.UserName.Substring(0, 1).ToUpper()
+    </div>
+
+    <h3 style="font-weight:600; margin-bottom:25px;">@Model.UserName</h3>
+
+    <div>
+        <div class="profile-label">Correo Electrónico</div>
+        <div class="profile-value">@Model.Email</div>
+
+        <div class="profile-label">Nombre Completo</div>
+        <div class="profile-value">@($"{Model.Nombre} {Model.Apellido}")</div>
+
+        <div class="profile-label">Fecha de nacimiento</div>
+        <div class="profile-value">
+            @(Model.FechaNacimiento?.ToString("dd/MM/yyyy"))
+        </div>
+
+
+
+        <div class="profile-label">Teléfono</div>
+        <div class="profile-value">@Model.PhoneNumber</div>
+    </div>
+
+    <a class="btn-edit" href="@Url.Action("EditarPerfil", "Cuenta")">Editar perfil</a>
+</div>
