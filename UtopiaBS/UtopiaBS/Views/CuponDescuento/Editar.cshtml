@@ -1,0 +1,72 @@
+﻿@model UtopiaBS.Entities.CuponDescuento
+@{
+    ViewBag.Title = "Editar Cupón de Descuento";
+}
+
+<div class="container mt-5">
+    <div class="card shadow-lg border-0 rounded-3">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">✏️ Editar Cupón</h3>
+            <a href="@Url.Action("Index", "Producto")" class="btn btn-light btn-sm">← Volver al Inventario</a>
+        </div>
+
+        <div class="card-body">
+            @using (Html.BeginForm("Editar", "CuponDescuento", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.CuponId)
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Código del Cupón</label>
+                        @Html.TextBoxFor(m => m.Codigo, new { @class = "form-control", placeholder = "Ej. DESCUENTO10" })
+                        @Html.ValidationMessageFor(m => m.Codigo, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Tipo de Descuento</label>
+                        @Html.DropDownListFor(m => m.Tipo, new SelectList(new[] { "Porcentaje", "Monto Fijo" }, Model.Tipo), "Seleccione tipo", new { @class = "form-select" })
+                        @Html.ValidationMessageFor(m => m.Tipo, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Valor</label>
+                        @Html.TextBoxFor(m => m.Valor, new { @class = "form-control", type = "number", step = "0.01" })
+                        @Html.ValidationMessageFor(m => m.Valor, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Activo</label>
+                        <div class="form-check form-switch mt-2">
+                            @Html.CheckBoxFor(m => m.Activo, new { @class = "form-check-input" })
+                            <label class="form-check-label">Cupón activo</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Fecha de Inicio</label>
+                        @Html.TextBoxFor(m => m.FechaInicio, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                        @Html.ValidationMessageFor(m => m.FechaInicio, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Fecha de Fin</label>
+                        @Html.TextBoxFor(m => m.FechaFin, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                        @Html.ValidationMessageFor(m => m.FechaFin, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-warning px-4 text-dark fw-bold">💾 Guardar Cambios</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-label {
+        font-weight: 600;
+    }
+</style>
