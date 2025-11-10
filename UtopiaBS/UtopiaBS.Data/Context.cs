@@ -1,5 +1,6 @@
 ﻿using System.Data.Entity;
 using UtopiaBS.Entities;
+using UtopiaBS.Entities.Clientes;
 using UtopiaBS.Entities.Contabilidad;
 
 namespace UtopiaBS.Data
@@ -10,6 +11,8 @@ namespace UtopiaBS.Data
         {
 
         }
+
+        public DbSet<Cliente> Clientes { get; set; }
 
         public DbSet<Producto> Productos { get; set; }
 

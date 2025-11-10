@@ -3,93 +3,109 @@
     ViewBag.Title = "Punto de Venta";
 }
 
-<div class="container mt-4">
-    <h2 class="text-center mb-4" style="color:#3A7CA5;">🛒 Punto de Venta</h2>
+<!-- Bootstrap & Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+<div class="container py-4">
+    <h2 class="text-center mb-5 fw-bold" style="color:#1B263B;">🛒 Punto de Venta</h2>
 
     <div class="row g-4">
-        <!-- Búsqueda Productos/Servicios -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm rounded-4 p-3" style="background-color:#F7FAFC;">
-                <ul class="nav nav-tabs">
-                    <li class="nav-item">
-                        <a class="nav-link active" data-bs-toggle="tab" href="#tabProductos" style="color:#3A7CA5;">Productos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#tabServicios" style="color:#3A7CA5;">Servicios</a>
-                    </li>
-                </ul>
+        <!-- PANEL IZQUIERDO -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header text-white fw-semibold" style="background-color:#1B263B;">
+                    <ul class="nav nav-tabs card-header-tabs border-0">
+                        <li class="nav-item">
+                            <a class="nav-link active fw-semibold text-white" data-bs-toggle="tab" href="#tabProductos">Productos</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link fw-semibold text-white" data-bs-toggle="tab" href="#tabServicios">Servicios</a>
+                        </li>
+                    </ul>
+                </div>
 
-                <div class="tab-content mt-3">
-                    <!-- Productos -->
-                    <div class="tab-pane fade show active" id="tabProductos">
-                        <div class="input-group mb-2">
-                            <input type="text" id="txtBuscarProducto" class="form-control" placeholder="Nombre o código">
-                            <button id="btnBuscarProducto" class="btn btn-primary" style="background-color:#3A7CA5; border:none;">Buscar</button>
+                <div class="card-body" style="background-color:#F8F9FA;">
+                    <div class="tab-content">
+                        <!-- PRODUCTOS -->
+                        <div class="tab-pane fade show active" id="tabProductos">
+                            <div class="input-group mb-3">
+                                <input type="text" id="txtBuscarProducto" class="form-control form-control-lg" placeholder="Buscar producto...">
+                                <button type="button" id="btnBuscarProducto" class="btn btn-lg fw-semibold text-dark btn-buscar">
+                                    <i class="bi bi-search me-1"></i> Buscar
+                                </button>
+                            </div>
+                            <ul id="resultadoBusquedaProductos" class="list-group list-group-flush"></ul>
                         </div>
-                        <ul id="resultadoBusquedaProductos" class="list-group"></ul>
-                    </div>
 
-                    <!-- Servicios -->
-                    <div class="tab-pane fade" id="tabServicios">
-                        <div class="input-group mb-2">
-                            <input type="text" id="txtBuscarServicio" class="form-control" placeholder="Nombre o código">
-                            <button id="btnBuscarServicio" class="btn btn-primary" style="background-color:#3A7CA5; border:none;">Buscar</button>
+                        <!-- SERVICIOS -->
+                        <div class="tab-pane fade" id="tabServicios">
+                            <div class="input-group mb-3">
+                                <input type="text" id="txtBuscarServicio" class="form-control form-control-lg" placeholder="Buscar servicio...">
+                                <button type="button" id="btnBuscarServicio" class="btn btn-lg fw-semibold text-dark btn-buscar">
+                                    <i class="bi bi-search me-1"></i> Buscar
+                                </button>
+                            </div>
+                            <ul id="resultadoBusquedaServicios" class="list-group list-group-flush"></ul>
                         </div>
-                        <ul id="resultadoBusquedaServicios" class="list-group"></ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Carrito -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm rounded-4 p-3" style="background-color:#F7FAFC;">
-                <h4 class="mb-3" style="color:#3A7CA5;">Carrito</h4>
-
-                <!-- contenedor del partial -->
-                <div id="carritoContainer">
-                    @Html.Partial("_CarritoParcial", Model)
+        <!-- PANEL DERECHO: CARRITO -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="card-header text-white fw-semibold" style="background-color:#1B263B;">
+                    <i class="bi bi-cart4 me-2"></i> Carrito de Compra
                 </div>
 
-                <div class="d-grid mt-2">
-                    <button class="btn btn-success btn-lg" id="btnFinalizarVenta" style="background-color:#52B788; border:none;">Finalizar Venta</button>
+                <div class="card-body bg-white">
+                    <div id="carritoContainer">
+                        @Html.Partial("_CarritoParcial", Model)
+                    </div>
+
+                    <div class="d-grid mt-3">
+                        <button class="btn btn-lg text-dark fw-semibold border-0" id="btnFinalizarVenta" style="background-color:#FFD60A;">
+                            <i class="bi bi-check-circle-fill me-2"></i> Finalizar Venta
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal de confirmación -->
+<!-- MODAL CONFIRMAR -->
 <div class="modal fade" id="modalConfirmarVenta" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 shadow-lg">
-            <div class="modal-header bg-warning text-dark">
-                <h5 class="modal-title">Confirmar Venta</h5>
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header text-dark" style="background-color:#FFD60A;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-circle-fill me-2"></i>Confirmar Venta</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                ¿Desea finalizar la venta?
+            <div class="modal-body text-center">
+                <p class="fs-5 text-secondary">¿Desea finalizar esta venta?</p>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="btnConfirmarVenta">Sí, finalizar</button>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="btnConfirmarVenta" class="btn text-dark fw-semibold px-4" style="background-color:#FFD60A;">Sí, finalizar</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal de mensaje -->
+<!-- MODAL MENSAJE -->
 <div class="modal fade" id="modalMensajeVenta" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 shadow-lg">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title">Información</h5>
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header text-white" style="background-color:#1B263B;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-info-circle-fill me-2"></i>Resultado</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body" id="mensajeVentaBody">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-info" data-bs-dismiss="modal">Aceptar</button>
+            <div class="modal-body text-center" id="mensajeVentaBody"></div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn text-dark fw-semibold px-4" style="background-color:#FFD60A;" data-bs-dismiss="modal">Aceptar</button>
             </div>
         </div>
     </div>
@@ -100,7 +116,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // URLs de Razor correctamente
     var urlBuscarProducto = '@Url.Action("BuscarProducto", "Ventas")';
     var urlBuscarServicio = '@Url.Action("BuscarServicio", "Ventas")';
     var urlAgregarProducto = '@Url.Action("AgregarAlCarrito", "Ventas")';
@@ -113,10 +128,9 @@
     var urlFinalizarVenta = '@Url.Action("FinalizarVenta", "Ventas")';
 
     function formatCurrency(value) {
-        return (value || 0).toLocaleString(undefined, { style: 'currency', currency: 'USD' });
+        return value?.toLocaleString('es-CR', { style: 'currency', currency: 'CRC', minimumFractionDigits: 0 }) || '₡0';
     }
 
-    // refresca el partial del carrito
     function refreshCarritoPartial(callback) {
         $('#carritoContainer').load(urlCarritoParcial, function () {
             attachCarritoEvents();
@@ -125,8 +139,7 @@
     }
 
     function attachCarritoEvents() {
-        $('#carritoContainer').off('click', '.btn-eliminar').on('click', '.btn-eliminar', function (e) {
-            e.preventDefault();
+        $('#carritoContainer').off('click', '.btn-eliminar').on('click', '.btn-eliminar', function () {
             var id = $(this).closest('tr').data('id');
             var esServicio = $(this).closest('tr').data('esservicio') === true || $(this).closest('tr').data('esservicio') === 'true';
             eliminarLinea(id, esServicio);
@@ -136,216 +149,185 @@
             onCantidadChange(this);
         });
 
-        $('#carritoContainer').off('click', '#btnAplicarCupon').on('click', '#btnAplicarCupon', function () {
-            aplicarCupon();
-        });
-        $('#carritoContainer').off('click', '#btnQuitarCupon').on('click', '#btnQuitarCupon', function () {
-            quitarCupon();
-        });
+        $('#carritoContainer').off('click', '#btnAplicarCupon').on('click', '#btnAplicarCupon', aplicarCupon);
+        $('#carritoContainer').off('click', '#btnQuitarCupon').on('click', '#btnQuitarCupon', quitarCupon);
     }
 
-    $(function () {
-        $('#btnBuscarProducto').on('click', buscarProducto);
-        $('#btnBuscarServicio').on('click', buscarServicio);
-        $('#btnFinalizarVenta').on('click', finalizarVenta);
-        attachCarritoEvents();
-    });
-
-    // ---------- BÚSQUEDA ----------
-    function buscarProducto() {
+    $('#btnBuscarProducto').on('click', function () {
         var termino = $('#txtBuscarProducto').val();
         $.get(urlBuscarProducto, { termino: termino }, function (res) {
             var $list = $('#resultadoBusquedaProductos').empty();
             if (!res || !res.length) {
-                $list.append('<li class="list-group-item">No se encontraron productos.</li>');
+                $list.append('<li class="list-group-item text-center text-muted">No se encontraron productos.</li>');
                 return;
             }
             res.forEach(function (p) {
-                var $li = $('<li>').addClass('list-group-item d-flex justify-content-between align-items-center');
-                var texto = p.Nombre + ' - ' + formatCurrency(p.PrecioUnitario) + ' (Disponible: ' + p.CantidadStock + ')';
-                $li.append($('<span>').text(texto));
-                var $btn = $('<button>').addClass('btn btn-sm btn-primary').text('Agregar');
-                $btn.on('click', function () { agregarProducto(p.IdProducto, p.Nombre, p.PrecioUnitario, p.CantidadStock); });
-                $li.append($btn);
-                $list.append($li);
+                var item = `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>${p.Nombre} - ${formatCurrency(p.PrecioUnitario)} <small class="text-muted">(Stock: ${p.CantidadStock})</small></span>
+                        <button class="btn btn-sm text-dark fw-semibold btn-agregar" style="background-color:#FFD60A;"
+                                onclick="agregarProducto(${p.IdProducto}, '${p.Nombre}', ${p.PrecioUnitario}, ${p.CantidadStock})">
+                            <i class='bi bi-plus-lg'></i> Agregar
+                        </button>
+                    </li>`;
+                $list.append(item);
             });
-        }).fail(function () {
-            alert('Error buscando productos.');
         });
-    }
+    });
 
-    function buscarServicio() {
+    $('#btnBuscarServicio').on('click', function () {
         var termino = $('#txtBuscarServicio').val();
         $.get(urlBuscarServicio, { termino: termino }, function (res) {
             var $list = $('#resultadoBusquedaServicios').empty();
             if (!res || !res.length) {
-                $list.append('<li class="list-group-item">No se encontraron servicios.</li>');
+                $list.append('<li class="list-group-item text-center text-muted">No se encontraron servicios.</li>');
                 return;
             }
             res.forEach(function (s) {
-                var $li = $('<li>').addClass('list-group-item d-flex justify-content-between align-items-center');
-                var texto = s.Nombre + ' - ' + formatCurrency(s.PrecioUnitario);
-                $li.append($('<span>').text(texto));
-                var $btn = $('<button>').addClass('btn btn-sm btn-primary').text('Agregar');
-                $btn.on('click', function () { agregarServicio(s.IdServicio, s.Nombre, s.PrecioUnitario); });
-                $li.append($btn);
-                $list.append($li);
+                var item = `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>${s.Nombre} - ${formatCurrency(s.PrecioUnitario)}</span>
+                        <button class="btn btn-sm text-dark fw-semibold btn-agregar" style="background-color:#FFD60A;"
+                                onclick="agregarServicio(${s.IdServicio}, '${s.Nombre}', ${s.PrecioUnitario})">
+                            <i class='bi bi-plus-lg'></i> Agregar
+                        </button>
+                    </li>`;
+                $list.append(item);
             });
-        }).fail(function () {
-            alert('Error buscando servicios.');
+        });
+    });
+
+    function agregarProducto(idProducto, nombre, precio, stock) {
+        $.post(urlAgregarProducto, { idProducto, nombre, precioUnitario: precio }, function (res) {
+            if (res && res.success) refreshCarritoPartial(() => buscarProducto());
         });
     }
 
-    // ---------- AGREGAR ----------
-    function agregarProducto(idProducto, nombre, precioUnitario, cantidadStock) {
-        guardarTabActivo('#tabProductos');
-        if (cantidadStock <= 0) {
-            alert('Stock insuficiente para agregar este producto.');
-            return;
-        }
-        $.post(urlAgregarProducto, { idProducto: idProducto, nombre: nombre, precioUnitario: precioUnitario }, function (res) {
-            if (res && res.success) refreshCarritoPartial();
-            else alert(res && res.mensaje ? res.mensaje : 'No se pudo agregar el producto.');
-        }).fail(function () {
-            alert('Error al conectar con el servidor.');
+    function agregarServicio(idServicio, nombre, precio) {
+        $.post(urlAgregarServicio, { idServicio, nombre, precioUnitario: precio }, function (res) {
+            if (res && res.success) refreshCarritoPartial(() => buscarServicio());
         });
     }
 
-    function agregarServicio(idServicio, nombre, precioUnitario) {
-        guardarTabActivo('#tabServicios');
-        $.post(urlAgregarServicio, { idServicio: idServicio, nombre: nombre, precioUnitario: precioUnitario }, function (res) {
-            if (res && res.success) refreshCarritoPartial();
-            else alert(res && res.mensaje ? res.mensaje : 'No se pudo agregar el servicio.');
-        }).fail(function () {
-            alert('Error al conectar con el servidor.');
-        });
-    }
-
-    // ---------- CANTIDAD ----------
     function onCantidadChange(input) {
         var $input = $(input);
-        var idProducto = $input.data('id');
+        var id = $input.data('id');
         var precio = parseFloat($input.data('precio'));
-        var esServicio = ($input.data('esservicio') === true || $input.data('esservicio') === 'true');
-        var max = parseInt($input.data('max')) || null;
-
-        var cantidad = parseInt($input.val());
-        if (isNaN(cantidad) || cantidad <= 0) cantidad = 1;
-        if (max && cantidad > max) {
-            alert('No puede agregar más unidades. Stock disponible: ' + max);
-            cantidad = max;
-            $input.val(cantidad);
-        } else $input.val(cantidad);
-
-        var fila = $input.closest('tr');
-        fila.find('.subtotal').text(formatCurrency(precio * cantidad));
-
-        $.post(urlActualizarLinea, { idProducto: idProducto, cantidad: cantidad, esServicio: esServicio }, function (res) {
+        var esServicio = $input.data('esservicio') === true || $input.data('esservicio') === 'true';
+        var cantidad = parseInt($input.val()) || 1;
+        $.post(urlActualizarLinea, { idProducto: id, cantidad, esServicio }, function () {
             refreshCarritoPartial();
-        }).fail(function () {
-            alert('Error comunicándose con el servidor.');
         });
     }
 
-    // ---------- ELIMINAR ----------
     function eliminarLinea(idProducto, esServicio) {
-        $.post(urlEliminarLinea, { idProducto: idProducto, esServicio: esServicio }, function (res) {
+        $.post(urlEliminarLinea, { idProducto, esServicio }, function (res) {
             if (res && res.success) refreshCarritoPartial();
-            else alert(res && res.mensaje ? res.mensaje : 'No se pudo eliminar la línea.');
-        }).fail(function () {
-            alert('Error comunicándose con el servidor.');
         });
     }
 
-    // ---------- CUPÓN ----------
     function aplicarCupon() {
-        var codigo = $('#carritoContainer').find('#txtCupon').val() || $('#txtCupon').val();
-        if (!codigo || codigo.trim() === '') {
-            $('#carritoContainer').find('#mensajeCupon').text('Ingrese un código de cupón.').css('color', 'red');
-            return;
-        }
-
-        $.post(urlAplicarCupon, { codigo: codigo }, function (res) {
+        var codigo = $('#txtCupon').val();
+        $.post(urlAplicarCupon, { codigo }, function (res) {
             if (res && res.success) {
-                refreshCarritoPartial(function () {
-                    $('#carritoContainer').find('#mensajeCupon').text(res.mensaje).css('color', 'green');
-                });
+                refreshCarritoPartial(() => $('#mensajeCupon').text(res.mensaje).css('color', 'green'));
             } else {
-                $('#carritoContainer').find('#mensajeCupon').text(res && res.mensaje ? res.mensaje : 'Cupón no válido.').css('color', 'red');
+                $('#mensajeCupon').text(res?.mensaje || 'Cupón no válido.').css('color', 'red');
             }
-        }).fail(function () {
-            $('#carritoContainer').find('#mensajeCupon').text('Error comunicándose con el servidor.').css('color', 'red');
         });
     }
 
     function quitarCupon() {
         $.post(urlQuitarCupon, {}, function (res) {
             if (res && res.success) refreshCarritoPartial();
-            else $('#carritoContainer').find('#mensajeCupon').text(res && res.mensaje ? res.mensaje : 'No se pudo quitar el cupón.').css('color', 'red');
-        }).fail(function () {
-            $('#carritoContainer').find('#mensajeCupon').text('Error comunicándose con el servidor.').css('color', 'red');
         });
     }
 
-    // ---------- FINALIZAR ----------
-    function finalizarVenta() {
-        const modalConfirm = new bootstrap.Modal(document.getElementById('modalConfirmarVenta'));
-        const modalMensaje = new bootstrap.Modal(document.getElementById('modalMensajeVenta'));
-        const mensajeBody = document.getElementById('mensajeVentaBody');
+    // --- MODALES DE CONFIRMACIÓN Y MENSAJE ---
+    const modalConfirmar = new bootstrap.Modal(document.getElementById('modalConfirmarVenta'));
+    const modalMensaje = new bootstrap.Modal(document.getElementById('modalMensajeVenta'));
+    const mensajeBody = document.getElementById('mensajeVentaBody');
 
-        modalConfirm.show();
+    $('#btnFinalizarVenta').on('click', function () {
+        modalConfirmar.show();
+    });
 
-        document.getElementById('btnConfirmarVenta').onclick = function () {
-            modalConfirm.hide();
-            $.post(urlFinalizarVenta, {}, function (res) {
-                mensajeBody.textContent = res && res.mensaje ? res.mensaje : 'Venta finalizada.';
-                modalMensaje.show();
-                if (res && res.success) refreshCarritoPartial();
-            }).fail(function () {
-                mensajeBody.textContent = 'Error comunicándose con el servidor.';
-                modalMensaje.show();
-            });
-        };
-    }
+    $('#btnConfirmarVenta').on('click', function () {
+        modalConfirmar.hide();
+        $.post(urlFinalizarVenta, {}, function (res) {
+            mensajeBody.textContent = res?.mensaje || "Venta finalizada.";
+            modalMensaje.show();
+            if (res.success) {
+                refreshCarritoPartial();
+                $('#resultadoBusquedaProductos, #resultadoBusquedaServicios').empty();
+            }
+        }).fail(() => {
+            mensajeBody.textContent = "Error al conectar con el servidor.";
+            modalMensaje.show();
+        });
+    });
 
-    // guardar/restaurar tab activo
-    function guardarTabActivo(tabId) { sessionStorage.setItem('tabActivo', tabId); }
-    $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) { guardarTabActivo($(e.target).attr('href')); });
+    $(function () {
+        attachCarritoEvents();
+    });
 </script>
 
 <style>
+    body {
+        background-color: #fdfdfd;
+    }
+
     .card {
-        padding: 1rem;
+        transition: 0.25s ease;
     }
 
-    .list-group-item button {
-        border-radius: 20px;
-    }
-
-    #tblCarrito input {
-        width: 60px;
-    }
-
-    .input-group button {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-    }
-
-    .table-primary th {
-        background-color: #A8DADC !important;
-        color: #1D3557;
-    }
-
-    h2, h4 {
-        font-weight: 600;
-    }
-
-    .btn-danger {
-        background-color: #E63946;
-        border: none;
-    }
-
-        .btn-danger:hover {
-            background-color: #D62828;
+        .card:hover {
+            transform: translateY(-3px);
         }
+
+    .btn-buscar {
+        background-color: #FFD60A;
+        border: none;
+        color: #1B263B !important;
+    }
+
+        .btn-buscar:hover {
+            background-color: #F4C400;
+            color: #000 !important;
+        }
+
+    .btn-agregar:hover {
+        background-color: #FFC300 !important;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #FFF9E6 !important;
+    }
+
+    .btn:focus {
+        box-shadow: none !important;
+    }
+    .nav-tabs .nav-link {
+        color: #ffffff;
+        border: none;
+        border-radius: 8px 8px 0 0;
+        background-color: transparent;
+        transition: all 0.3s ease;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+    }
+
+        .nav-tabs .nav-link:hover {
+            background-color: #243A57;
+            color: #FFD60A;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: #FFD60A !important; 
+            color: #1B263B !important;
+            border: none !important;
+            border-radius: 10px 10px 0 0;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15);
+        }
+
 </style>

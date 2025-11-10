@@ -3,56 +3,168 @@
     ViewBag.Title = "Editar Cita";
 }
 
-<div class="container mt-5">
-    <div class="card shadow-lg border-0 rounded-3">
-        <div class="card-header bg-warning text-dark">
-            <h3>✏️ Editar Cita</h3>
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.5/font/bootstrap-icons.css" rel="stylesheet" />
+
+<!-- Flatpickr (para fecha y hora bonita) -->
+<link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/material_blue.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/l10n/es.js"></script>
+
+<div class="container py-5">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+        <!-- ENCABEZADO -->
+        <div class="card-header text-dark d-flex align-items-center" style="background-color:#FFD60A;">
+            <h3 class="mb-0 fw-bold">
+                <i class="bi bi-pencil-square me-2"></i> Editar Cita
+            </h3>
         </div>
-        <div class="card-body">
+
+        <!-- CUERPO -->
+        <div class="card-body" style="background-color:#F8FAFC;">
             @using (Html.BeginForm("Editar", "Cita", FormMethod.Post))
             {
                 @Html.AntiForgeryToken()
                 @Html.HiddenFor(m => m.IdCita)
 
-                <div class="mb-3">
-                    <label>Fecha y Hora</label>
-                    @Html.TextBoxFor(m => m.FechaHora, new { @class = "form-control", type = "datetime-local" })
+                <div class="row g-4">
+                    <!-- FECHA Y HORA -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary">📅 Fecha y hora</label>
+                        <div class="input-group pretty-field shadow-sm" style="--bg:#E3F2FD;">
+                            <span class="input-group-text border-0 bg-transparent">
+                                <i class="bi bi-calendar-event text-primary"></i>
+                            </span>
+                            <input type="text" id="FechaHora" name="FechaHora"
+                                   class="form-control border-0"
+                                   value="@Model.FechaHora.ToString("dd/MM/yyyy HH:mm")"
+                                   placeholder="Seleccione fecha y hora"
+                                   autocomplete="off" required />
+                        </div>
+                    </div>
+
+                    <!-- EMPLEADO -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary">👩‍💼 Empleado</label>
+                        <div class="input-group pretty-field shadow-sm" style="--bg:#E8F5E9;">
+                            <span class="input-group-text border-0 bg-transparent">
+                                <i class="bi bi-person-badge text-success"></i>
+                            </span>
+                            <select class="form-select border-0" name="IdEmpleado" required>
+                                <option value="">-- Seleccione --</option>
+                                @foreach (var emp in ViewBag.Empleados as SelectList)
+                                {
+                                    <option value="@emp.Value" @(emp.Value == Model.IdEmpleado.ToString() ? "selected" : "")>@emp.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- SERVICIO -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary">💅 Servicio</label>
+                        <div class="input-group pretty-field shadow-sm" style="--bg:#FFF8E1;">
+                            <span class="input-group-text border-0 bg-transparent">
+                                <i class="bi bi-scissors text-warning"></i>
+                            </span>
+                            <select class="form-select border-0" name="IdServicio" required>
+                                <option value="">-- Seleccione --</option>
+                                @foreach (var serv in ViewBag.Servicios as SelectList)
+                                {
+                                    <option value="@serv.Value" @(serv.Value == Model.IdServicio.ToString() ? "selected" : "")>@serv.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- ESTADO -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary">📋 Estado</label>
+                        <div class="input-group pretty-field shadow-sm" style="--bg:#E0F7FA;">
+                            <span class="input-group-text border-0 bg-transparent">
+                                <i class="bi bi-flag text-info"></i>
+                            </span>
+                            <select class="form-select border-0" name="IdEstadoCita" required>
+                                <option value="1" @(Model.IdEstadoCita == 1 ? "selected" : "")>Pendiente</option>
+                                <option value="2" @(Model.IdEstadoCita == 2 ? "selected" : "")>Confirmada</option>
+                                <option value="3" @(Model.IdEstadoCita == 3 ? "selected" : "")>Cancelada</option>
+                                <option value="4" @(Model.IdEstadoCita == 4 ? "selected" : "")>Disponible</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- OBSERVACIONES -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold text-secondary">📝 Observaciones</label>
+                        <div class="input-group pretty-field shadow-sm" style="--bg:#F3E5F5;">
+                            <span class="input-group-text border-0 bg-transparent">
+                                <i class="bi bi-chat-left-text text-secondary"></i>
+                            </span>
+                            @Html.TextAreaFor(m => m.Observaciones, new { @class = "form-control border-0", rows = 3, placeholder = "Notas u observaciones..." })
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label>Empleado</label>
-                    <select class="form-control" name="IdEmpleado" required>
-                        <option value="">-- Seleccione --</option>
-                        @foreach (var emp in ViewBag.Empleados as SelectList)
-                        {
-                            <option value="@emp.Value" @(emp.Value == Model.IdEmpleado.ToString() ? "selected" : "")>@emp.Text</option>
-                        }
-                    </select>
+
+                <!-- BOTÓN GUARDAR -->
+                <div class="text-center mt-5">
+                    <button type="submit"
+                            class="btn fw-semibold text-dark border-0 shadow-sm px-5 py-2 rounded-pill"
+                            style="background-color:#FFD60A;">
+                        💾 Guardar Cambios
+                    </button>
                 </div>
-                <div class="mb-3">
-                    <label>Servicio</label>
-                    <select class="form-control" name="IdServicio" required>
-                        <option value="">-- Seleccione --</option>
-                        @foreach (var serv in ViewBag.Servicios as SelectList)
-                        {
-                            <option value="@serv.Value" @(serv.Value == Model.IdServicio.ToString() ? "selected" : "")>@serv.Text</option>
-                        }
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label>Estado</label>
-                    <select class="form-control" name="IdEstadoCita">
-                        <option value="1" @(Model.IdEstadoCita == 1 ? "selected" : "")>Pendiente</option>
-                        <option value="2" @(Model.IdEstadoCita == 2 ? "selected" : "")>Confirmada</option>
-                        <option value="3" @(Model.IdEstadoCita == 3 ? "selected" : "")>Cancelada</option>
-                        <option value="4" @(Model.IdEstadoCita == 4 ? "selected" : "")>Disponible</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label>Observaciones</label>
-                    @Html.TextAreaFor(m => m.Observaciones, new { @class = "form-control" })
-                </div>
-                <button type="submit" class="btn btn-success w-100">💾 Guardar</button>
             }
         </div>
     </div>
 </div>
+
+<style>
+    body { background-color: #F1F5F9; }
+
+    .card { transition: transform 0.2s ease; }
+    .card:hover { transform: translateY(-3px); }
+
+    .pretty-field {
+        border-radius: 12px;
+        background: var(--bg, #E3F2FD);
+        overflow: hidden;
+    }
+
+    .pretty-field .form-control,
+    .pretty-field .form-select {
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.18) !important;
+        transform: translateY(-1px);
+    }
+
+    .form-select {
+        padding-top: .6rem;
+        padding-bottom: .6rem;
+        border-radius: 0 12px 12px 0;
+    }
+
+    .btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+</style>
+
+<script>
+    // Flatpickr para mostrar calendario bonito y correcto formato
+    document.addEventListener('DOMContentLoaded', function () {
+        flatpickr("#FechaHora", {
+            locale: "es",
+            enableTime: true,
+            time_24hr: true,
+            dateFormat: "d/m/Y H:i",
+            defaultDate: "@Model.FechaHora.ToString("yyyy-MM-dd HH:mm")",
+            allowInput: true,
+        });
+    });
+</script>

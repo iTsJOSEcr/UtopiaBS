@@ -1,13 +1,16 @@
-﻿using System;
+﻿using Microsoft.AspNet.Identity;
+using System;
 using System.Data.Entity.SqlServer;
 using System.Linq;
 using System.Web.Mvc;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
+using UtopiaBS.Entities.Contabilidad;
 using UtopiaBS.Web.ViewModels;
 
 namespace UtopiaBS.Web.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class VentasController : Controller
     {
         // GET: Ventas/PuntoVenta
@@ -333,73 +336,47 @@ namespace UtopiaBS.Web.Controllers
             if (carrito == null || carrito.Lineas.Count == 0)
                 return Json(new { success = false, mensaje = "Carrito vacío" });
 
-            int idUsuario = 1; // remplazar por usuario real si aplica
+            var userId = User.Identity.GetUserId();
 
             using (var db = new Context())
             {
-                // Validar stock para productos
-                foreach (var linea in carrito.Lineas.Where(l => !l.EsServicio))
-                {
-                    var producto = db.Productos.FirstOrDefault(p => p.IdProducto == linea.IdProducto);
-                    if (producto == null)
-                        return Json(new { success = false, mensaje = $"El producto {linea.NombreProducto} no existe" });
-
-                    if (producto.CantidadStock < linea.Cantidad)
-                        return Json(new { success = false, mensaje = $"No hay stock suficiente para {producto.Nombre}. Disponible: {producto.CantidadStock}, solicitado: {linea.Cantidad}" });
-                }
-
-                // Crear la venta: Total ya debe considerar el descuento aplicado en el carrito (carrito.Total)
+                // 1️⃣ Crear la venta
                 var venta = new Venta
                 {
-                    IdUsuario = idUsuario,
+                    IdUsuario = userId,
                     FechaVenta = DateTime.Now,
                     Total = carrito.Total,
                     CuponId = null,
                     MontoDescuento = 0m
                 };
 
-                // Si el carrito tiene cupón aplicado, tratar de obtener su id y monto descontado
+                // 2️⃣ Procesar cupón si existe
                 if (!string.IsNullOrEmpty(carrito.CuponAplicado))
                 {
                     var cupon = db.CuponDescuento.FirstOrDefault(c => c.Codigo.ToUpper() == carrito.CuponAplicado.ToUpper());
                     if (cupon != null)
                     {
                         venta.CuponId = cupon.CuponId;
-
-                        // Preferimos tomar el valor calculado por el carrito (carrito.Descuento) si existe.
-                        // Si no existe, calculamos aquí para mayor seguridad.
                         decimal montoDescuento = carrito.Descuento;
+
                         if (montoDescuento <= 0m)
                         {
-                            // calcular según tipo
                             string tipo = string.IsNullOrWhiteSpace(cupon.Tipo) ? "Monto" : cupon.Tipo;
                             decimal valor = cupon.Valor;
                             if (string.Equals(tipo, "Porcentaje", StringComparison.OrdinalIgnoreCase))
-                            {
                                 montoDescuento = Math.Round(carrito.SubTotal * (valor / 100m), 2);
-                            }
                             else
-                            {
-                                montoDescuento = Math.Round(valor, 2);
-                                if (montoDescuento > carrito.SubTotal) montoDescuento = carrito.SubTotal;
-                            }
+                                montoDescuento = Math.Min(Math.Round(valor, 2), carrito.SubTotal);
                         }
                         venta.MontoDescuento = montoDescuento;
                     }
-                    else
-                    {
-                        // Cupón aplicado en carrito ya no existe en BD -> limpiamos info del cupón
-                        venta.CuponId = null;
-                        venta.MontoDescuento = 0m;
-                        carrito.LimpiarCupon();
-                    }
                 }
 
-                // Agregar venta a BD para obtener IdVenta antes de agregar detalles
+                // 3️⃣ Guardar la venta
                 db.Ventas.Add(venta);
                 db.SaveChanges();
 
-                // Guardar detalles y ajustar stock
+                // 4️⃣ Guardar detalles y ajustar stock
                 foreach (var linea in carrito.Lineas)
                 {
                     var subtotalLinea = linea.PrecioUnitario * linea.Cantidad;
@@ -433,7 +410,7 @@ namespace UtopiaBS.Web.Controllers
                     }
                 }
 
-                // Registrar uso del cupón (incrementar UsoActual) si aplica
+                // 5️⃣ Registrar uso del cupón (si aplica)
                 if (!string.IsNullOrEmpty(carrito.CuponAplicado))
                 {
                     var cupon = db.CuponDescuento.FirstOrDefault(c => c.Codigo.ToUpper() == carrito.CuponAplicado.ToUpper());
@@ -443,12 +420,27 @@ namespace UtopiaBS.Web.Controllers
                     }
                 }
 
+                // 🔹 Guardar todos los cambios de la venta
+                db.SaveChanges();
+
+                // 6️⃣ Crear ingreso automático
+                var ingreso = new Ingreso
+                {
+                    Monto = venta.Total,
+                    Fecha = venta.FechaVenta,
+                    Categoria = "Venta",
+                    Descripcion = $"Venta #{venta.IdVenta} registrada automáticamente.",
+                    UsuarioId = userId,
+                    FechaCreacion = DateTime.Now
+                };
+
+                db.Ingresos.Add(ingreso);
                 db.SaveChanges();
             }
 
-            // Limpiar carrito en sesión
+            // 7️⃣ Limpiar carrito en sesión
             Session["Carrito"] = new VentaViewModel();
-            return Json(new { success = true, mensaje = "Venta registrada correctamente." });
+            return Json(new { success = true, mensaje = "Venta registrada correctamente y reflejada en contabilidad." });
         }
 
     }

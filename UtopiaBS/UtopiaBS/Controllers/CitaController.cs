@@ -5,9 +5,11 @@ using System.Web.Mvc;
 using UtopiaBS.Business;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
+using UtopiaBS.Models;
 
 namespace UtopiaBS.Web.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class CitaController : Controller
     {
         private readonly CitaService _citaService = new CitaService();
@@ -15,29 +17,6 @@ namespace UtopiaBS.Web.Controllers
         private readonly ServicioService _servicioService = new ServicioService();
         private readonly Context _context = new Context();
 
-
-
-        // GET: Cita/Listar 
-        public ActionResult Listar(int? empleadoId, int? servicioId)
-        {
-            var citas = _citaService.ListarDisponibles(empleadoId, servicioId);
-            ViewBag.Empleados = _empleadoService.ObtenerTodos();
-            ViewBag.Servicios = new ServicioService().ObtenerTodos();
-            ViewBag.EmpleadoSeleccionado = empleadoId;
-            ViewBag.ServicioSeleccionado = servicioId;
-            return View(citas);
-        }
-
-
-        // POST: Cita/Reservar
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Reservar(int idCita, int idCliente, int? idEmpleado, int? idServicio)
-        {
-            var resultado = _citaService.ReservarCita(idCita, idCliente, idEmpleado, idServicio);
-            TempData["Mensaje"] = resultado;
-            return RedirectToAction("ListarAgendadas");
-        }
 
         // GET: Cita/Agregar
         public ActionResult Agregar()
@@ -172,39 +151,40 @@ namespace UtopiaBS.Web.Controllers
             return RedirectToAction("Administrar");
         }
 
-        public ActionResult MisCitas(int? idCliente)
+        public ActionResult Reportes()
         {
-
-            var citasPendientes = _context.Citas
-                .Include("Empleado")
-                .Include("Servicio")
-                .Where(c => c.IdEstadoCita == 1)
-                .ToList();
-
-
-            var citasDisponibles = _context.Citas
-                .Include("Empleado")
-                .Include("Servicio")
-                .Where(c => c.IdEstadoCita == 4 || c.IdCliente == null)
-                .ToList();
-
-
-            ViewBag.CitasDisponibles = citasDisponibles;
-            ViewBag.IdCliente = idCliente ?? 0;
-
-
-            return View(citasPendientes);
+            return View();
         }
 
-        // POST: Cita/CambiarCita
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult CambiarCita(int idCitaActual, int idNuevaCita, int idCliente)
+        public ActionResult DescargarReporteCitas(DateTime inicio, DateTime fin, string formato)
         {
-            var resultado = _citaService.CambiarCita(idCitaActual, idNuevaCita);
-            TempData["Mensaje"] = resultado;
+            try
+            {
+                formato = string.IsNullOrWhiteSpace(formato) ? "pdf" : formato.Trim().ToLower();
+                var archivo = _citaService.DescargarReporteCitas(inicio, fin, formato);
 
-            return RedirectToAction("MisCitas", new { idCliente });
+                if (archivo == null || archivo.Length == 0)
+                {
+                    TempData["Mensaje"] = "No se encontraron registros.";
+                    return RedirectToAction("Reportes");
+                }
+
+                string nombreArchivo = formato == "excel"
+                    ? $"Reporte_Citas_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.xlsx"
+                    : $"Reporte_Citas_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.pdf";
+
+                string mimeType = formato == "excel"
+                    ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    : "application/pdf";
+
+                return File(archivo, mimeType, nombreArchivo);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al generar reporte: " + ex.Message;
+                return RedirectToAction("Reportes");
+            }
         }
+
     }
 }
