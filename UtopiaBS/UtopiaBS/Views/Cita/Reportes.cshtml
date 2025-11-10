@@ -2,39 +2,123 @@
     ViewBag.Title = "Reportes de Citas";
 }
 
-<h2>Reportes de Citas</h2>
-<hr />
+<!-- Bootstrap & Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.5/font/bootstrap-icons.css" rel="stylesheet" />
 
-<form action="@Url.Action("DescargarReporteCitas", "Cita")" method="get" class="form-inline">
-
-    <div class="form-group">
-        <label>Fecha Inicio:</label>
-        <input type="date" name="inicio" class="form-control" required />
+<div class="container py-5">
+    <!-- TÍTULO -->
+    <div class="text-center mb-4">
+        <h2 class="fw-bold text-dark">
+            <i class="bi bi-bar-chart-line text-warning me-2"></i> Reportes de Citas
+        </h2>
+        <p class="text-secondary">Genere reportes de todas las citas o por rango de fechas.</p>
     </div>
 
-    <div class="form-group" style="margin-left:10px;">
-        <label>Fecha Fin:</label>
-        <input type="date" name="fin" class="form-control" required />
+    <!-- TARJETA -->
+    <div class="card shadow-lg border-0 rounded-4 mx-auto" style="max-width: 700px;">
+        <div class="card-body px-5 py-4" style="background-color:#F8FAFC;">
+
+            <!-- FORMULARIO -->
+            <form id="reporteForm" action="@Url.Action("DescargarReporteCitas", "Cita")" method="get">
+                <div class="row g-4 align-items-end">
+                    <!-- FECHA INICIO -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary">📅 Fecha Inicio</label>
+                        <div class="input-group shadow-sm rounded-pill">
+                            <span class="input-group-text border-0 bg-light rounded-start-pill">
+                                <i class="bi bi-calendar-event text-primary"></i>
+                            </span>
+                            <input type="date" name="inicio" class="form-control border-0 rounded-end-pill" />
+                        </div>
+                    </div>
+
+                    <!-- FECHA FIN -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-secondary">📅 Fecha Fin</label>
+                        <div class="input-group shadow-sm rounded-pill">
+                            <span class="input-group-text border-0 bg-light rounded-start-pill">
+                                <i class="bi bi-calendar-check text-success"></i>
+                            </span>
+                            <input type="date" name="fin" class="form-control border-0 rounded-end-pill" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTONES -->
+                <div class="text-center mt-4">
+                    <button type="submit"
+                            name="formato" value="pdf"
+                            class="btn fw-semibold text-dark border-0 shadow-sm rounded-pill px-5 py-2 me-3"
+                            style="background-color:#FFD60A;">
+                        <i class="bi bi-file-earmark-pdf-fill me-2"></i> Descargar PDF
+                    </button>
+
+                    <button type="submit"
+                            name="formato" value="excel"
+                            class="btn fw-semibold text-white border-0 shadow-sm rounded-pill px-5 py-2"
+                            style="background-color:#1B263B;">
+                        <i class="bi bi-file-earmark-excel-fill me-2"></i> Descargar Excel
+                    </button>
+                </div>
+            </form>
+
+            <!-- ALERTAS -->
+            @if (TempData["Mensaje"] != null)
+            {
+                <div class="alert alert-info text-center mt-4 shadow-sm border-0 fw-semibold rounded-pill">
+                    <i class="bi bi-info-circle me-2"></i> @TempData["Mensaje"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger text-center mt-4 shadow-sm border-0 fw-semibold rounded-pill">
+                    <i class="bi bi-exclamation-triangle me-2"></i> @TempData["Error"]
+                </div>
+            }
+        </div>
     </div>
+</div>
 
-    <div class="form-group" style="margin-left:10px;">
-        <label>Formato:</label>
-        <select name="formato" class="form-control">
-            <option value="pdf">PDF</option>
-            <option value="excel">Excel</option>
-        </select>
-    </div>
+<style>
+    body {
+        background-color: #F1F3F6;
+    }
 
-    <button type="submit" class="btn btn-primary" style="margin-left:10px;">Descargar</button>
+    .card {
+        transition: transform 0.2s ease;
+    }
 
-</form>
+        .card:hover {
+            transform: translateY(-3px);
+        }
 
-@if (TempData["Mensaje"] != null)
-{
-    <div class="alert alert-info">@TempData["Mensaje"]</div>
-}
+    .form-control {
+        height: 45px;
+        font-size: 0.95rem;
+    }
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
+    .btn {
+        transition: all 0.2s ease-in-out;
+    }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+    .alert-info {
+        background-color: #E3F2FD;
+        color: #0D47A1;
+    }
+
+    .alert-danger {
+        background-color: #F8D7DA;
+        color: #842029;
+    }
+
+    h2 {
+        letter-spacing: 0.5px;
+    }
+</style>

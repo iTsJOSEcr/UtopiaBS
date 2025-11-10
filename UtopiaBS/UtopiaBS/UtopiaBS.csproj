@@ -263,6 +263,7 @@
     <Content Include="Views\Cita\Reportes.cshtml" />
     <Content Include="Views\CuponDescuento\Agregar.cshtml" />
     <Content Include="Views\CuponDescuento\Editar.cshtml" />
+    <Content Include="Views\Home\AdminHome.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

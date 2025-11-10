@@ -1,54 +1,76 @@
 ﻿@model UtopiaBS.Web.ViewModels.VentaViewModel
+@using System.Globalization
 
-<table class="table table-bordered" id="tblCarrito">
-    <thead>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+<table class="table table-bordered text-center align-middle" id="tblCarrito" style="margin:auto;">
+    <thead class="fw-semibold">
         <tr>
             <th>Tipo</th>
             <th>Nombre</th>
             <th style="width:120px">Cantidad</th>
-            <th class="text-end">Precio Unitario</th>
-            <th class="text-end">Subtotal</th>
+            <th class="text-center">Precio Unitario</th>
+            <th class="text-center">Subtotal</th>
             <th class="text-center">Acciones</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var linea in Model.Lineas)
+        @if (!Model.Lineas.Any())
         {
-            <tr data-id="@linea.IdProducto" data-esservicio="@linea.EsServicio.ToString().ToLower()">
-                <td>@(linea.EsServicio ? "Servicio" : "Producto")</td>
-                <td>@linea.NombreProducto</td>
-                <td class="text-center">
-                    @* Si NO es servicio, agregamos max y data-max; si ES servicio, no los ponemos *@
-                    @if (!linea.EsServicio)
-                    {
-                        <input type="number"
-                               min="1"
-                               value="@linea.Cantidad"
-                               max="@linea.CantidadStock"
-                               data-id="@linea.IdProducto"
-                               data-precio="@linea.PrecioUnitario"
-                               data-esservicio="@linea.EsServicio.ToString().ToLower()"
-                               data-max="@linea.CantidadStock"
-                               class="form-control form-control-sm text-center" />
-                        <small class="text-muted d-block">Disponible: @linea.CantidadStock</small>
-                    }
-                    else
-                    {
-                        <input type="number"
-                               min="1"
-                               value="@linea.Cantidad"
-                               data-id="@linea.IdProducto"
-                               data-precio="@linea.PrecioUnitario"
-                               data-esservicio="@linea.EsServicio.ToString().ToLower()"
-                               class="form-control form-control-sm text-center" />
-                    }
-                </td>
-                <td class="text-end">@linea.PrecioUnitario.ToString("C")</td>
-                <td class="text-end subtotal">@linea.SubTotal.ToString("C")</td>
-                <td class="text-center">
-                    <button class="btn btn-danger btn-sm btn-eliminar" type="button">Eliminar</button>
-                </td>
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">🛒 Tu carrito está vacío</td>
             </tr>
+        }
+        else
+        {
+            foreach (var linea in Model.Lineas)
+            {
+                <tr data-id="@linea.IdProducto" data-esservicio="@linea.EsServicio.ToString().ToLower()">
+                    <td>
+                        @if (linea.EsServicio)
+                        {
+                            <span class="badge bg-info text-dark px-3 py-2">Servicio</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success px-3 py-2">Producto</span>
+                        }
+                    </td>
+                    <td>@linea.NombreProducto</td>
+                    <td>
+                        @if (!linea.EsServicio)
+                        {
+                            <input type="number"
+                                   min="1"
+                                   value="@linea.Cantidad"
+                                   max="@linea.CantidadStock"
+                                   data-id="@linea.IdProducto"
+                                   data-precio="@linea.PrecioUnitario"
+                                   data-esservicio="@linea.EsServicio.ToString().ToLower()"
+                                   data-max="@linea.CantidadStock"
+                                   class="form-control form-control-sm text-center" />
+                            <small class="text-muted d-block">Disponible: @linea.CantidadStock</small>
+                        }
+                        else
+                        {
+                            <input type="number"
+                                   min="1"
+                                   value="@linea.Cantidad"
+                                   data-id="@linea.IdProducto"
+                                   data-precio="@linea.PrecioUnitario"
+                                   data-esservicio="@linea.EsServicio.ToString().ToLower()"
+                                   class="form-control form-control-sm text-center" />
+                        }
+                    </td>
+                    <td>@linea.PrecioUnitario.ToString("C", new CultureInfo("es-CR"))</td>
+                    <td class="subtotal">@linea.SubTotal.ToString("C", new CultureInfo("es-CR"))</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm btn-eliminar" type="button" title="Eliminar">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
         }
     </tbody>
 </table>
@@ -62,8 +84,10 @@
     <div id="mensajeCupon" class="mb-2" style="min-height:1em"></div>
 
     <div class="text-end">
-        <p>Subtotal: <span id="subtotalTexto">@Model.SubTotal.ToString("C")</span></p>
-        <p id="filaDescuento" style="display:@(Model.Descuento > 0 ? "block" : "none")">Descuento: <span id="descuentoTexto">- @Model.Descuento.ToString("C")</span></p>
-        <h5>Total: <span id="totalTexto">@Model.Total.ToString("C")</span></h5>
+        <p>Subtotal: <span id="subtotalTexto">@Model.SubTotal.ToString("C", new CultureInfo("es-CR"))</span></p>
+        <p id="filaDescuento" style="display:@(Model.Descuento > 0 ? "block" : "none")">
+            Descuento: <span id="descuentoTexto">- @Model.Descuento.ToString("C", new CultureInfo("es-CR"))</span>
+        </p>
+        <h5>Total: <span id="totalTexto">@Model.Total.ToString("C", new CultureInfo("es-CR"))</span></h5>
     </div>
 </div>

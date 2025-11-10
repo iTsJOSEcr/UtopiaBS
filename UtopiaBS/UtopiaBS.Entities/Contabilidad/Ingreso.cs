@@ -26,7 +26,7 @@ namespace UtopiaBS.Entities.Contabilidad
         [Required, MaxLength(500)]
         public string Descripcion { get; set; }
 
-        public int? UsuarioId { get; set; }
+        public string UsuarioId { get; set; }
 
         public DateTime FechaCreacion { get; set; }
     }
