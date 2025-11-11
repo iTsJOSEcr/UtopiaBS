@@ -5,12 +5,6 @@ USE UtopiaBS_DB;
 GO
 
 -------------------------Tablas de catálogo-------------------------
-CREATE TABLE Rol (
-    IdRol INT IDENTITY(1,1) PRIMARY KEY,
-    NombreRol NVARCHAR(50) NOT NULL,
-);
-GO 
-
 CREATE TABLE Estado (
     IdEstado INT IDENTITY(1,1) PRIMARY KEY,
     NombreEstado NVARCHAR(50) NOT NULL
@@ -59,23 +53,6 @@ CREATE TABLE Clientes (
     IdTipoMembresia INT NULL,
     CONSTRAINT FK_Clientes_TipoMembresia FOREIGN KEY (IdTipoMembresia)
     REFERENCES TipoMembresia(IdTipoMembresia)
-);
-GO
-
-
-CREATE TABLE Usuarios (
-    IdUsuario INT IDENTITY(1,1) PRIMARY KEY,
-    Nombre NVARCHAR(100) NOT NULL,
-    Apellido NVARCHAR(100) NOT NULL,
-    Correo NVARCHAR(150) NOT NULL UNIQUE,
-    Contrasena NVARCHAR(200) NOT NULL,
-    FechaNacimiento DATE NOT NULL,
-	FechaRegistro DATE NOT NULL DEFAULT CAST(GETDATE() AS DATE),
-    Telefono NVARCHAR(20) NOT NULL,
-    IdRol INT NOT NULL,
-    IdEstado INT NOT NULL,
-    CONSTRAINT FK_Usuarios_Rol FOREIGN KEY (IdRol) REFERENCES Rol(IdRol),
-    CONSTRAINT FK_Usuarios_Estado FOREIGN KEY (IdEstado) REFERENCES Estado(IdEstado)
 );
 GO
 
@@ -281,12 +258,6 @@ ADD FechaUltimoRecordatorio DATETIME NULL,
 
 
 --INSERTS
--- Rol
-INSERT INTO Rol (NombreRol) VALUES 
-('Administrador'),
-('Cliente'),
-('Empleado');
-
 -- Estado
 INSERT INTO Estado (NombreEstado) VALUES 
 ('Activo'),
@@ -324,14 +295,6 @@ INSERT INTO FormatoReporte (NombreFormato, Extension) VALUES
 INSERT INTO Clientes (Nombre, IdTipoMembresia) VALUES
 ('Ana Pérez', 1),
 ('Luis Gómez', 2);
-
--- Usuarios
-INSERT INTO Usuarios (Nombre, Apellido, Correo, Contrasena, FechaNacimiento, Telefono, IdRol, IdEstado)
-VALUES
-('Ana', 'Pérez', 'ana.perez@mail.com', '123456', '1995-05-12', '88880000', 2, 1),
-('Luis', 'Gómez', 'luis.gomez@mail.com', '123456', '1990-08-20', '88881111', 2, 1),
-('Carla', 'Rodríguez', 'carla.rod@mail.com', '123456', '1985-03-15', '88882222', 1, 1);
-
 
 INSERT INTO Empleados (Nombre, Puesto, Especialidad) VALUES
 ('María López', 'Estilista', 'Cortes y peinados'),
@@ -446,3 +409,36 @@ JOIN sys.tables t ON kc.parent_object_id = t.object_id
 WHERE kc.[type] = 'PK' AND t.name = 'Clientes';
 
 CREATE INDEX IX_Clientes_IdUsuario ON Clientes(IdUsuario);
+
+ALTER TABLE Ventas DROP CONSTRAINT FK_Ventas_AspNetUsers;
+
+ALTER TABLE Ventas
+ALTER COLUMN IdUsuario NVARCHAR(128) NOT NULL;
+
+ALTER TABLE Ventas
+ADD CONSTRAINT FK_Ventas_AspNetUsers
+FOREIGN KEY (IdUsuario) REFERENCES AspNetUsers(Id);
+
+ALTER TABLE Ingresos DROP CONSTRAINT IF EXISTS FK_Ingresos
+ALTER TABLE Egresos DROP CONSTRAINT IF EXISTS FK_Egresos
+
+ALTER TABLE Ingresos ALTER COLUMN UsuarioId NVARCHAR(128) NULL;
+ALTER TABLE Egresos ALTER COLUMN UsuarioId NVARCHAR(128) NULL;
+
+ALTER TABLE Ingresos
+ADD CONSTRAINT FK_Ingresos_AspNetUsers
+FOREIGN KEY (UsuarioId)
+REFERENCES AspNetUsers(Id);
+
+ALTER TABLE Egresos
+ADD CONSTRAINT FK_Egresos_AspNetUsers
+FOREIGN KEY (UsuarioId)
+REFERENCES AspNetUsers(Id);
+
+use UtopiaBS_DB
+go
+ALTER TABLE Producto ALTER COLUMN Descripcion NVARCHAR(500) NULL;
+ALTER TABLE Producto ALTER COLUMN Tipo NVARCHAR(MAX) NULL;
+ALTER TABLE Producto ALTER COLUMN PrecioUnitario DECIMAL(18,2) NOT NULL;
+ALTER TABLE Producto ALTER COLUMN Fecha DATETIME NOT NULL;
+ALTER TABLE Producto ALTER COLUMN Proveedor NVARCHAR(150) NOT NULL;

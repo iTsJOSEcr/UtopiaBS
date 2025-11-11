@@ -26,5 +26,12 @@ namespace UtopiaBS.Controllers
 
             return View();
         }
+
+        [Authorize(Roles = "Administrador")]
+        public ActionResult AdminHome()
+        {
+            return View();
+        }
+
     }
 }
