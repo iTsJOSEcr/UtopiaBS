@@ -258,12 +258,6 @@ ADD FechaUltimoRecordatorio DATETIME NULL,
 
 
 --INSERTS
--- Rol
-INSERT INTO Rol (NombreRol) VALUES 
-('Administrador'),
-('Cliente'),
-('Empleado');
-
 -- Estado
 INSERT INTO Estado (NombreEstado) VALUES 
 ('Activo'),
@@ -301,14 +295,6 @@ INSERT INTO FormatoReporte (NombreFormato, Extension) VALUES
 INSERT INTO Clientes (Nombre, IdTipoMembresia) VALUES
 ('Ana Pérez', 1),
 ('Luis Gómez', 2);
-
--- Usuarios
-INSERT INTO Usuarios (Nombre, Apellido, Correo, Contrasena, FechaNacimiento, Telefono, IdRol, IdEstado)
-VALUES
-('Ana', 'Pérez', 'ana.perez@mail.com', '123456', '1995-05-12', '88880000', 2, 1),
-('Luis', 'Gómez', 'luis.gomez@mail.com', '123456', '1990-08-20', '88881111', 2, 1),
-('Carla', 'Rodríguez', 'carla.rod@mail.com', '123456', '1985-03-15', '88882222', 1, 1);
-
 
 INSERT INTO Empleados (Nombre, Puesto, Especialidad) VALUES
 ('María López', 'Estilista', 'Cortes y peinados'),
@@ -449,6 +435,8 @@ ADD CONSTRAINT FK_Egresos_AspNetUsers
 FOREIGN KEY (UsuarioId)
 REFERENCES AspNetUsers(Id);
 
+use UtopiaBS_DB
+go
 ALTER TABLE Producto ALTER COLUMN Descripcion NVARCHAR(500) NULL;
 ALTER TABLE Producto ALTER COLUMN Tipo NVARCHAR(MAX) NULL;
 ALTER TABLE Producto ALTER COLUMN PrecioUnitario DECIMAL(18,2) NOT NULL;

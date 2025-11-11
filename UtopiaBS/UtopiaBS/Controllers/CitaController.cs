@@ -156,12 +156,14 @@ namespace UtopiaBS.Web.Controllers
             return View();
         }
 
-        public ActionResult DescargarReporteCitas(DateTime inicio, DateTime fin, string formato)
+        public ActionResult DescargarReporteCitas(DateTime inicio, DateTime fin, string formato, string profesionalNombre = null)
         {
             try
             {
                 formato = string.IsNullOrWhiteSpace(formato) ? "pdf" : formato.Trim().ToLower();
-                var archivo = _citaService.DescargarReporteCitas(inicio, fin, formato);
+
+                // 👇 ahora el servicio recibe también el profesional si se filtró
+                var archivo = _citaService.DescargarReporteCitas(inicio, fin, formato, profesionalNombre);
 
                 if (archivo == null || archivo.Length == 0)
                 {
@@ -169,9 +171,8 @@ namespace UtopiaBS.Web.Controllers
                     return RedirectToAction("Reportes");
                 }
 
-                string nombreArchivo = formato == "excel"
-                    ? $"Reporte_Citas_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.xlsx"
-                    : $"Reporte_Citas_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.pdf";
+                string nombreArchivo = (profesionalNombre != null ? $"{profesionalNombre.Replace(" ", "_")}_" : "")
+                    + $"Reporte_Citas_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.{(formato == "excel" ? "xlsx" : "pdf")}";
 
                 string mimeType = formato == "excel"
                     ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -183,6 +184,20 @@ namespace UtopiaBS.Web.Controllers
             {
                 TempData["Error"] = "Error al generar reporte: " + ex.Message;
                 return RedirectToAction("Reportes");
+            }
+        }
+
+        [HttpGet]
+        public ActionResult Estadisticas(DateTime inicio, DateTime fin, string profesionalNombre = null)
+        {
+            try
+            {
+                var datos = _citaService.ObtenerEstadisticas(inicio, fin, profesionalNombre);
+                return Json(datos, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = "Error al generar estadísticas: " + ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
 
