@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
-using UtopiaBS.Entities.Contabilidad;
 using UtopiaBS.Business.Contabilidad;
-
+using UtopiaBS.Entities.Contabilidad;
 
 namespace UtopiaBS.Web.Controllers
 {
@@ -15,63 +11,57 @@ namespace UtopiaBS.Web.Controllers
         private readonly ContabilidadService service = new ContabilidadService();
 
         // ------------------- INDEX / DASHBOARD -------------------
-        public ActionResult Index()
-        {
-            return View();
-        }
+        [HttpGet]
+        public ActionResult Index() => View();
 
         // ------------------- INGRESO -------------------
-        // GET
+        [HttpGet]
         public ActionResult AgregarIngreso()
         {
-            // Mostrar mensaje si existe en TempData
             if (TempData["Mensaje"] != null)
                 ViewBag.Mensaje = TempData["Mensaje"];
-
             return View();
         }
 
-        // POST
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult AgregarIngreso(Ingreso ingreso)
         {
-            if (ModelState.IsValid)
-            {
-                var mensaje = service.AgregarIngreso(ingreso);
-                TempData["Mensaje"] = mensaje;
+            if (!ModelState.IsValid) return View(ingreso);
 
-                if (!string.IsNullOrEmpty(mensaje) && mensaje.Contains("exitosamente"))
-                    return RedirectToAction("AgregarIngreso"); // PRG: redirige al GET
-            }
+            var mensaje = service.AgregarIngreso(ingreso);
+            TempData["Mensaje"] = mensaje;
 
-            return View(ingreso); // si hay error, se queda en POST
+            if (!string.IsNullOrEmpty(mensaje) && mensaje.Contains("exitosamente"))
+                return RedirectToAction("AgregarIngreso"); // PRG
+
+            return View(ingreso);
         }
 
-
         // ------------------- EGRESO -------------------
+        [HttpGet]
         public ActionResult AgregarEgreso() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult AgregarEgreso(Egreso egreso)
         {
-            if (ModelState.IsValid)
-            {
-                var mensaje = service.AgregarEgreso(egreso);
-                TempData["Mensaje"] = mensaje;
-                if (!string.IsNullOrEmpty(mensaje) && mensaje.Contains("exitosamente"))
-                    ModelState.Clear();
-            }
+            if (!ModelState.IsValid) return View(egreso);
+
+            var mensaje = service.AgregarEgreso(egreso);
+            TempData["Mensaje"] = mensaje;
+
+            if (!string.IsNullOrEmpty(mensaje) && mensaje.Contains("exitosamente"))
+                ModelState.Clear();
+
             return View(egreso);
         }
 
         // ------------------- RESUMEN DIARIO -------------------
-
-        [Authorize(Roles = "Administrador")]
+        [HttpGet]
         public ActionResult ResumenDiario(DateTime? fecha)
         {
-            var fechaSeleccionada = fecha ?? DateTime.Now;
+            var fechaSeleccionada = (fecha ?? DateTime.Now).Date;
             var resumen = service.ObtenerResumenDiario(fechaSeleccionada);
 
             if (resumen == null)
@@ -82,7 +72,51 @@ namespace UtopiaBS.Web.Controllers
 
             return View(resumen);
         }
+
+        // =================== RESUMEN MENSUAL (con filtro) ===================
+        // GET: /Contabilidad/ResumenMensual?year=2025&month=11&filtro=productos
+        [HttpGet]
+        public ActionResult ResumenMensual(int? year, int? month, string filtro = "todo")
+        {
+            // Vista vacía con formulario si faltan parámetros
+            if (!year.HasValue || !month.HasValue)
+            {
+                ViewBag.Filtro = NormalizarFiltro(filtro);
+                return View();
+            }
+
+            var y = year.Value;
+            var m = LimitarMes(month.Value);
+            var f = NormalizarFiltro(filtro);
+
+            // Usa el overload con filtro en el servicio
+            var vm = service.ObtenerResumenMensual(y, m, f);
+            ViewBag.Filtro = vm?.Filtro ?? f;
+
+            return View(vm);
+        }
+
+        // ------------------- EXPORTAR RESUMEN MENSUAL (Excel) -------------------
+        [HttpGet]
+        public ActionResult ExportarResumenMensual(int? year, int? month, string filtro = "todo")
+        {
+            var y = year ?? DateTime.Now.Year;
+            var m = LimitarMes(month ?? DateTime.Now.Month);
+            var f = NormalizarFiltro(filtro);
+
+            var bytes = service.ExportarResumenMensualExcel(y, m, f);
+            if (bytes == null || bytes.Length == 0)
+            {
+                TempData["Mensaje"] = "No se pudo generar el archivo de resumen mensual.";
+                return RedirectToAction("ResumenMensual", new { year = y, month = m, filtro = f });
+            }
+
+            var fileName = $"ResumenMensual_{y}_{m:00}_{f.ToUpper()}.xlsx";
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
         // ------------------- CIERRE SEMANAL -------------------
+        [HttpGet]
         public ActionResult GenerarCierreSemanal() => View();
 
         [HttpPost]
@@ -101,9 +135,7 @@ namespace UtopiaBS.Web.Controllers
             }
             else
             {
-           
                 TempData["Mensaje"] = service.GenerarCierreSemanal(inicio, fin);
-            
                 cierre = service.ObtenerCierreSemanal(inicio, fin);
 
                 if (cierre == null)
@@ -117,14 +149,14 @@ namespace UtopiaBS.Web.Controllers
             return View(cierre);
         }
 
-
-        // ------------------- DESCARGAR CIERRE -------------------
+        // ------------------- DESCARGAR CIERRE (PDF/Excel) -------------------
+        [HttpGet]
         public ActionResult DescargarCierre(DateTime inicio, DateTime fin, string formato)
         {
             try
             {
-                formato = string.IsNullOrWhiteSpace(formato) ? "pdf" : formato.Trim().ToLower();
-                var archivo = service.DescargarCierreSemanal(inicio, fin, formato);
+                var fmt = string.IsNullOrWhiteSpace(formato) ? "pdf" : formato.Trim().ToLower();
+                var archivo = service.DescargarCierreSemanal(inicio, fin, fmt);
 
                 if (archivo == null || archivo.Length == 0)
                 {
@@ -132,11 +164,11 @@ namespace UtopiaBS.Web.Controllers
                     return RedirectToAction("GenerarCierreSemanal");
                 }
 
-                string nombreArchivo = formato == "excel"
+                string nombreArchivo = fmt == "excel"
                     ? $"Cierre_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.xlsx"
                     : $"Cierre_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.pdf";
 
-                string mimeType = formato == "excel"
+                string mimeType = fmt == "excel"
                     ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     : "application/pdf";
 
@@ -148,9 +180,19 @@ namespace UtopiaBS.Web.Controllers
                 return RedirectToAction("GenerarCierreSemanal");
             }
         }
+
+        // =================== Helpers ===================
+        private static int LimitarMes(int month)
+        {
+            if (month < 1) return 1;
+            if (month > 12) return 12;
+            return month;
+        }
+
+        private static string NormalizarFiltro(string filtro)
+        {
+            var f = (filtro ?? "todo").Trim().ToLower();
+            return (f == "productos" || f == "servicios") ? f : "todo";
+        }
     }
 }
-
-
-
-
