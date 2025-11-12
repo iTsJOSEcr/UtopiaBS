@@ -1,14 +1,14 @@
 ﻿using iTextSharp.text;           // iTextSharp
 using iTextSharp.text.pdf;
-using OfficeOpenXml;              // EPPlus
+using OfficeOpenXml;             // EPPlus
 using System;
-using System.ComponentModel;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using UtopiaBS.Data;
-using UtopiaBS.Entities.Contabilidad;
-
+using UtopiaBS.Entities;
+using UtopiaBS.Entities.Contabilidad;   // DTOs y entidades contables
 
 namespace UtopiaBS.Business.Contabilidad
 {
@@ -16,10 +16,9 @@ namespace UtopiaBS.Business.Contabilidad
     {
         public ContabilidadService()
         {
-            // Configurar licencia para uso no comercial
+            // EPPlus 8+: licencia modo personal/no comercial
             ExcelPackage.License.SetNonCommercialPersonal("Utopia");
         }
-
 
         // ------------------- INGRESOS -------------------
         public string AgregarIngreso(Ingreso ingreso)
@@ -101,6 +100,279 @@ namespace UtopiaBS.Business.Contabilidad
                 };
             }
         }
+
+        // ------------------- RESUMEN MENSUAL (base) -------------------
+        public ResumenMensualDto ObtenerResumenMensual(int year, int month)
+        {
+            var inicio = new DateTime(year, month, 1);
+            var finExcl = inicio.AddMonths(1);
+
+            using (var db = new Context())
+            {
+                var ingresosMes = db.Ingresos.Where(i => i.Fecha >= inicio && i.Fecha < finExcl);
+                var egresosMes = db.Egresos.Where(e => e.Fecha >= inicio && e.Fecha < finExcl);
+
+                var vm = new ResumenMensualDto
+                {
+                    Year = year,
+                    Month = month,
+                    TotalIngresos = ingresosMes.Any() ? ingresosMes.Sum(x => x.Monto) : 0m,
+                    TotalEgresos = egresosMes.Any() ? egresosMes.Sum(x => x.Monto) : 0m,
+
+                    IngresosPorDia = ingresosMes
+                        .GroupBy(x => DbFunctions.TruncateTime(x.Fecha).Value)
+                        .Select(g => new ItemDiaDto { Dia = g.Key, Monto = g.Sum(z => z.Monto) })
+                        .OrderBy(x => x.Dia)
+                        .ToList(),
+
+                    EgresosPorDia = egresosMes
+                        .GroupBy(x => DbFunctions.TruncateTime(x.Fecha).Value)
+                        .Select(g => new ItemDiaDto { Dia = g.Key, Monto = g.Sum(z => z.Monto) })
+                        .OrderBy(x => x.Dia)
+                        .ToList(),
+
+                    IngresosPorCategoria = ingresosMes
+                        .GroupBy(x => x.Categoria)
+                        .Select(g => new ItemCategoriaDto { Nombre = g.Key, Monto = g.Sum(z => z.Monto) })
+                        .OrderByDescending(x => x.Monto)
+                        .ToList(),
+
+                    EgresosPorTipo = egresosMes
+                        .GroupBy(x => x.TipoGasto)
+                        .Select(g => new ItemCategoriaDto { Nombre = g.Key, Monto = g.Sum(z => z.Monto) })
+                        .OrderByDescending(x => x.Monto)
+                        .ToList(),
+                };
+
+                // inicializa campos de ventas en 0 (por si la vista los muestra)
+                vm.TotalVentasProductos = 0m;
+                vm.TotalVentasServicios = 0m;
+                vm.Filtro = "todo";
+                return vm;
+            }
+        }
+
+        // ------------------- RESUMEN MENSUAL (con filtro Productos/Servicios) -------------------
+        public ResumenMensualDto ObtenerResumenMensual(int year, int month, string filtro)
+        {
+            var vm = ObtenerResumenMensual(year, month);
+
+            using (var db = new Context())
+            {
+                vm.TotalVentasProductos = SumarVentasProductosMes(db, year, month);
+                vm.TotalVentasServicios = SumarVentasServiciosMes(db, year, month);
+            }
+
+            vm.Filtro = string.IsNullOrWhiteSpace(filtro) ? "todo" : filtro.ToLower();
+            return vm;
+        }
+
+        // Helpers de ventas (DENTRO de la clase, privados)
+        private decimal SumarVentasProductosMes(Context db, int year, int month)
+        {
+            var inicio = new DateTime(year, month, 1);
+            var finExcl = inicio.AddMonths(1);
+
+            // Si 'SubTotal' de la entidad es columna calculada en BD, puedes usarla directamente.
+            // Si no, usamos Cantidad * PrecioUnitario.
+            var query = from d in db.DetalleVentaProductos
+                        join v in db.Ventas on d.IdVenta equals v.IdVenta
+                        where v.FechaVenta >= inicio && v.FechaVenta < finExcl
+                        select (decimal?)(d.Cantidad * d.PrecioUnitario);
+
+            return query.Sum() ?? 0m;
+        }
+
+        private decimal SumarVentasServiciosMes(Context db, int year, int month)
+        {
+            var inicio = new DateTime(year, month, 1);
+            var finExcl = inicio.AddMonths(1);
+
+            var query = from d in db.DetalleVentaServicios
+                        join v in db.Ventas on d.IdVenta equals v.IdVenta
+                        where v.FechaVenta >= inicio && v.FechaVenta < finExcl
+                        select (decimal?)(d.Cantidad * d.PrecioUnitario);
+
+            return query.Sum() ?? 0m;
+        }
+
+        // ------------------- EXPORTAR RESUMEN MENSUAL (EXCEL) -------------------
+        public byte[] ExportarResumenMensualExcel(int year, int month, string filtro = "todo")
+        {
+            // 1) Traemos el resumen mensual que ya tienes (ingresos/egresos/agrupados)
+            var vm = ObtenerResumenMensual(year, month);
+
+            var inicio = new DateTime(year, month, 1);
+            var finExcl = inicio.AddMonths(1);
+
+            // 2) Armamos las ventas del mes por TIPO via detalles (no existe TipoVenta en Venta)
+            using (var db = new Context())
+            {
+                // Usar db.Set<T>() evita depender del nombre exacto del DbSet en tu Context
+                var qProd = from d in db.Set<DetalleVentaProducto>()
+                            join v in db.Set<Venta>() on d.IdVenta equals v.IdVenta
+                            where v.FechaVenta >= inicio && v.FechaVenta < finExcl
+                            select new
+                            {
+                                Fecha = v.FechaVenta,
+                                Tipo = "Producto",
+                                IdItem = d.IdProducto,
+                                d.Cantidad,
+                                d.PrecioUnitario,
+                                Subtotal = (decimal?)(d.Cantidad * d.PrecioUnitario)
+                            };
+
+                var qServ = from d in db.Set<DetalleVentaServicio>()
+                            join v in db.Set<Venta>() on d.IdVenta equals v.IdVenta
+                            where v.FechaVenta >= inicio && v.FechaVenta < finExcl
+                            select new
+                            {
+                                Fecha = v.FechaVenta,
+                                Tipo = "Servicio",
+                                IdItem = d.IdServicio,
+                                d.Cantidad,
+                                d.PrecioUnitario,
+                                Subtotal = (decimal?)(d.Cantidad * d.PrecioUnitario)
+                            };
+
+                // Aplica el filtro
+                List<dynamic> ventasSeleccionadas;
+                var f = (filtro ?? "todo").ToLower();
+                if (f == "productos")
+                    ventasSeleccionadas = qProd.OrderBy(x => x.Fecha).ToList<dynamic>();
+                else if (f == "servicios")
+                    ventasSeleccionadas = qServ.OrderBy(x => x.Fecha).ToList<dynamic>();
+                else
+                    ventasSeleccionadas = qProd.ToList<dynamic>()
+                                               .Concat(qServ.ToList<dynamic>())
+                                               .OrderBy(x => x.Fecha)
+                                               .ToList();
+
+                decimal totalVentasSeleccionadas = ventasSeleccionadas.Sum(x => (decimal)(x.Subtotal ?? 0m));
+
+                // 3) Construimos el Excel (con tus hojas existentes + hoja de Ventas filtradas)
+                using (var package = new OfficeOpenXml.ExcelPackage())
+                {
+                    // ---------- Hoja 1: Resumen ----------
+                    var ws = package.Workbook.Worksheets.Add("Resumen");
+                    ws.Cells["A1"].Value = "Año";
+                    ws.Cells["B1"].Value = "Mes";
+                    ws.Cells["C1"].Value = "Ingresos (manuales)";
+                    ws.Cells["D1"].Value = "Egresos";
+                    ws.Cells["E1"].Value = "Balance";
+                    ws.Cells["F1"].Value = "Filtro ventas";
+                    ws.Cells["G1"].Value = "Total ventas (filtro)";
+
+                    ws.Cells["A2"].Value = vm.Year;
+                    ws.Cells["B2"].Value = vm.Month;
+                    ws.Cells["C2"].Value = vm.TotalIngresos;
+                    ws.Cells["D2"].Value = vm.TotalEgresos;
+                    ws.Cells["E2"].Value = vm.Balance;
+                    ws.Cells["F2"].Value = f.ToUpper();
+                    ws.Cells["G2"].Value = totalVentasSeleccionadas;
+
+                    ws.Cells["A1:G1"].Style.Font.Bold = true;
+                    ws.Cells["C2:E2"].Style.Numberformat.Format = "#,##0.00";
+                    ws.Cells["G2"].Style.Numberformat.Format = "#,##0.00";
+                    ws.Cells.AutoFitColumns();
+
+                    // ---------- Hoja 2: Ingresos x Día ----------
+                    var wsi = package.Workbook.Worksheets.Add("Ingresos x Día");
+                    wsi.Cells["A1"].Value = "Día";
+                    wsi.Cells["B1"].Value = "Monto";
+                    wsi.Cells["A1:B1"].Style.Font.Bold = true;
+                    int r = 2;
+                    foreach (var it in vm.IngresosPorDia)
+                    {
+                        wsi.Cells[r, 1].Value = it.Dia.ToShortDateString();
+                        wsi.Cells[r, 2].Value = it.Monto;
+                        r++;
+                    }
+                    wsi.Cells["B2:B" + (r - 1)].Style.Numberformat.Format = "#,##0.00";
+                    wsi.Cells.AutoFitColumns();
+
+                    // ---------- Hoja 3: Egresos x Día ----------
+                    var wse = package.Workbook.Worksheets.Add("Egresos x Día");
+                    wse.Cells["A1"].Value = "Día";
+                    wse.Cells["B1"].Value = "Monto";
+                    wse.Cells["A1:B1"].Style.Font.Bold = true;
+                    r = 2;
+                    foreach (var it in vm.EgresosPorDia)
+                    {
+                        wse.Cells[r, 1].Value = it.Dia.ToShortDateString();
+                        wse.Cells[r, 2].Value = it.Monto;
+                        r++;
+                    }
+                    wse.Cells["B2:B" + (r - 1)].Style.Numberformat.Format = "#,##0.00";
+                    wse.Cells.AutoFitColumns();
+
+                    // ---------- Hoja 4: Ingresos x Categoría ----------
+                    var wsiCat = package.Workbook.Worksheets.Add("Ingresos x Categoría");
+                    wsiCat.Cells["A1"].Value = "Categoría";
+                    wsiCat.Cells["B1"].Value = "Monto";
+                    wsiCat.Cells["A1:B1"].Style.Font.Bold = true;
+                    r = 2;
+                    foreach (var it in vm.IngresosPorCategoria)
+                    {
+                        wsiCat.Cells[r, 1].Value = it.Nombre;
+                        wsiCat.Cells[r, 2].Value = it.Monto;
+                        r++;
+                    }
+                    wsiCat.Cells["B2:B" + (r - 1)].Style.Numberformat.Format = "#,##0.00";
+                    wsiCat.Cells.AutoFitColumns();
+
+                    // ---------- Hoja 5: Egresos x Tipo ----------
+                    var wseTipo = package.Workbook.Worksheets.Add("Egresos x Tipo");
+                    wseTipo.Cells["A1"].Value = "Tipo";
+                    wseTipo.Cells["B1"].Value = "Monto";
+                    wseTipo.Cells["A1:B1"].Style.Font.Bold = true;
+                    r = 2;
+                    foreach (var it in vm.EgresosPorTipo)
+                    {
+                        wseTipo.Cells[r, 1].Value = it.Nombre;
+                        wseTipo.Cells[r, 2].Value = it.Monto;
+                        r++;
+                    }
+                    wseTipo.Cells["B2:B" + (r - 1)].Style.Numberformat.Format = "#,##0.00";
+                    wseTipo.Cells.AutoFitColumns();
+
+                    // ---------- Hoja 6: Ventas (según filtro) ----------
+                    var wsV = package.Workbook.Worksheets.Add("Ventas (Filtro)");
+                    wsV.Cells["A1"].Value = "Fecha";
+                    wsV.Cells["B1"].Value = "Tipo";
+                    wsV.Cells["C1"].Value = "Id Item";
+                    wsV.Cells["D1"].Value = "Cantidad";
+                    wsV.Cells["E1"].Value = "Precio Unitario";
+                    wsV.Cells["F1"].Value = "Subtotal";
+                    wsV.Cells["A1:F1"].Style.Font.Bold = true;
+
+                    int rowV = 2;
+                    foreach (var v in ventasSeleccionadas)
+                    {
+                        wsV.Cells[rowV, 1].Value = ((DateTime)v.Fecha).ToString("yyyy-MM-dd");
+                        wsV.Cells[rowV, 2].Value = v.Tipo;
+                        wsV.Cells[rowV, 3].Value = v.IdItem;
+                        wsV.Cells[rowV, 4].Value = v.Cantidad;
+                        wsV.Cells[rowV, 5].Value = v.PrecioUnitario;
+                        wsV.Cells[rowV, 6].Value = (decimal)(v.Subtotal ?? 0m);
+                        rowV++;
+                    }
+
+                    wsV.Cells["E2:E" + (rowV - 1)].Style.Numberformat.Format = "#,##0.00";
+                    wsV.Cells["F2:F" + (rowV - 1)].Style.Numberformat.Format = "#,##0.00";
+                    wsV.Cells.AutoFitColumns();
+
+                    // Total al final
+                    wsV.Cells[rowV + 1, 5].Value = "TOTAL";
+                    wsV.Cells[rowV + 1, 6].Value = totalVentasSeleccionadas;
+                    wsV.Cells[rowV + 1, 6].Style.Numberformat.Format = "#,##0.00";
+                    wsV.Cells[rowV + 1, 5, rowV + 1, 6].Style.Font.Bold = true;
+
+                    return package.GetAsByteArray();
+                }
+            }
+        }
+
         // ------------------- CIERRE SEMANAL -------------------
         public string GenerarCierreSemanal(DateTime inicio, DateTime fin)
         {
@@ -163,13 +435,11 @@ namespace UtopiaBS.Business.Contabilidad
                     TotalIngresos = ingresos.Sum(i => i.Monto),
                     TotalEgresos = egresos.Sum(e => e.Monto),
                     Balance = ingresos.Sum(i => i.Monto) - egresos.Sum(e => e.Monto),
-
                 };
             }
         }
 
-
-        // ------------------- DESCARGAR CIERRE (Excel/PDF) -------------------
+        // ------------------- DESCARGAR CIERRE (EXCEL/PDF) -------------------
         public byte[] DescargarCierreSemanal(DateTime inicio, DateTime fin, string formato)
         {
             using (var db = new Context())
@@ -198,7 +468,6 @@ namespace UtopiaBS.Business.Contabilidad
                 {
                     using (var package = new ExcelPackage())
                     {
-                        // Hoja resumen
                         var ws = package.Workbook.Worksheets.Add("Resumen");
                         ws.Cells["A1"].Value = "Cierre Semanal";
                         ws.Cells["A2"].Value = "Fecha inicio:";
@@ -214,7 +483,6 @@ namespace UtopiaBS.Business.Contabilidad
                         ws.Cells["B7"].Value = balance;
                         ws.Cells["B5:B7"].Style.Numberformat.Format = "#,##0.00";
 
-                        // Hoja detalle
                         var wsDet = package.Workbook.Worksheets.Add("Detalle");
                         wsDet.Cells[1, 1].Value = "Fecha";
                         wsDet.Cells[1, 2].Value = "Tipo";
@@ -241,7 +509,6 @@ namespace UtopiaBS.Business.Contabilidad
                 }
                 else
                 {
-                    // PDF
                     using (var ms = new MemoryStream())
                     {
                         var doc = new Document(PageSize.A4, 36, 36, 36, 36);
