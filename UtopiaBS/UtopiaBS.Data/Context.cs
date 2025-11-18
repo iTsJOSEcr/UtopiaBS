@@ -28,5 +28,7 @@ namespace UtopiaBS.Data
         public DbSet<UtopiaBS.Entities.Contabilidad.Egreso> Egresos { get; set; }
         public DbSet<UtopiaBS.Entities.Contabilidad.CierreSemanal> CierresSemanales { get; set; }
         public DbSet<CuponDescuento> CuponDescuento { get; set; }
+        public DbSet<UsuarioActividad> UsuarioActividad { get; set; }
+
     }
 }

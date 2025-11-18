@@ -96,6 +96,7 @@
     <Compile Include="Producto.B\ProductoService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Servicios\ServicioService.cs" />
+    <Compile Include="Usuarios\ReporteUsuariosActivosService.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\UtopiaBS.Data\UtopiaBS.Data.csproj">

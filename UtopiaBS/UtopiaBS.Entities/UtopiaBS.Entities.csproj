@@ -57,11 +57,13 @@
     <Compile Include="Contabilidad\Egreso.cs" />
     <Compile Include="Contabilidad\Ingreso.cs" />
     <Compile Include="Contabilidad\ResumenDiarioViewModel.cs" />
+    <Compile Include="Contabilidad\ResumenMensualDto.cs" />
     <Compile Include="Empleados\Empleado.cs" />
     <Compile Include="Producto\CuponDescuento.cs" />
     <Compile Include="Producto\Producto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Servicios\Servicio.cs" />
+    <Compile Include="Usuarios\UsuarioActividad.cs" />
     <Compile Include="Ventas\DetalleVentaProducto.cs" />
     <Compile Include="Ventas\DetalleVentaServicio.cs" />
     <Compile Include="Ventas\Venta.cs" />
