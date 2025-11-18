@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNet.Identity;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 using UtopiaBS.Business;
 using UtopiaBS.Data;
+using UtopiaBS.Entities;
 
 namespace UtopiaBS.Controllers
 {
@@ -125,5 +127,73 @@ namespace UtopiaBS.Controllers
 
             return RedirectToAction("MisCitas");
         }
+
+        [HttpGet]
+        public ActionResult Historial()
+        {
+            try
+            {
+                var userId = User.Identity.GetUserId();
+
+                using (var db = new Context())
+                {
+                    var clienteId = db.Clientes
+                        .Where(c => c.IdUsuario.Trim().ToLower() == userId.Trim().ToLower())
+                        .Select(c => (int?)c.IdCliente)
+                        .FirstOrDefault();
+
+                    if (clienteId == null)
+                    {
+                        TempData["Error"] = "No se encontró el perfil de cliente.";
+                        return RedirectToAction("Listar");
+                    }
+
+                    var historial = db.Citas
+                        .Include("Empleado")
+                        .Include("Servicio")
+                        .Where(c => c.IdCliente == clienteId.Value)
+                        .OrderByDescending(c => c.FechaHora)
+                        .ToList();
+
+                    if (!historial.Any())
+                    {
+                        TempData["Info"] = "No hay registros disponibles en tu historial de citas.";
+                        return View(new List<Cita>());
+                    }
+
+                    return View(historial);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cargar historial: " + ex.Message;
+                return RedirectToAction("Listar");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CancelarCliente(int idCita, string motivo)
+        {
+            var userId = User.Identity.GetUserId();
+
+            using (var db = new Context())
+            {
+                var cliente = db.Clientes.FirstOrDefault(c => c.IdUsuario == userId);
+                if (cliente == null)
+                {
+                    TempData["Error"] = "No se encontró el perfil del cliente.";
+                    return RedirectToAction("MisCitas");
+                }
+
+                var service = new CitaService();
+                var resultado = service.CancelarPorCliente(idCita, cliente.IdCliente, motivo);
+
+                TempData["Mensaje"] = resultado;
+            }
+
+            return RedirectToAction("MisCitas");
+        }
+
     }
 }

@@ -1,14 +1,9 @@
-﻿@model IEnumerable<UtopiaBS.Entities.Producto>
+﻿@model UtopiaBS.ViewModels.InventarioViewModel
+
 @{
     ViewBag.Title = "Inventario (Productos y Cupones)";
-    var cupones = ViewBag.Cupones as IEnumerable<UtopiaBS.Entities.CuponDescuento>;
-    if (cupones == null)
-    {
-        using (var _db = new UtopiaBS.Data.Context())
-        {
-            cupones = _db.CuponDescuento.ToList();
-        }
-    }
+var cupones = Model.Cupones;
+
 }
 
 <!-- Bootstrap & Icons -->
@@ -59,7 +54,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model)
+                        @foreach (var item in Model.Productos)
                         {
                             <tr>
                                 <td><strong>@item.Nombre</strong></td>
@@ -265,11 +260,4 @@
         color: white;
     }
 
-    .card {
-        transition: transform 0.2s ease;
-    }
-
-        .card:hover {
-            transform: translateY(-3px);
-        }
 </style>
