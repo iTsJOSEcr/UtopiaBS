@@ -5,27 +5,37 @@
     int idCliente = ViewBag.IdCliente != null ? (int)ViewBag.IdCliente : 0;
 }
 
-<div class="container mt-5">
+<div class="container py-5">
     <div class="card shadow-lg border-0 rounded-4">
-        <div class="card-header bg-primary text-white">
-            <h3 class="mb-0">📅 Mis Citas Pendientes</h3>
+
+        <!-- ENCABEZADO -->
+        <div class="card-header text-white" style="background-color:#1B263B;">
+            <h3 class="mb-0 fw-bold">
+                <i class="bi bi-calendar-heart me-2 text-warning"></i> Mis Citas Pendientes
+            </h3>
         </div>
-        <div class="card-body">
+
+        <!-- CONTENIDO -->
+        <div class="card-body" style="background-color:#F8FAFC;">
 
             @if (TempData["Mensaje"] != null)
             {
-                <div class="alert alert-info text-center">@TempData["Mensaje"]</div>
+                <div class="alert alert-info text-center fw-semibold rounded-pill shadow-sm py-2 mb-3">
+                    <i class="bi bi-info-circle me-1"></i> @TempData["Mensaje"]
+                </div>
             }
 
             @if (!Model.Any())
             {
-                <p class="text-muted text-center">No tienes citas pendientes.</p>
+                <p class="text-muted text-center fs-5 mt-3">
+                    <i class="bi bi-emoji-neutral me-2"></i>No tienes citas pendientes.
+                </p>
             }
             else
             {
-                <div class="table-responsive">
-                    <table class="table table-hover text-center align-middle">
-                        <thead class="table-primary">
+                <div class="table-responsive rounded-3 shadow-sm" style="max-height: 550px; overflow-y:auto;">
+                    <table class="table table-hover align-middle text-center mb-0">
+                        <thead class="text-white text-uppercase small" style="background-color:#1B263B;">
                             <tr>
                                 <th>Fecha</th>
                                 <th>Hora</th>
@@ -35,28 +45,40 @@
                                 <th>Acciones</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             @foreach (var cita in Model)
                             {
                                 <tr>
                                     <td>@cita.FechaHora.ToString("dd/MM/yyyy")</td>
                                     <td>@cita.FechaHora.ToString("HH:mm")</td>
-                                    <td>@(cita.Empleado?.Nombre ?? "No asignado")</td>
-                                    <td>@(cita.Servicio?.Nombre ?? "No asignado")</td>
+                                    <td>@(cita.Empleado?.Nombre ?? "Sin asignar")</td>
+                                    <td>@(cita.Servicio?.Nombre ?? "Sin asignar")</td>
+
                                     <td>
-                                        <span class="badge bg-secondary">Pendiente</span>
+                                        <span class="badge rounded-pill px-3 py-2"
+                                              style="background-color:#5C636A; color:white;">
+                                            Pendiente
+                                        </span>
                                     </td>
+
                                     <td>
-                                        <button class="btn btn-warning btn-sm cambiar-btn"
+                                        <button class="btn btn-outline-warning btn-sm me-2 rounded-pill shadow-sm cambiar-btn"
                                                 data-id="@cita.IdCita"
                                                 data-bs-toggle="modal"
                                                 data-bs-target="#modalCambiar">
-                                            🔄 Cambiar
+                                            <i class="bi bi-arrow-repeat"></i> Cambiar
+                                        </button>
+
+                                        <button class="btn btn-outline-danger btn-sm rounded-pill shadow-sm"
+                                                onclick="abrirCancelar(@cita.IdCita)">
+                                            <i class="bi bi-x-circle"></i> Cancelar
                                         </button>
                                     </td>
                                 </tr>
                             }
                         </tbody>
+
                     </table>
                 </div>
             }
@@ -64,29 +86,35 @@
     </div>
 </div>
 
-<!-- Modal para cambiar cita -->
+<!-- MODAL CAMBIAR CITA -->
 <div class="modal fade" id="modalCambiar" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content rounded-4 shadow-lg">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title">Seleccionar nueva cita disponible</h5>
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+
+            <div class="modal-header text-white" style="background-color:#1B263B;">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-arrow-repeat me-2 text-warning"></i> Seleccionar nueva cita disponible
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <form id="formCambiarCita" method="post" action="@Url.Action("CambiarCita", "Cita")">
+
+            <div class="modal-body" style="background-color:#F8FAFC;">
+
+                <form id="formCambiarCita" method="post" action="@Url.Action("CambiarCita", "CitaCliente")">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="idCitaActual" id="inputIdCitaActual" />
+
+                    <input type="hidden" id="inputIdCitaActual" name="idCitaActual" />
                     <input type="hidden" name="idCliente" value="@idCliente" />
 
                     @if (!citasDisponibles.Any())
                     {
-                        <p class="text-muted text-center">No hay citas disponibles para cambiar.</p>
+                        <p class="text-muted text-center fs-6">No hay citas disponibles para cambiar.</p>
                     }
                     else
                     {
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover text-center">
-                                <thead class="table-info">
+                            <table class="table table-hover align-middle text-center mb-0">
+                                <thead class="text-white text-uppercase small" style="background-color:#1B263B;">
                                     <tr>
                                         <th>Fecha</th>
                                         <th>Hora</th>
@@ -95,56 +123,123 @@
                                         <th>Acción</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     @foreach (var disp in citasDisponibles)
                                     {
                                         <tr>
                                             <td>@disp.FechaHora.ToString("dd/MM/yyyy")</td>
                                             <td>@disp.FechaHora.ToString("HH:mm")</td>
-                                            <td>@(disp.Empleado?.Nombre ?? "No asignado")</td>
-                                            <td>@(disp.Servicio?.Nombre ?? "No asignado")</td>
+                                            <td>@(disp.Empleado?.Nombre ?? "Sin asignar")</td>
+                                            <td>@(disp.Servicio?.Nombre ?? "Sin asignar")</td>
                                             <td>
-                                                <button type="submit" name="idNuevaCita" value="@disp.IdCita"
-                                                        class="btn btn-success btn-sm rounded-pill">
-                                                    Seleccionar
+                                                <button type="submit"
+                                                        class="btn btn-success btn-sm rounded-pill px-3"
+                                                        name="idNuevaCita"
+                                                        value="@disp.IdCita">
+                                                    <i class="bi bi-check-lg"></i> Seleccionar
                                                 </button>
                                             </td>
                                         </tr>
                                     }
                                 </tbody>
+
                             </table>
                         </div>
                     }
                 </form>
+
             </div>
         </div>
     </div>
 </div>
 
+<!-- MODAL CANCELAR -->
+<div class="modal fade" id="modalCancelar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-x-circle-fill me-2"></i> Cancelar Cita
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="post" action="@Url.Action("CancelarCliente", "CitaCliente")">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-body" style="background-color:#F8FAFC;">
+                    <input type="hidden" id="cancelarId" name="idCita" />
+
+                    <label class="fw-semibold">Motivo de la cancelación</label>
+                    <textarea class="form-control rounded-3 shadow-sm" name="motivo" rows="3" required></textarea>
+                </div>
+
+                <div class="modal-footer border-0 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                        Cerrar
+                    </button>
+
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">
+                        Cancelar Cita
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        // Cuando se abre el modal, ponemos la cita actual
         document.querySelectorAll(".cambiar-btn").forEach(btn => {
             btn.addEventListener("click", () => {
                 document.getElementById("inputIdCitaActual").value = btn.dataset.id;
             });
         });
     });
+
+    function abrirCancelar(id) {
+        document.getElementById("cancelarId").value = id;
+        new bootstrap.Modal(document.getElementById("modalCancelar")).show();
+    }
 </script>
 
 <style>
-    .table-primary th {
-        background-color: #4e73df;
+    body {
+        background-color: #F1F5F9;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #E3F2FD;
+    }
+
+    .btn-outline-warning {
+        border-color: #FFC107;
+        color: #856404;
+    }
+
+        .btn-outline-warning:hover {
+            background-color: #FFC107;
+            color: #000;
+        }
+
+    .btn-outline-danger:hover {
+        background-color: #DC3545;
         color: white;
     }
 
-    .table-info th {
-        background-color: #36b9cc;
-        color: white;
+    .modal-content {
+        border-radius: 1rem;
     }
 
-    .btn-sm {
-        font-size: 0.85rem;
-        font-weight: 500;
+    .table-responsive::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background-color: #1B263B;
+        border-radius: 4px;
     }
 </style>

@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using UtopiaBS.Business;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
+using UtopiaBS.ViewModels;
 
 namespace UtopiaBS.Web.Controllers
 {
@@ -49,8 +50,13 @@ namespace UtopiaBS.Web.Controllers
         {
             using (var db = new Context())
             {
-                var productos = db.Productos.ToList();
-                return View(productos);
+                var vm = new InventarioViewModel
+                {
+                    Productos = db.Productos.ToList(),
+                    Cupones = db.CuponDescuento.ToList()
+                };
+
+                return View(vm);
             }
         }
 

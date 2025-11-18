@@ -9,21 +9,31 @@
 
 <div class="container py-5">
     <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+
         <!-- ENCABEZADO -->
         <div class="card-header d-flex justify-content-between align-items-center text-white"
              style="background-color:#1B263B;">
             <h3 class="mb-0 fw-bold">
                 <i class="bi bi-calendar2-check me-2 text-warning"></i> Administrar Citas
             </h3>
-            @Html.ActionLink("➕ Nueva Cita", "Agregar", "Cita", null, new { @class = "btn btn-light btn-sm rounded-pill fw-semibold shadow-sm px-3" })
+            @Html.ActionLink("➕ Nueva Cita", "Agregar", "Cita", null,
+                new { @class = "btn btn-light btn-sm rounded-pill fw-semibold shadow-sm px-3" })
         </div>
 
         <!-- CONTENIDO -->
         <div class="card-body" style="background-color:#F8FAFC;">
+
+            <!-- MENSAJES -->
             @if (TempData["Mensaje"] != null)
             {
                 <div class="alert alert-success text-center fw-semibold rounded-3 shadow-sm py-2 mb-3">
                     <i class="bi bi-check-circle me-2"></i> @TempData["Mensaje"]
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger text-center fw-semibold rounded-3 shadow-sm py-2 mb-3">
+                    <i class="bi bi-exclamation-octagon me-2"></i> @TempData["Error"]
                 </div>
             }
 
@@ -41,6 +51,7 @@
                             <th>Acciones</th>
                         </tr>
                     </thead>
+
                     <tbody>
                         @if (!Model.Any())
                         {
@@ -55,33 +66,45 @@
                                 <tr>
                                     <td>@cita.FechaHora.ToString("dd/MM/yyyy")</td>
                                     <td>@cita.FechaHora.ToString("HH:mm")</td>
-                                    <td>@(cita.IdCliente ?? 0)</td>
+                                    <td>@(cita.Cliente?.Nombre ?? "—")</td>
                                     <td>@(cita.Empleado?.Nombre ?? "Sin asignar")</td>
                                     <td>@(cita.Servicio?.Nombre ?? "Sin asignar")</td>
+
                                     <td>
                                         @{
                                             string estadoBadge = cita.IdEstadoCita switch
                                             {
-                                                1 => "<span class='badge rounded-pill px-3 py-2' style=\"background-color:#5C636A; color:white;\">Pendiente</span>",
-                                                2 => "<span class='badge rounded-pill px-3 py-2' style=\"background-color:#157347; color:white;\">Confirmada</span>",
-                                                3 => "<span class='badge rounded-pill px-3 py-2' style=\"background-color:#BB2D3B; color:white;\">Cancelada</span>",
-                                                4 => "<span class='badge rounded-pill px-3 py-2' style=\"background-color:#0A58CA; color:white;\">Disponible</span>",
-                                                _ => "<span class='badge rounded-pill px-3 py-2' style=\"background-color:#FFC107; color:#212529;\">Otro</span>"
+                                                1 => "<span class='badge rounded-pill px-3 py-2 bg-secondary'>Pendiente</span>",
+                                                2 => "<span class='badge rounded-pill px-3 py-2 bg-success'>Confirmada</span>",
+                                                3 => "<span class='badge rounded-pill px-3 py-2 bg-danger'>Cancelada</span>",
+                                                4 => "<span class='badge rounded-pill px-3 py-2 bg-primary'>Disponible</span>",
+                                                _ => "<span class='badge rounded-pill px-3 py-2 bg-warning text-dark'>Otro</span>",
                                             };
                                         }
                                         @Html.Raw(estadoBadge)
                                     </td>
+
                                     <td>
+                                        <!-- Editar -->
                                         <a href="@Url.Action("Editar", new { id = cita.IdCita })"
                                            class="btn btn-outline-warning btn-sm me-1 rounded-pill shadow-sm">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
+
+                                        <!-- Eliminar -->
                                         <button type="button"
-                                                class="btn btn-outline-danger btn-sm rounded-pill shadow-sm eliminar-btn"
+                                                class="btn btn-outline-danger btn-sm me-1 rounded-pill shadow-sm eliminar-btn"
                                                 data-id="@cita.IdCita"
                                                 data-fecha="@cita.FechaHora.ToString("dd/MM/yyyy")"
                                                 data-hora="@cita.FechaHora.ToString("HH:mm")">
                                             <i class="bi bi-trash3"></i>
+                                        </button>
+
+                                        <!-- Cancelar -->
+                                        <button type="button"
+                                                class="btn btn-danger btn-sm rounded-pill shadow-sm"
+                                                onclick="openCancelModal(@cita.IdCita)">
+                                            <i class="bi bi-x-circle"></i> Cancelar
                                         </button>
                                     </td>
                                 </tr>
@@ -94,16 +117,57 @@
     </div>
 </div>
 
+<!-- MODAL CANCELAR -->
+<div class="modal fade" id="modalCancelar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow rounded-4">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-x-circle"></i> Cancelar Cita
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form method="post" action="@Url.Action("CancelarPorAdmin", "Cita")">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-body">
+                    <input type="hidden" id="cancelId" name="idCita" />
+
+                    <label class="form-label fw-semibold">Motivo de cancelación:</label>
+                    <textarea name="motivo" class="form-control rounded-3" required
+                              placeholder="Ej: Error en agenda, cliente no asistió, etc."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-secondary rounded-pill px-3"
+                            data-bs-dismiss="modal">
+                        Cerrar
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-danger rounded-pill px-4">
+                        Confirmar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL ELIMINAR -->
-<div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="modalEliminarLabel" aria-hidden="true">
+<div class="modal fade" id="modalEliminar" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
+
             <div class="modal-header text-white" style="background-color:#C1121F;">
-                <h5 class="modal-title fw-semibold" id="modalEliminarLabel">
+                <h5 class="modal-title fw-semibold">
                     <i class="bi bi-exclamation-triangle me-2"></i> Confirmar Eliminación
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body text-center text-secondary">
                 <p>¿Está seguro de que desea eliminar esta cita?</p>
                 <p>
@@ -111,20 +175,27 @@
                     <strong>Hora:</strong> <span id="modalHora"></span>
                 </p>
             </div>
-            <div class="modal-footer border-0 d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
                 <form id="formEliminar" method="post" action="@Url.Action("Eliminar", "Cita")">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="id" id="inputIdCita" />
                     <button type="submit" class="btn btn-danger rounded-pill px-3">Eliminar</button>
                 </form>
             </div>
+
         </div>
     </div>
 </div>
 
+
 <!-- JS -->
 <script>
+    // Modal Eliminar
     document.addEventListener("DOMContentLoaded", function () {
         const modal = new bootstrap.Modal(document.getElementById("modalEliminar"));
         const inputIdCita = document.getElementById("inputIdCita");
@@ -140,6 +211,13 @@
             });
         });
     });
+
+    // Modal Cancelar
+    function openCancelModal(id) {
+        document.getElementById("cancelId").value = id;
+        var modal = new bootstrap.Modal(document.getElementById("modalCancelar"));
+        modal.show();
+    }
 </script>
 
 <!-- ESTILOS -->
@@ -152,35 +230,11 @@
         background-color: #E3F2FD;
     }
 
-    .btn-outline-warning {
-        border-color: #FFC107;
-        color: #856404;
-    }
-
-        .btn-outline-warning:hover {
-            background-color: #FFC107;
-            color: #000;
-        }
-
-    .btn-outline-danger:hover {
-        background-color: #DC3545;
-        color: white;
-    }
-
-    .table-responsive::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb {
-        background-color: #0077B6;
-        border-radius: 4px;
-    }
-
     .modal-content {
         border-radius: 1rem;
     }
 
     .alert-success {
-        border-left: 6px solid #198754;
+        border-left: 5px solid #198754;
     }
 </style>

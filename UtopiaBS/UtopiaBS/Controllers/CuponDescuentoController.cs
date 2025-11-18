@@ -44,9 +44,8 @@ namespace UtopiaBS.Web.Controllers
             {
                 var cupon = db.CuponDescuento.FirstOrDefault(c => c.CuponId == id);
                 if (cupon == null)
-                {
                     return HttpNotFound();
-                }
+
                 return View(cupon);
             }
         }
@@ -60,6 +59,7 @@ namespace UtopiaBS.Web.Controllers
             TempData["Mensaje"] = mensaje;
             return RedirectToAction("Listar", "Producto");
         }
+
 
         // POST: Eliminar
         [HttpPost]

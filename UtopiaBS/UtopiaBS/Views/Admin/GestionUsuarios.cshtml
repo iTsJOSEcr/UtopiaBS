@@ -1,0 +1,200 @@
+﻿@model IEnumerable<UtopiaBS.Data.UsuarioDA>
+@using UtopiaBS.Data
+
+@{
+    ViewBag.Title = "Gestión de Usuarios";
+}
+
+<!-- Bootstrap -->
+<!-- Bootstrap & Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+@if (TempData["TempPassword"] != null)
+{
+    <div class="alert alert-warning fw-semibold shadow-sm rounded-3 mt-3">
+        <i class="bi bi-key me-2"></i>
+        Contraseña temporal generada:
+        <span class="text-danger">@TempData["TempPassword"]</span>
+    </div>
+}
+
+
+<div class="container py-5">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+
+        <!-- ENCABEZADO -->
+        <div class="card-header text-white d-flex justify-content-between align-items-center"
+             style="background-color:#1B263B;">
+            <h3 class="mb-0 fw-bold">
+                <i class="bi bi-people-fill text-warning me-2"></i> Gestión de Usuarios
+            </h3>
+        </div>
+
+        <!-- CONTENIDO -->
+        <div class="card-body" style="background-color:#F8FAFC;">
+
+            <!-- MENSAJES -->
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success text-center fw-semibold rounded-3 shadow-sm py-2 mb-3">
+                    <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger text-center fw-semibold rounded-3 shadow-sm py-2 mb-3">
+                    <i class="bi bi-exclamation-octagon me-2"></i> @TempData["Error"]
+                </div>
+            }
+
+            <!-- TABLA -->
+            <div class="table-responsive rounded-3 shadow-sm" style="max-height:550px; overflow-y:auto;">
+                <table class="table table-hover align-middle text-center mb-0">
+                    <thead class="text-white text-uppercase small" style="background-color:#1B263B;">
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Rol Actual</th>
+                            <th>Asignar Rol</th>
+                            <th>Estado</th>
+                            <th>Reset</th>
+                            <th>Actividad</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            string rolNombre = "Sin rol";
+
+                            using (var db = new ApplicationDbContext())
+                            {
+                                var roleId = user.Roles.FirstOrDefault()?.RoleId;
+                                if (roleId != null)
+                                {
+                                    rolNombre = db.Roles.FirstOrDefault(r => r.Id == roleId)?.Name ?? "Sin rol";
+                                }
+                            }
+
+                            bool activo = user.LockoutEndDateUtc == null || user.LockoutEndDateUtc <= DateTime.UtcNow;
+
+                            <tr>
+                                <td>@user.UserName</td>
+                                <td>@user.Email</td>
+                                <td>
+                                    <span class="badge bg-info px-3 py-2 rounded-pill">
+                                        @rolNombre
+                                    </span>
+                                </td>
+
+                                <!-- ASIGNAR ROL -->
+                                <td>
+                                    @using (Html.BeginForm("AsignarRol", "Admin", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.Hidden("userId", user.Id)
+
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <select name="rolName" class="form-select form-select-sm w-auto rounded-pill shadow-sm">
+                                                <option value="Cliente">Cliente</option>
+                                                <option value="Administrador">Administrador</option>
+                                            </select>
+
+                                            <button class="btn btn-primary btn-sm rounded-pill shadow-sm">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                        </div>
+                                    }
+                                </td>
+
+                                <!-- ACTIVAR / DESACTIVAR -->
+                                <td>
+                                    @using (Html.BeginForm("ToggleEstado", "Admin", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.Hidden("userId", user.Id)
+
+                                        if (activo)
+                                        {
+                                            <button class="btn btn-danger btn-sm rounded-pill shadow-sm">
+                                                <i class="bi bi-person-x-fill"></i> Desactivar
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-success btn-sm rounded-pill shadow-sm">
+                                                <i class="bi bi-person-check-fill"></i> Activar
+                                            </button>
+                                        }
+                                    }
+                                </td>
+
+                                <!-- RESET PASSWORD -->
+                                <td>
+                                    @using (Html.BeginForm("ResetPassword", "Admin", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        @Html.Hidden("userId", user.Id)
+
+                                        <button class="btn btn-warning btn-sm rounded-pill shadow-sm">
+                                            <i class="bi bi-key-fill"></i>
+                                        </button>
+                                    }
+                                </td>
+
+                                <!-- ACTIVIDAD -->
+                                <td>
+                                    <a class="btn btn-secondary btn-sm rounded-pill shadow-sm"
+                                       href="@Url.Action("Actividad", "Admin", new { userId = user.Id })">
+                                        <i class="bi bi-clock-history"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ESTILOS -->
+<style>
+    body {
+        background-color: #F1F5F9;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #E3F2FD;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background-color: #1B263B;
+        border-radius: 4px;
+    }
+
+    .btn-outline-warning:hover {
+        background-color: #FFC107;
+        color: #000;
+    }
+
+    .modal-content {
+        border-radius: 1rem;
+    }
+
+    .alert-success {
+        border-left: 6px solid #198754;
+    }
+
+    .alert-danger {
+        border-left: 6px solid #DC3545;
+    }
+</style>

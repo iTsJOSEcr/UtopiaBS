@@ -31,34 +31,32 @@ namespace UtopiaBS.Business
             }
         }
 
-        public string EditarCupon(CuponDescuento cupon)
+        public string EditarCupon(CuponDescuento model)
         {
             try
             {
                 using (var db = new Context())
                 {
-                    var existente = db.CuponDescuento.Find(cupon.CuponId);
-                    if (existente == null)
+                    var cuponDB = db.CuponDescuento.FirstOrDefault(c => c.CuponId == model.CuponId);
+
+                    if (cuponDB == null)
                         return "Cupón no encontrado.";
 
-                    if (db.CuponDescuento.Any(c => c.Codigo == cupon.Codigo && c.CuponId != cupon.CuponId))
-                        return "Ya existe otro cupón con ese código.";
-
-                    existente.Codigo = cupon.Codigo;
-                    existente.Tipo = cupon.Tipo;
-                    existente.Valor = cupon.Valor;
-                    existente.FechaInicio = cupon.FechaInicio;
-                    existente.FechaFin = cupon.FechaFin;
-                    existente.UsoMaximo = cupon.UsoMaximo;
-                    existente.UsoActual = cupon.UsoActual;
+                    cuponDB.Codigo = model.Codigo;
+                    cuponDB.Tipo = model.Tipo;
+                    cuponDB.Valor = model.Valor;
+                    cuponDB.Activo = model.Activo;
+                    cuponDB.FechaInicio = model.FechaInicio;
+                    cuponDB.FechaFin = model.FechaFin;
 
                     db.SaveChanges();
+                    return "Cupón editado exitosamente.";
                 }
-                return "Cupón editado exitosamente.";
             }
             catch (Exception ex)
             {
-                return $"Error al editar el cupón: {ex.Message}";
+                return "Error al editar el cupón: " +
+                       (ex.InnerException?.InnerException?.Message ?? ex.Message);
             }
         }
 
