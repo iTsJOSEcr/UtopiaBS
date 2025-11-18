@@ -7,8 +7,11 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using UtopiaBS.Data;
+using UtopiaBS.Entities;
 using UtopiaBS.Entities.Clientes;
 using UtopiaBS.Models;
+using System.Linq;
+
 
 namespace UtopiaBS.Controllers
 {
@@ -36,6 +39,18 @@ namespace UtopiaBS.Controllers
             {
                 var identity = await _userManager.CreateIdentityAsync(user, DefaultAuthenticationTypes.ApplicationCookie);
                 HttpContext.GetOwinContext().Authentication.SignIn(new AuthenticationProperties { IsPersistent = false }, identity);
+
+                using (var db = new Context())
+                {
+                    var registro = new UsuarioActividad
+                    {
+                        UserId = user.Id,
+                        FechaInicio = DateTime.Now,
+                        FechaFin = null
+                    };
+                    db.UsuarioActividad.Add(registro);
+                    db.SaveChanges();
+                }
 
                 // ✅ Redirección según el rol
                 if (await _userManager.IsInRoleAsync(user.Id, "Administrador"))
@@ -125,9 +140,26 @@ namespace UtopiaBS.Controllers
         [Authorize]
         public ActionResult Logout()
         {
+            var userId = User.Identity.GetUserId();
+
+            using (var db = new Context())
+            {
+                var ultimaActividad = db.UsuarioActividad
+                    .Where(a => a.UserId == userId && a.FechaFin == null)
+                    .OrderByDescending(a => a.FechaInicio)
+                    .FirstOrDefault();
+
+                if (ultimaActividad != null)
+                {
+                    ultimaActividad.FechaFin = DateTime.Now;
+                    db.SaveChanges();
+                }
+            }
             HttpContext.GetOwinContext().Authentication.SignOut();
+
             return RedirectToAction("Login", "Account");
         }
+
 
         private void AddErrors(IdentityResult result)
         {
