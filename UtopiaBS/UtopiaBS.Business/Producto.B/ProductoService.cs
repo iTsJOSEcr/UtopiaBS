@@ -13,9 +13,12 @@ namespace UtopiaBS.Business
             {
                 using (var db = new Context())
                 {
-                    nuevo.Fecha = DateTime.Now; 
-                    nuevo.Threshold = (nuevo.CantidadStock > 0) ? 0 : 1;
-                    nuevo.IdEstado = 1; 
+                    nuevo.Fecha = DateTime.Now;
+
+                    if (nuevo.Threshold == 0)
+                        nuevo.Threshold = 10;
+
+                    nuevo.IdEstado = 1;
 
                     db.Productos.Add(nuevo);
                     db.SaveChanges();
@@ -27,6 +30,7 @@ namespace UtopiaBS.Business
                 return $"Error al agregar el producto: {ex.Message}";
             }
         }
+
 
         public string EditarProducto(Producto producto)
         {
@@ -46,6 +50,9 @@ namespace UtopiaBS.Business
                     existente.CantidadStock = producto.CantidadStock;
                     existente.Threshold = (producto.CantidadStock > 0) ? 0 : 1;
                     existente.IdEstado = producto.IdEstado;
+                    existente.FechaExpiracion = producto.FechaExpiracion;
+                    existente.DiasAnticipacion = producto.DiasAnticipacion ?? 30;
+
 
 
                     existente.Fecha = DateTime.Now;
