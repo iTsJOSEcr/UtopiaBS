@@ -1,5 +1,6 @@
 ﻿using OfficeOpenXml;
 using System;
+using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Web.Mvc;
@@ -29,21 +30,23 @@ namespace UtopiaBS.Web.Controllers
             if (ModelState.IsValid)
             {
                 nuevo.Fecha = DateTime.Now;
-                // si hay stock, threshold = 0; si no hay, threshold = 1 (según tu lógica actual)
                 nuevo.Threshold = (nuevo.CantidadStock > 0) ? 0 : 1;
+
+                // Nuevo: si no se define, default = 30 días
+                nuevo.DiasAnticipacion = nuevo.DiasAnticipacion ?? 30;
 
                 string resultado = service.AgregarProducto(nuevo);
                 ViewBag.Mensaje = resultado;
 
                 if (resultado.Contains("exitosamente"))
                 {
-                    // TempData["MensajeProducto"] = resultado;
                     ModelState.Clear();
                     return View();
                 }
             }
             return View(nuevo);
         }
+
 
         // GET: Producto/Listar
         public ActionResult Listar()
@@ -55,6 +58,23 @@ namespace UtopiaBS.Web.Controllers
                     Productos = db.Productos.ToList(),
                     Cupones = db.CuponDescuento.ToList()
                 };
+
+                // ALERTAS
+                DateTime hoy = DateTime.Now.Date;
+                int diasAlerta = 30; // 1 mes
+
+                vm.ProductosExpirados = vm.Productos
+                    .Where(p => p.FechaExpiracion.HasValue &&
+                                p.FechaExpiracion.Value.Date < hoy)
+                    .ToList();
+
+                vm.ProductosPorExpirar = vm.Productos
+                    .Where(p =>
+                        p.FechaExpiracion.HasValue &&
+                        p.FechaExpiracion.Value.Date >= hoy &&
+                        (p.FechaExpiracion.Value.Date - hoy).TotalDays <= diasAlerta
+                    )
+                    .ToList();
 
                 return View(vm);
             }

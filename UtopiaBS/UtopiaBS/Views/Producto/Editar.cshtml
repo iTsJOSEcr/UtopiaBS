@@ -1,9 +1,5 @@
 ﻿@model UtopiaBS.Entities.Producto
 
-@{
-    ViewBag.Title = "Editar Producto";
-}
-
 <!-- Bootstrap & Icons -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.5/font/bootstrap-icons.css" rel="stylesheet" />
@@ -20,12 +16,11 @@
                     </h3>
                 </div>
 
-                <!-- CONTENIDO -->
-                <div class="card-body p-4" style="background-color:#f9fafc;">
-                    <!-- MENSAJE DE CONFIRMACIÓN -->
+                <div class="card-body p-4">
+
                     @if (!string.IsNullOrEmpty(ViewBag.Mensaje))
                     {
-                        <div class="alert alert-success text-center fw-semibold rounded-pill shadow-sm mb-4" role="alert">
+                        <div class="alert alert-success text-center fw-semibold rounded-pill shadow-sm mb-4">
                             <i class="bi bi-check-circle-fill me-2"></i> @ViewBag.Mensaje
                         </div>
                     }
@@ -34,54 +29,77 @@
                     {
                         @Html.AntiForgeryToken()
                         @Html.HiddenFor(m => m.IdProducto)
-                        @Html.HiddenFor(m => m.Fecha)
                         @Html.HiddenFor(m => m.Threshold)
 
                         <div class="row g-3">
+
+                            <!-- NOMBRE -->
                             <div class="col-md-6">
-                                @Html.LabelFor(m => m.Nombre, new { @class = "form-label fw-semibold text-secondary" })
-                                @Html.EditorFor(m => m.Nombre, new { htmlAttributes = new { @class = "form-control form-control-lg shadow-sm", placeholder = "Ej. Mascarilla facial" } })
-                                @Html.ValidationMessageFor(m => m.Nombre, "", new { @class = "text-danger small" })
+                                @Html.LabelFor(m => m.Nombre)
+                                @Html.EditorFor(m => m.Nombre, new { htmlAttributes = new { @class = "form-control form-control-lg shadow-sm" } })
                             </div>
 
+                            <!-- TIPO -->
                             <div class="col-md-6">
-                                @Html.LabelFor(m => m.Tipo, new { @class = "form-label fw-semibold text-secondary" })
-                                @Html.EditorFor(m => m.Tipo, new { htmlAttributes = new { @class = "form-control form-control-lg shadow-sm", placeholder = "Ej. Belleza, Higiene" } })
-                                @Html.ValidationMessageFor(m => m.Tipo, "", new { @class = "text-danger small" })
+                                @Html.LabelFor(m => m.Tipo)
+                                @Html.EditorFor(m => m.Tipo, new { htmlAttributes = new { @class = "form-control form-control-lg shadow-sm" } })
                             </div>
 
+                            <!-- PROVEEDOR -->
                             <div class="col-md-6">
-                                @Html.LabelFor(m => m.Proveedor, new { @class = "form-label fw-semibold text-secondary" })
-                                @Html.EditorFor(m => m.Proveedor, new { htmlAttributes = new { @class = "form-control form-control-lg shadow-sm", placeholder = "Nombre del proveedor" } })
-                                @Html.ValidationMessageFor(m => m.Proveedor, "", new { @class = "text-danger small" })
+                                @Html.LabelFor(m => m.Proveedor)
+                                @Html.EditorFor(m => m.Proveedor, new { htmlAttributes = new { @class = "form-control form-control-lg shadow-sm" } })
                             </div>
 
+                            <!-- PRECIO -->
                             <div class="col-md-6">
-                                @Html.LabelFor(m => m.PrecioUnitario, new { @class = "form-label fw-semibold text-secondary" })
-                                @Html.EditorFor(m => m.PrecioUnitario, new { htmlAttributes = new { @class = "form-control form-control-lg shadow-sm", placeholder = "₡0.00" } })
-                                @Html.ValidationMessageFor(m => m.PrecioUnitario, "", new { @class = "text-danger small" })
+                                @Html.LabelFor(m => m.PrecioUnitario)
+                                @Html.EditorFor(m => m.PrecioUnitario, new { htmlAttributes = new { @class = "form-control form-control-lg shadow-sm" } })
                             </div>
 
+                            <!-- STOCK -->
                             <div class="col-md-6">
-                                @Html.LabelFor(m => m.CantidadStock, new { @class = "form-label fw-semibold text-secondary" })
-                                @Html.EditorFor(m => m.CantidadStock, new { htmlAttributes = new { @class = "form-control form-control-lg shadow-sm", placeholder = "0" } })
-                                @Html.ValidationMessageFor(m => m.CantidadStock, "", new { @class = "text-danger small" })
+                                @Html.LabelFor(m => m.CantidadStock)
+                                @Html.EditorFor(m => m.CantidadStock, new { htmlAttributes = new { @class = "form-control form-control-lg shadow-sm" } })
                             </div>
 
+                            <!-- FECHA CREACIÓN -->
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold text-secondary">Fecha de Creación</label>
+                                <label class="form-label">Fecha de Creación</label>
                                 <input type="text" class="form-control form-control-lg shadow-sm bg-light"
                                        value="@Model.Fecha.ToString("dd/MM/yyyy")" readonly />
                             </div>
+
+                            <!-- FECHA EXPIRACIÓN -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Fecha de Expiración</label>
+                                <input type="date"
+                                       name="FechaExpiracion"
+                                       class="form-control form-control-lg shadow-sm"
+                                       value="@(Model.FechaExpiracion.HasValue ? Model.FechaExpiracion.Value.ToString("yyyy-MM-dd") : "")" />
+                            </div>
+
+                            <!-- DÍAS ANTICIPACIÓN -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Días de Anticipación</label>
+                                <input type="number"
+                                       name="DiasAnticipacion"
+                                       class="form-control form-control-lg shadow-sm"
+                                       value="@(Model.DiasAnticipacion ?? 30)" />
+                                <small class="text-muted">Valor por defecto: 30 días.</small>
+                            </div>
+
                         </div>
 
-                        <!-- BOTONES -->
                         <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mt-4">
                             <button type="submit" class="btn fw-semibold text-dark shadow-sm w-100 rounded-pill py-2" style="background-color:#FFD60A;">
                                 <i class="bi bi-save2 me-2"></i> Guardar Cambios
                             </button>
-                            @Html.ActionLink("⬅ Volver al Listado", "Listar", "Producto", null, new { @class = "btn btn-outline-secondary fw-semibold w-100 rounded-pill py-2" })
+
+                            @Html.ActionLink("⬅ Volver al Listado", "Listar", "Producto",
+                                null, new { @class = "btn btn-outline-secondary fw-semibold w-100 rounded-pill py-2" })
                         </div>
+
                     }
                 </div>
             </div>
@@ -89,40 +107,10 @@
     </div>
 </div>
 
-@section Scripts {
-    @Scripts.Render("~/bundles/jqueryval")
-}
-
-<!-- ESTILOS -->
 <style>
-    body {
-        background-color: #eef3f9;
-    }
-
     .form-control-lg {
         border-radius: 10px;
         border: 1px solid #ced4da;
-        font-size: 1rem;
         height: 46px;
-    }
-
-        .form-control-lg:focus {
-            border-color: #FFD60A;
-            box-shadow: 0 0 0 0.2rem rgba(255, 214, 10, 0.35);
-        }
-
-    .btn:hover {
-        opacity: 0.9;
-        transform: translateY(-2px);
-    }
-
-    .alert-success {
-        background-color: #d1e7dd;
-        color: #0f5132;
-        border: none;
-    }
-
-    .text-secondary {
-        color: #495057 !important;
     }
 </style>

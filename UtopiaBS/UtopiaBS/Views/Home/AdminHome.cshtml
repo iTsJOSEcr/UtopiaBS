@@ -15,6 +15,33 @@
             <span class="badge bg-warning text-dark fw-semibold px-3 py-2">Administrador</span>
         </div>
 
+        <!-- ALERTAS DE INVENTARIO -->
+        <div class="mt-4">
+
+            @if (ViewBag.Expirados != null && ViewBag.Expirados.Count > 0)
+            {
+                <div class="alert alert-danger fw-semibold shadow-sm rounded-3">
+                    <i class="bi bi-exclamation-octagon-fill me-2"></i>
+                    Hay <strong>@ViewBag.Expirados.Count</strong> productos expirados.
+                    <a href="@Url.Action("Listar","Producto")" class="ms-2 fw-bold text-dark">
+                        Ver detalles →
+                    </a>
+                </div>
+            }
+
+            @if (ViewBag.PorExpirar != null && ViewBag.PorExpirar.Count > 0)
+            {
+                <div class="alert alert-warning fw-semibold shadow-sm rounded-3">
+                    <i class="bi bi-hourglass-split me-2"></i>
+                    Hay <strong>@ViewBag.PorExpirar.Count</strong> productos próximos a expirar.
+                    <a href="@Url.Action("Listar","Producto")" class="ms-2 fw-bold text-dark">
+                        Ver detalles →
+                    </a>
+                </div>
+            }
+        </div>
+
+
         <!-- CONTENIDO -->
         <div class="card-body" style="background-color:#F8F9FA;">
             <p class="fs-5 text-secondary">
