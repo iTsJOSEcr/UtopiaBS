@@ -39,5 +39,8 @@ namespace UtopiaBS.Entities
 
         [MaxLength(100)]
         public string RegistradoPor { get; set; }
+        public string MotivoCancelacion { get; set; }
+        public string CanceladaPor { get; set; }
+        public DateTime? FechaCancelacion { get; set; }
     }
 }

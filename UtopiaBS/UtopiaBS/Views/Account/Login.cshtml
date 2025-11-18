@@ -6,12 +6,43 @@
 <div class="login-light-card">
     <h3 class="text-center mb-4">@ViewBag.Title</h3>
 
+    @if (TempData["RegisterSuccess"] != null)
+    {
+        <div class="alert alert-success text-center mb-3 rounded-3 shadow-sm"
+             style="font-size:14px; padding:10px;">
+            <i class="bi bi-check-circle-fill me-1"></i>
+            @TempData["RegisterSuccess"]
+        </div>
+    }
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success text-center mb-3 rounded-3 shadow-sm"
+             style="font-size:14px; padding:10px;">
+            <i class="bi bi-check-circle-fill me-1"></i>
+            @TempData["Success"]
+        </div>
+    }
+
+    <!-- 🚨 AQUI SE MUESTRAN LOS MENSAJES DE ERROR DEL LOGIN -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger text-center rounded-3 shadow-sm" style="font-size:14px;">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <div>@error.ErrorMessage</div>
+            }
+        </div>
+    }
+
+
+
     @using (Html.BeginForm())
     {
         @Html.AntiForgeryToken()
 
-        <label class="form-label">Nombre de Usuario</label>
-        @Html.TextBoxFor(m => m.UserName, new { @class = "form-control mb-3", placeholder = "Usuario" })
+        <label class="form-label">Nombre de Usuario o Correo</label>
+        @Html.TextBoxFor(m => m.UserName, new { @class = "form-control mb-3", placeholder = "Usuario o Correo" })
 
         <label class="form-label">Contraseña</label>
         @Html.PasswordFor(m => m.Password, new { @class = "form-control mb-4", placeholder = "********" })
@@ -22,8 +53,14 @@
 
         <div class="text-center">
             <p class="text-muted mb-1">¿No tienes cuenta?</p>
-            <a href="@Url.Action("Register", "Account")" class="btn btn-outline-primary" style="border-radius: 8px;">
+            <a href="@Url.Action("Register", "Account")" class="btn btn-warning" style="border-radius: 8px;">
                 Crear cuenta
+            </a>
+        </div>
+
+        <div class="text-center mt-2">
+            <a href="@Url.Action("ForgotPassword", "Account")" class="text-muted mb-1">
+                ¿Olvidaste tu contraseña?
             </a>
         </div>
 

@@ -199,6 +199,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\CitaClienteController.cs" />
     <Compile Include="Controllers\CitaController.cs" />
     <Compile Include="Controllers\ContabilidadController.cs" />
@@ -211,9 +212,11 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\LoginViewModel.cs" />
+    <Compile Include="Models\ForgotPasswordViewModel.cs" />
     <Compile Include="Models\RegisterViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\Contabilidad\ResumenMensualViewModel.cs" />
+    <Compile Include="ViewModels\InventarioViewModel.cs" />
     <Compile Include="Views\Ventas\ViewModels\LineaVentaViewModel.cs" />
     <Compile Include="Views\Ventas\ViewModels\VentaViewModel.cs" />
   </ItemGroup>
@@ -323,6 +326,13 @@
     <Content Include="Views\Contabilidad\ResumenMensual.cshtml" />
     <Content Include="Views\ReporteUsuariosActivos\Index.cshtml" />
     <Content Include="Views\ReporteUsuariosActivos\Resultado.cshtml" />
+    <Content Include="Views\Admin\GestionUsuarios.cshtml" />
+    <Content Include="Views\Account\ForgotPassword.cshtml" />
+    <Content Include="Views\Account\ResetPassword.cshtml" />
+    <Content Include="Views\CitaCliente\Historial.cshtml" />
+    <Content Include="Views\CitaCliente\HistorialError.cshtml" />
+    <Content Include="Views\CitaCliente\HistorialVacio.cshtml" />
+    <Content Include="Views\Cita\Menu.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

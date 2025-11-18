@@ -89,22 +89,62 @@ namespace UtopiaBS.Business
                 return $"Error al reservar la cita: {ex.Message}";
             }
         }
-        public string AgregarCita(Cita nuevaCita)
+        public string AgendarCita(Cita cita)
         {
-            try
+            if (cita.FechaHora <= DateTime.Now)
+                return "No es posible agendar citas en el pasado.";
+
+            using (var db = new Context())
             {
-                using (var db = new Context())
-                {
-                    db.Citas.Add(nuevaCita);
-                    db.SaveChanges();
-                    return "Cita agregada correctamente.";
-                }
+                db.Citas.Add(cita);
+                db.SaveChanges();
             }
-            catch (Exception ex)
+
+            return "Cita agendada correctamente.";
+        }
+
+        public string CancelarPorAdmin(int idCita, string motivo)
+        {
+            using (var db = new Context())
             {
-                return $"Error al agregar la cita: {ex.Message}";
+                var cita = db.Citas.Find(idCita);
+                if (cita == null) return "La cita no existe.";
+
+                cita.IdEstadoCita = 3;
+                cita.MotivoCancelacion = motivo;
+                cita.CanceladaPor = "Admin";
+                cita.FechaCancelacion = DateTime.Now;
+
+                db.SaveChanges();
+                return "Cita cancelada por administración.";
             }
         }
+
+        public string CancelarPorCliente(int idCita, int idCliente, string motivo)
+        {
+            const int horasAnticipacion = 24;
+
+            using (var db = new Context())
+            {
+                var cita = db.Citas.Find(idCita);
+                if (cita == null) return "La cita no existe.";
+                if (cita.IdCliente != idCliente) return "Esta cita no pertenece al cliente.";
+
+                if (cita.FechaHora <= DateTime.Now.AddHours(horasAnticipacion))
+                    return $"Solo puedes cancelar con más de {horasAnticipacion} horas de anticipación.";
+
+                cita.IdEstadoCita = 3; 
+                cita.MotivoCancelacion = motivo;
+                cita.CanceladaPor = "Cliente";
+                cita.FechaCancelacion = DateTime.Now;
+
+                db.SaveChanges();
+                return "Cita cancelada por cliente.";
+            }
+        }
+
+
+
 
 
         public string ConfirmarCita(int idCita)

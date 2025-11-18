@@ -41,5 +41,8 @@ namespace UtopiaBS.Entities
 
         [NotMapped] 
         public decimal Precio => PrecioUnitario;
+        public DateTime? FechaExpiracion { get; set; }
+        public int? DiasAnticipacion { get; set; }
+
     }
 }

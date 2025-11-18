@@ -6,7 +6,7 @@
 <!-- Bootstrap Icons -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.5/font/bootstrap-icons.css" rel="stylesheet" />
 
-<!-- Flatpickr (para fecha y hora bonita) -->
+<!-- Flatpickr -->
 <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/themes/material_blue.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
@@ -14,6 +14,7 @@
 
 <div class="container py-5">
     <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+
         <!-- ENCABEZADO -->
         <div class="card-header text-dark d-flex align-items-center" style="background-color:#FFD60A;">
             <h3 class="mb-0 fw-bold">
@@ -23,12 +24,17 @@
 
         <!-- CUERPO -->
         <div class="card-body" style="background-color:#F8FAFC;">
+
             @using (Html.BeginForm("Editar", "Cita", FormMethod.Post))
             {
                 @Html.AntiForgeryToken()
                 @Html.HiddenFor(m => m.IdCita)
 
+                <!-- RESUMEN DE ERRORES -->
+                @Html.ValidationSummary(true, "", new { @class = "text-danger mb-3" })
+
                 <div class="row g-4">
+
                     <!-- FECHA Y HORA -->
                     <div class="col-md-6">
                         <label class="form-label fw-semibold text-secondary">📅 Fecha y hora</label>
@@ -36,9 +42,12 @@
                             <span class="input-group-text border-0 bg-transparent">
                                 <i class="bi bi-calendar-event text-primary"></i>
                             </span>
-                            <input type="text" id="FechaHora" name="FechaHora"
+
+                            <input type="text"
+                                   id="FechaHora"
+                                   name="FechaHora"
                                    class="form-control border-0"
-                                   value="@Model.FechaHora.ToString("dd/MM/yyyy HH:mm")"
+                                   value="@Model.FechaHora.ToString("yyyy-MM-dd HH:mm")"
                                    placeholder="Seleccione fecha y hora"
                                    autocomplete="off" required />
                         </div>
@@ -51,11 +60,15 @@
                             <span class="input-group-text border-0 bg-transparent">
                                 <i class="bi bi-person-badge text-success"></i>
                             </span>
+
                             <select class="form-select border-0" name="IdEmpleado" required>
                                 <option value="">-- Seleccione --</option>
                                 @foreach (var emp in ViewBag.Empleados as SelectList)
                                 {
-                                    <option value="@emp.Value" @(emp.Value == Model.IdEmpleado.ToString() ? "selected" : "")>@emp.Text</option>
+                                    <option value="@emp.Value"
+                                            @(emp.Value == Model.IdEmpleado.ToString() ? "selected" : "")>
+                                        @emp.Text
+                                    </option>
                                 }
                             </select>
                         </div>
@@ -68,11 +81,15 @@
                             <span class="input-group-text border-0 bg-transparent">
                                 <i class="bi bi-scissors text-warning"></i>
                             </span>
+
                             <select class="form-select border-0" name="IdServicio" required>
                                 <option value="">-- Seleccione --</option>
                                 @foreach (var serv in ViewBag.Servicios as SelectList)
                                 {
-                                    <option value="@serv.Value" @(serv.Value == Model.IdServicio.ToString() ? "selected" : "")>@serv.Text</option>
+                                    <option value="@serv.Value"
+                                            @(serv.Value == Model.IdServicio.ToString() ? "selected" : "")>
+                                        @serv.Text
+                                    </option>
                                 }
                             </select>
                         </div>
@@ -85,11 +102,13 @@
                             <span class="input-group-text border-0 bg-transparent">
                                 <i class="bi bi-flag text-info"></i>
                             </span>
+
                             <select class="form-select border-0" name="IdEstadoCita" required>
                                 <option value="1" @(Model.IdEstadoCita == 1 ? "selected" : "")>Pendiente</option>
                                 <option value="2" @(Model.IdEstadoCita == 2 ? "selected" : "")>Confirmada</option>
                                 <option value="3" @(Model.IdEstadoCita == 3 ? "selected" : "")>Cancelada</option>
                                 <option value="4" @(Model.IdEstadoCita == 4 ? "selected" : "")>Disponible</option>
+                                <option value="5" @(Model.IdEstadoCita == 5 ? "selected" : "")>Completada</option>
                             </select>
                         </div>
                     </div>
@@ -101,9 +120,11 @@
                             <span class="input-group-text border-0 bg-transparent">
                                 <i class="bi bi-chat-left-text text-secondary"></i>
                             </span>
-                            @Html.TextAreaFor(m => m.Observaciones, new { @class = "form-control border-0", rows = 3, placeholder = "Notas u observaciones..." })
+                            @Html.TextAreaFor(m => m.Observaciones,
+                                new { @class = "form-control border-0", rows = 3, placeholder = "Notas u observaciones..." })
                         </div>
                     </div>
+
                 </div>
 
                 <!-- BOTÓN GUARDAR -->
@@ -120,10 +141,9 @@
 </div>
 
 <style>
-    body { background-color: #F1F5F9; }
-
-    .card { transition: transform 0.2s ease; }
-    .card:hover { transform: translateY(-3px); }
+    body {
+        background-color: #F1F5F9;
+    }
 
     .pretty-field {
         border-radius: 12px;
@@ -131,11 +151,11 @@
         overflow: hidden;
     }
 
-    .pretty-field .form-control,
-    .pretty-field .form-select {
-        background: transparent !important;
-        box-shadow: none !important;
-    }
+        .pretty-field .form-control,
+        .pretty-field .form-select {
+            background: transparent !important;
+            box-shadow: none !important;
+        }
 
     .form-control:focus, .form-select:focus {
         outline: none;
@@ -156,13 +176,14 @@
 </style>
 
 <script>
-    // Flatpickr para mostrar calendario bonito y correcto formato
     document.addEventListener('DOMContentLoaded', function () {
         flatpickr("#FechaHora", {
             locale: "es",
             enableTime: true,
             time_24hr: true,
-            dateFormat: "d/m/Y H:i",
+            dateFormat: "Y-m-d H:i",   // formato que se ENVÍA al servidor
+            altInput: true,
+            altFormat: "d/m/Y H:i",    // formato que VE el usuario
             defaultDate: "@Model.FechaHora.ToString("yyyy-MM-dd HH:mm")",
             allowInput: true,
         });
