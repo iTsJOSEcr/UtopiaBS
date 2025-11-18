@@ -57,6 +57,7 @@
     <Compile Include="Contabilidad\Egreso.cs" />
     <Compile Include="Contabilidad\Ingreso.cs" />
     <Compile Include="Contabilidad\ResumenDiarioViewModel.cs" />
+    <Compile Include="Contabilidad\ResumenMensualDto.cs" />
     <Compile Include="Empleados\Empleado.cs" />
     <Compile Include="Producto\CuponDescuento.cs" />
     <Compile Include="Producto\Producto.cs" />

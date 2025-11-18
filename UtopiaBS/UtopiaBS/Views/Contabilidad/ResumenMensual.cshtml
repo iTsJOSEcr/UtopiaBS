@@ -1,0 +1,153 @@
+﻿@{
+    ViewBag.Title = "Resumen Mensual";
+
+    // Año/Mes con fallback si Model es null
+    var yearValue = (Model == null) ? DateTime.Now.Year : Model.Year;
+    var monthValue = (Model == null) ? DateTime.Now.Month : Model.Month;
+
+    // Filtro actual (todo | productos | servicios)
+    string filtroActual = (ViewBag.Filtro as string);
+    if (string.IsNullOrWhiteSpace(filtroActual))
+    {
+        filtroActual = "todo";
+    }
+
+    // ===== Calculamos totales en la vista =====
+    decimal ventasProductos = (Model == null) ? 0m : Model.TotalVentasProductos;
+    decimal ventasServicios = (Model == null) ? 0m : Model.TotalVentasServicios;
+    decimal egresosMes = (Model == null) ? 0m : Model.TotalEgresos;
+
+    decimal ingresosFiltrados;
+    if (filtroActual == "productos")
+    {
+        ingresosFiltrados = ventasProductos;
+    }
+    else if (filtroActual == "servicios")
+    {
+        ingresosFiltrados = ventasServicios;
+    }
+    else // "todo"
+    {
+        ingresosFiltrados = ventasProductos + ventasServicios;
+    }
+
+    decimal balance = ingresosFiltrados - egresosMes;
+}
+
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.5/font/bootstrap-icons.css" rel="stylesheet" />
+
+<div class="container py-5">
+    <div class="card shadow-lg border-0 rounded-4 mb-4">
+        <div class="card-header text-white" style="background-color:#0056b3;">
+            <h3 class="fw-bold mb-0">
+                <i class="bi bi-calendar3 text-warning me-2"></i>
+                Resumen Mensual
+            </h3>
+        </div>
+
+        <div class="card-body">
+            <!-- Formulario -->
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Año</label>
+                    <input type="number" class="form-control rounded-3 shadow-sm"
+                           name="year" min="2000" max="2100"
+                           value="@yearValue" required />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Mes</label>
+                    <select name="month" class="form-control rounded-3 shadow-sm" required>
+                        @{
+                            var es = System.Globalization.CultureInfo.GetCultureInfo("es-ES");
+                            for (int i = 1; i <= 12; i++)
+                            {
+                                var nombreMes = es.DateTimeFormat.MonthNames[i - 1];
+                                if (string.IsNullOrEmpty(nombreMes)) { nombreMes = "Mes " + i; }
+                                @:<option value="@i" @(monthValue == i ? "selected" : "")>@nombreMes</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Filtrar por</label>
+                    <select name="filtro" class="form-control rounded-3 shadow-sm">
+                        <option value="todo" @(filtroActual == "todo" ? "selected" : "")>Todo</option>
+                        <option value="productos" @(filtroActual == "productos" ? "selected" : "")>Solo productos</option>
+                        <option value="servicios" @(filtroActual == "servicios" ? "selected" : "")>Solo servicios</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-primary w-100 rounded-pill shadow-sm fw-semibold">
+                        <i class="bi bi-search"></i> Consultar
+                    </button>
+                </div>
+            </form>
+
+            @if (Model != null)
+            {
+                <div class="alert alert-info text-center mb-4 shadow-sm">
+                    Mostrando datos de: <strong>@filtroActual.ToUpper()</strong>
+                </div>
+
+                <!-- Resultados -->
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-0 rounded-4">
+                            <div class="card-body">
+                                <h5 class="fw-bold text-success">Ingresos</h5>
+                                <p class="fs-4 fw-semibold">₡@ingresosFiltrados.ToString("N2")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-0 rounded-4">
+                            <div class="card-body">
+                                <h5 class="fw-bold text-danger">Egresos</h5>
+                                <p class="fs-4 fw-semibold">₡@egresosMes.ToString("N2")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-0 rounded-4">
+                            <div class="card-body">
+                                <h5 class="fw-bold @(balance >= 0 ? "text-success" : "text-danger")">Balance</h5>
+                                <p class="fs-4 fw-semibold">₡@balance.ToString("N2")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón descarga -->
+                <a href="@Url.Action("ExportarResumenMensual", "Contabilidad",
+                        new { year = yearValue, month = monthValue, filtro = filtroActual })"
+                   class="btn btn-success rounded-pill px-4 py-2 shadow fw-semibold">
+                    <i class="bi bi-file-earmark-excel-fill me-2"></i>
+                    Descargar Excel
+                </a>
+            }
+            else
+            {
+                <p class="text-muted text-center mt-3 fs-5">
+                    Complete el formulario para ver el resumen mensual.
+                </p>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform .2s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+</style>
