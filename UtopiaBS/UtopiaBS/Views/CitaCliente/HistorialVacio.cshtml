@@ -1,0 +1,15 @@
+﻿@{
+    ViewBag.Title = "Historial de Citas";
+}
+
+<div class="container py-5" style="max-width:700px;">
+    <div class="alert alert-info shadow-sm rounded-3 p-4 text-center">
+        <i class="bi bi-clock-history text-primary display-4"></i>
+        <h3 class="fw-bold mt-3">Sin historial disponible</h3>
+        <p class="mt-2 fs-5">@ViewBag.Info</p>
+
+        <a href="@Url.Action("Listar", "CitaCliente")" class="btn btn-primary mt-3">
+            <i class="bi bi-calendar-plus me-1"></i> Agendar una Cita
+        </a>
+    </div>
+</div>

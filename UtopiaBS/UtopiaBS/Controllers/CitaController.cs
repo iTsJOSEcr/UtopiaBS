@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.AspNet.Identity;
+using System;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Web.Mvc;
 using UtopiaBS.Business;
@@ -31,32 +33,21 @@ namespace UtopiaBS.Web.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Agregar(Cita cita)
         {
-            try
+            var resultado = _citaService.AgendarCita(cita);
+
+            if (resultado != "Cita agendada correctamente.")
             {
-                if (ModelState.IsValid)
-                {
-
-                    cita.IdEstadoCita = 4;
-                    _citaService.AgregarCita(cita);
-
-                    TempData["Mensaje"] = "Cita agregada correctamente.";
-                    return RedirectToAction("Administrar");
-                }
-
+                TempData["Error"] = resultado;
 
                 ViewBag.Empleados = new SelectList(_empleadoService.ObtenerTodos(), "IdEmpleado", "Nombre");
                 ViewBag.Servicios = new SelectList(_servicioService.ObtenerTodos(), "IdServicio", "Nombre");
+
                 return View(cita);
             }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error al agregar la cita: " + ex.Message;
-                ViewBag.Empleados = new SelectList(_empleadoService.ObtenerTodos(), "IdEmpleado", "Nombre");
-                ViewBag.Servicios = new SelectList(_servicioService.ObtenerTodos(), "IdServicio", "Nombre");
-                return View(cita);
-            }
+
+            TempData["Mensaje"] = resultado;
+            return RedirectToAction("Administrar");
         }
-
         public ActionResult ListarAgendadas(int? empleadoId, int? servicioId)
         {
             var citas = _citaService.ListarPendientes(empleadoId, servicioId);
@@ -151,6 +142,11 @@ namespace UtopiaBS.Web.Controllers
             return RedirectToAction("Administrar");
         }
 
+        public ActionResult Menu()
+        {
+            return View();
+        }
+
         public ActionResult Reportes()
         {
             return View();
@@ -200,6 +196,44 @@ namespace UtopiaBS.Web.Controllers
                 return Json(new { error = "Error al generar estadísticas: " + ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Cancelar(int idCita, string motivo)
+        {
+            var userId = User.Identity.GetUserId();
+
+            using (var db = new Context())
+            {
+                var clienteId = db.Clientes
+                    .Where(c => c.IdUsuario == userId)
+                    .Select(c => (int?)c.IdCliente)
+                    .FirstOrDefault();
+
+                if (clienteId == null)
+                {
+                    TempData["Error"] = "No se encontró el perfil del cliente.";
+                    return RedirectToAction("MisCitas");
+                }
+
+                var resultado = _citaService.CancelarPorCliente(idCita, clienteId.Value, motivo);
+
+                TempData[resultado.StartsWith("Cita cancelada") ? "Mensaje" : "Error"] = resultado;
+
+                return RedirectToAction("MisCitas");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CancelarPorAdmin(int idCita, string motivo)
+        {
+            var resultado = _citaService.CancelarPorAdmin(idCita, motivo);
+            TempData["Mensaje"] = resultado;
+
+            return RedirectToAction("Administrar");
+        }
+
 
     }
 }

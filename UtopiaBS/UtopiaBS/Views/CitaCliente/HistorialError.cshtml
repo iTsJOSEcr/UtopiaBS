@@ -1,0 +1,15 @@
+﻿@{
+    ViewBag.Title = "Error en Historial";
+}
+
+<div class="container py-5" style="max-width:700px;">
+    <div class="alert alert-danger shadow-sm rounded-3 p-4 text-center">
+        <i class="bi bi-x-circle-fill text-danger display-4"></i>
+        <h3 class="fw-bold mt-3">No se pudo cargar tu historial</h3>
+        <p class="mt-2 fs-5">@ViewBag.Error</p>
+
+        <a href="@Url.Action("Listar", "CitaCliente")" class="btn btn-dark mt-3">
+            <i class="bi bi-arrow-left me-1"></i> Volver
+        </a>
+    </div>
+</div>
