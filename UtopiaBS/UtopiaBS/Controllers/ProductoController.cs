@@ -9,7 +9,7 @@ using UtopiaBS.Data;
 using UtopiaBS.Entities;
 using UtopiaBS.ViewModels;
 
-namespace UtopiaBS.Web.Controllers
+namespace UtopiaBS.Controllers
 {
     [Authorize(Roles = "Administrador")]
     public class ProductoController : Controller

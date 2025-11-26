@@ -1,0 +1,203 @@
+﻿@model UtopiaBS.Models.MisPuntosViewModel
+
+@{
+    ViewBag.Title = "Mis Puntos";
+}
+
+<style>
+    .points-wrapper {
+        max-width: 900px;
+        margin: 20px auto;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .points-card {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 25px 30px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+        margin-bottom: 25px;
+        animation: fadeIn .35s ease-in-out;
+    }
+
+    .points-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .points-badge {
+        background: linear-gradient(135deg, #6a11cb, #2575fc);
+        color: #fff;
+        border-radius: 18px;
+        padding: 10px 18px;
+        font-weight: 600;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    .points-label {
+        font-size: 14px;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    /* Número grande + etiqueta pts más pequeña */
+    .points-total {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+    }
+
+    .points-total-number {
+        font-size: 40px;
+        font-weight: 700;
+        color: #6a11cb;
+        line-height: 1;
+    }
+
+    .points-total-suffix {
+        font-size: 16px;
+        font-weight: 600;
+        color: #6a11cb;
+        line-height: 1.1;
+    }
+
+    .points-sub {
+        font-size: 14px;
+        color: #555;
+        margin-top: 8px;
+    }
+
+    .movimientos-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+        .movimientos-table thead {
+            background: #f3f3ff;
+        }
+
+        .movimientos-table th,
+        .movimientos-table td {
+            padding: 10px 8px;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .movimientos-table tbody tr:hover {
+            background: #fafafe;
+        }
+
+    .empty-message {
+        text-align: center;
+        padding: 20px 10px;
+        color: #777;
+        font-size: 14px;
+    }
+
+    .btn-volver {
+        background: #6a11cb;
+        color: #fff;
+        border-radius: 10px;
+        padding: 8px 18px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 10px;
+    }
+
+        .btn-volver:hover {
+            background: #5712a8;
+            color: #fff;
+        }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="points-wrapper">
+
+    <div class="points-card">
+        <div class="points-header">
+            <div>
+                <div class="points-label">Total de puntos acumulados</div>
+
+                <div class="points-total">
+                    <span class="points-total-number">@Model.PuntosTotales</span>
+                    <span class="points-total-suffix">pts</span>
+                </div>
+
+                <div class="points-sub">
+                    @{
+                        // Evitar "Membresía: Membresía Básica"
+                        var tipoLimpio = Model.TipoMembresia ?? "";
+                        tipoLimpio = tipoLimpio.Replace("Membresía", "").Trim();
+                    }
+                    Membresía: <strong>@tipoLimpio</strong>
+                    @if (Model.FechaInicioMembresia.HasValue)
+                    {
+                        <span> · desde @Model.FechaInicioMembresia.Value.ToString("dd/MM/yyyy")</span>
+                    }
+                </div>
+            </div>
+
+            <div class="points-badge">
+                Lealtad Utopia
+            </div>
+        </div>
+
+        <p style="font-size:14px; color:#666; margin-bottom:0;">
+            Estos puntos se generan cada vez que realizas una compra con tu membresía activa.
+            Podrás canjearlos posteriormente por servicios o beneficios especiales.
+        </p>
+    </div>
+
+    <div class="points-card">
+        <h4 style="margin-bottom:15px;">Historial de movimientos</h4>
+
+        @if (Model.Movimientos != null && Model.Movimientos.Any())
+        {
+            <table class="movimientos-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Fecha</th>
+                        <th>Descripción</th>
+                        <th style="width: 15%; text-align:right;">Puntos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var mov in Model.Movimientos)
+                    {
+                        <tr>
+                            <td>@mov.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@mov.Descripcion</td>
+                            <td style="text-align:right; font-weight:600;">@mov.Puntos</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="empty-message">
+                Aún no tienes movimientos de puntos registrados.
+            </div>
+        }
+
+        <a href="@Url.Action("Index", "Home")" class="btn-volver">← Volver al inicio</a>
+    </div>
+</div>
