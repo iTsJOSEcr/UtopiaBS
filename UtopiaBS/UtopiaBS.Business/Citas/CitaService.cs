@@ -96,6 +96,9 @@ namespace UtopiaBS.Business
 
             using (var db = new Context())
             {
+                if (cita.IdEstadoCita == 0)
+                    cita.IdEstadoCita = 4;
+
                 db.Citas.Add(cita);
                 db.SaveChanges();
             }
