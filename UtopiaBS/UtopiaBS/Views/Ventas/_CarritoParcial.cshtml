@@ -1,7 +1,38 @@
-﻿@model UtopiaBS.Web.ViewModels.VentaViewModel
+﻿@model UtopiaBS.ViewModels.VentaViewModel
 @using System.Globalization
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+<!-- 🔹 Cliente seleccionado -->
+<div class="mb-3 p-2 border rounded bg-light">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            @if (Model.IdCliente.HasValue)
+            {
+                <span>
+                    <strong>Cliente:</strong> @Model.NombreCliente
+                    <span class="text-muted">(@Model.CedulaCliente)</span>
+                </span>
+            }
+            else
+            {
+                <span class="text-muted">
+                    Sin cliente asignado (venta de mostrador)
+                </span>
+            }
+        </div>
+        <div>
+            @if (Model.IdCliente.HasValue)
+            {
+                <button type="button"
+                        class="btn btn-sm btn-outline-danger"
+                        id="btnQuitarCliente">
+                    <i class="bi bi-x-circle"></i> Quitar cliente
+                </button>
+            }
+        </div>
+    </div>
+</div>
 
 <table class="table table-bordered text-center align-middle" id="tblCarrito" style="margin:auto;">
     <thead class="fw-semibold">

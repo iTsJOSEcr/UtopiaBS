@@ -22,5 +22,6 @@ namespace UtopiaBS.Entities.Clientes
 
         [Required, StringLength(128)]
         public string IdUsuario { get; set; }
+        public string Cedula { get; set; }
     }
 }

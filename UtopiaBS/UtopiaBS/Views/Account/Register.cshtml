@@ -37,11 +37,11 @@
         padding: .5rem .75rem;
     }
 
-    .form-control:focus {
-        border: 1px solid #6a11cb;
-        box-shadow: 0 0 6px rgba(106,17,203,0.18);
-        outline: none;
-    }
+        .form-control:focus {
+            border: 1px solid #6a11cb;
+            box-shadow: 0 0 6px rgba(106,17,203,0.18);
+            outline: none;
+        }
 
     .btn-register {
         background: #6a11cb;
@@ -53,82 +53,140 @@
         font-weight: 600;
     }
 
-    .btn-register:hover {
-        background: #5712a8;
+        .btn-register:hover {
+            background: #5712a8;
+        }
+
+    .membresia-badge {
+        background: #f5f0ff;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 13px;
+        color: #4a338f;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 15px;
     }
 
-    @* ESTA ES LA LÍNEA CRÍTICA — OBLIGATORIO DOBLE @ *@
+        .membresia-badge i {
+            font-size: 18px;
+        }
+
     @@keyframes fadeIn {
-        from { opacity: 0; transform: translateY(12px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(12px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
 
 <div class="register-card">
-    <h3 class="text-center mb-4">Crear cuenta de cliente</h3>
+    <h3 class="text-center mb-3">Crear cuenta de cliente</h3>
+
+    <div class="membresia-badge">
+        <i class="bi bi-stars"></i>
+        <span>
+            Al registrarte se te asignará automáticamente una
+            <strong>membresía básica gratuita</strong> para acumular puntos por tus compras.
+        </span>
+    </div>
 
     @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { role = "form" }))
     {
-            @Html.AntiForgeryToken()
+        @Html.AntiForgeryToken()
 
-            @Html.ValidationSummary(true, "", new { @class = "text-danger mb-2" })
+        @Html.ValidationSummary(true, "", new { @class = "text-danger mb-2" })
 
-            <div class="mb-3">
-                @Html.LabelFor(m => m.UserName)
-                @Html.TextBoxFor(m => m.UserName, new { @class = "form-control", placeholder = "Nombre de Usuario" })
-                @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
-            </div>
+        <div class="mb-3">
+            @Html.LabelFor(m => m.UserName)
+            @Html.TextBoxFor(m => m.UserName, new { @class = "form-control", placeholder = "Nombre de usuario" })
+            @Html.ValidationMessageFor(m => m.UserName, "", new { @class = "text-danger" })
+        </div>
 
-            <div class="mb-3">
-                @Html.LabelFor(m => m.Nombre)
-                @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", placeholder = "Nombre" })
-                @Html.ValidationMessageFor(m => m.Nombre, "", new { @class = "text-danger" })
-            </div>
+        <div class="form-group mb-3">
+            @Html.LabelFor(m => m.Cedula, new { @class = "form-label" })
+            @Html.TextBoxFor(
+                m => m.Cedula,
+                new
+                     {
+                    @class = "form-control",
+                    placeholder = "Ingrese su cédula",
+                    maxlength = "50",
+                    oninput = "this.value=this.value.replace(/[^0-9]/g,'');"
+                }
+            )
+            @Html.ValidationMessageFor(m => m.Cedula, "", new { @class = "text-danger" })
+        </div>
 
-            <div class="mb-3">
-                @Html.LabelFor(m => m.Apellido)
-                @Html.TextBoxFor(m => m.Apellido, new { @class = "form-control", placeholder = "Apellido" })
-                @Html.ValidationMessageFor(m => m.Apellido, "", new { @class = "text-danger" })
-            </div>
+        <div class="mb-3">
+            @Html.LabelFor(m => m.Nombre)
+            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", placeholder = "Nombre" })
+            @Html.ValidationMessageFor(m => m.Nombre, "", new { @class = "text-danger" })
+        </div>
 
-            <div class="mb-3">
-                @Html.LabelFor(m => m.FechaNacimiento)
-                @Html.TextBoxFor(m => m.FechaNacimiento, new { @class = "form-control", type = "date" })
-                @Html.ValidationMessageFor(m => m.FechaNacimiento, "", new { @class = "text-danger" })
-            </div>
+        <div class="mb-3">
+            @Html.LabelFor(m => m.Apellido)
+            @Html.TextBoxFor(m => m.Apellido, new { @class = "form-control", placeholder = "Apellido" })
+            @Html.ValidationMessageFor(m => m.Apellido, "", new { @class = "text-danger" })
+        </div>
 
-            <div class="mb-3">
-                @Html.LabelFor(m => m.PhoneNumber)
-                @Html.TextBoxFor(m => m.PhoneNumber, new { @class = "form-control", placeholder = "Teléfono" })
-                @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
-            </div>
+        <div class="mb-3">
+            @Html.LabelFor(m => m.FechaNacimiento)
+            @Html.TextBoxFor(m => m.FechaNacimiento, new { @class = "form-control", type = "date" })
+            @Html.ValidationMessageFor(m => m.FechaNacimiento, "", new { @class = "text-danger" })
+        </div>
 
-            <div class="mb-3">
-                @Html.LabelFor(m => m.Email)
-                @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "Correo electrónico" })
-                @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
-            </div>
+        <div class="mb-3">
+            @Html.LabelFor(m => m.PhoneNumber)
+            @Html.TextBoxFor(
+                m => m.PhoneNumber,
+                new
+                     {
+                    @class = "form-control",
+                    placeholder = "Teléfono",
+                    type = "tel",
+                    maxlength = "15",
+                    oninput = "this.value=this.value.replace(/[^0-9]/g,'');"
+                }
+            )
+            @Html.ValidationMessageFor(m => m.PhoneNumber, "", new { @class = "text-danger" })
+        </div>
 
-            <div class="mb-3">
-                @Html.LabelFor(m => m.Password)
-                @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Contraseña" })
-                @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-            </div>
+        <div class="mb-3">
+            @Html.LabelFor(m => m.Email)
+            @Html.TextBoxFor(
+                m => m.Email,
+                new { @class = "form-control", type = "email", placeholder = "Correo electrónico" }
+            )
+            @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+        </div>
 
-            <div class="mb-4">
-                @Html.LabelFor(m => m.ConfirmPassword)
-                @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "Confirmar contraseña" })
-                @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
-            </div>
+        <div class="mb-3">
+            @Html.LabelFor(m => m.Password)
+            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Contraseña" })
+            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+        </div>
 
-            <button type="submit" class="btn-register mb-3">Registrarme</button>
+        <div class="mb-4">
+            @Html.LabelFor(m => m.ConfirmPassword)
+            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "Confirmar contraseña" })
+            @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
+        </div>
 
-            <div class="text-center">
-                <a href="@Url.Action("Login", "Account")" class="text-muted" style="text-decoration:none;">
-                    ¿Ya tienes cuenta? Iniciar sesión
-                </a>
-            </div>
-      
+        <button type="submit" class="btn-register mb-3">Registrarme</button>
+
+        <div class="text-center">
+            <a href="@Url.Action("Login", "Account")" class="text-muted" style="text-decoration:none;">
+                ¿Ya tienes cuenta? Iniciar sesión
+            </a>
+        </div>
+
         <div class="text-center text-muted mt-4" style="font-size:14px;">
             © Utopia Beauty Salon 2025
         </div>

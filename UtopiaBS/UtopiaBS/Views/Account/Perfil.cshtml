@@ -58,44 +58,53 @@
             background: #5712a8;
             color: #fff;
         }
-
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
 </style>
 
 <div class="profile-card">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-1"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     <div class="profile-avatar">
-        @Model.UserName.Substring(0, 1).ToUpper()
+        @(Model != null && !string.IsNullOrEmpty(Model.UserName)
+            ? Model.UserName.Substring(0, 1).ToUpper()
+            : "?")
     </div>
 
-    <h3 style="font-weight:600; margin-bottom:25px;">@Model.UserName</h3>
+    <h3 style="font-weight:600; margin-bottom:25px;">
+        @(Model != null ? Model.UserName : "Usuario")
+    </h3>
 
     <div>
         <div class="profile-label">Correo Electrónico</div>
-        <div class="profile-value">@Model.Email</div>
+        <div class="profile-value">
+            @(Model != null ? Model.Email : "")
+        </div>
 
         <div class="profile-label">Nombre Completo</div>
-        <div class="profile-value">@($"{Model.Nombre} {Model.Apellido}")</div>
+        <div class="profile-value">
+            @(Model != null ? Model.Nombre + " " + Model.Apellido : "")
+        </div>
 
         <div class="profile-label">Fecha de nacimiento</div>
         <div class="profile-value">
-            @(Model.FechaNacimiento?.ToString("dd/MM/yyyy"))
+            @(Model != null && Model.FechaNacimiento.HasValue
+                ? Model.FechaNacimiento.Value.ToString("dd/MM/yyyy")
+                : "No registrada")
         </div>
 
-
-
         <div class="profile-label">Teléfono</div>
-        <div class="profile-value">@Model.PhoneNumber</div>
+        <div class="profile-value">
+            @(Model != null ? Model.PhoneNumber : "")
+        </div>
     </div>
 
-    <a class="btn-edit" href="@Url.Action("EditarPerfil", "Cuenta")">Editar perfil</a>
+    <a class="btn-edit" href="@Url.Action("EditarPerfil", "Account")">
+        Editar perfil
+    </a>
 </div>

@@ -3,7 +3,7 @@ using System.Web.Mvc;
 using UtopiaBS.Business.Contabilidad;
 using UtopiaBS.Entities.Contabilidad;
 
-namespace UtopiaBS.Web.Controllers
+namespace UtopiaBS.Controllers
 {
     [Authorize(Roles = "Administrador")]
     public class ContabilidadController : Controller

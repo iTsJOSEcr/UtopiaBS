@@ -22,6 +22,9 @@ namespace UtopiaBS.Entities
 
         public int? CuponId { get; set; }
 
+        public int? IdCliente { get; set; }
+        public string NombreCliente { get; set; }
+        public string CedulaCliente { get; set; }
         public decimal MontoDescuento { get; set; }
     }
 }

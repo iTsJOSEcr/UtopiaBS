@@ -18,5 +18,6 @@ namespace UtopiaBS.Data
         public string Apellido { get; set; }
         public DateTime? FechaNacimiento { get; set; }
         public string ResetToken { get; set; }
+        public string Cedula { get; set; }
     }
 }

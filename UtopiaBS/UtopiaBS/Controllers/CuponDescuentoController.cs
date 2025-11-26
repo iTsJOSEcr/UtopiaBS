@@ -5,7 +5,7 @@ using UtopiaBS.Business;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
 
-namespace UtopiaBS.Web.Controllers
+namespace UtopiaBS.Controllers
 {
     [Authorize(Roles = "Administrador")]
     public class CuponDescuentoController : Controller
