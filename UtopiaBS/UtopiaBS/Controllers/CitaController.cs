@@ -1,15 +1,12 @@
 ﻿using Microsoft.AspNet.Identity;
 using System;
-using System.Data.Entity;
-using System.Globalization;
 using System.Linq;
 using System.Web.Mvc;
 using UtopiaBS.Business;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
-using UtopiaBS.Models;
 
-namespace UtopiaBS.Web.Controllers
+namespace UtopiaBS.Controllers
 {
     [Authorize(Roles = "Administrador")]
     public class CitaController : Controller

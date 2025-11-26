@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
-using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -10,7 +10,7 @@ using UtopiaBS.Data;
 using UtopiaBS.Entities;
 using UtopiaBS.Entities.Clientes;
 using UtopiaBS.Models;
-using System.Linq;
+
 
 
 namespace UtopiaBS.Controllers
@@ -113,7 +113,14 @@ namespace UtopiaBS.Controllers
                 return View(model);
             }
 
-            // Si pasa las validaciones, crear usuario
+            // 3) Cédula duplicada (en AspNetUsers)
+            if (_userManager.Users.Any(u => u.Cedula == model.Cedula))
+            {
+                ModelState.AddModelError("", "Ya existe un usuario registrado con esta cédula.");
+                return View(model);
+            }
+
+            // Crear usuario de Identity
             var user = new UsuarioDA
             {
                 UserName = model.UserName,
@@ -122,7 +129,8 @@ namespace UtopiaBS.Controllers
                 PhoneNumberConfirmed = true,
                 Nombre = model.Nombre,
                 Apellido = model.Apellido,
-                FechaNacimiento = model.FechaNacimiento
+                FechaNacimiento = model.FechaNacimiento,
+                Cedula = model.Cedula  
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -133,34 +141,52 @@ namespace UtopiaBS.Controllers
                 return View(model);
             }
 
+            // Asegurar rol "Cliente"
             var roleManager = new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(new ApplicationDbContext()));
             if (!await roleManager.RoleExistsAsync("Cliente"))
                 await roleManager.CreateAsync(new IdentityRole("Cliente"));
 
             await _userManager.AddToRoleAsync(user.Id, "Cliente");
 
-
+            // Crear Cliente + Membresía Básica
             using (var db = new Context())
             {
-                // 3) Cliente duplicado (IdUsuario)
+                // Evitar duplicar cliente para el mismo usuario
                 if (db.Clientes.Any(c => c.IdUsuario == user.Id))
                 {
                     ModelState.AddModelError("", "El cliente ya está registrado.");
                     return View(model);
                 }
 
+                // Crear fila en Clientes
                 var cliente = new Cliente
                 {
                     Nombre = model.Nombre + " " + model.Apellido,
                     IdTipoMembresia = null,
-                    IdUsuario = user.Id
+                    IdUsuario = user.Id,
+                    Cedula = model.Cedula
                 };
 
                 db.Clientes.Add(cliente);
                 db.SaveChanges();
-            }
 
-            TempData["RegisterSuccess"] = "Cuenta creada correctamente. Ahora puedes iniciar sesión.";
+                // Buscar el tipo de membresía Básica
+                int idTipoBasica = 1; // 👈 ID real de la membresía Básica en tu BD
+
+                var membresia = new Membresia
+                {
+                    IdCliente = cliente.IdCliente,
+                    IdTipoMembresia = idTipoBasica,
+                    FechaInicio = DateTime.Now,
+                    FechaFin = null,
+                    PuntosAcumulados = 0
+                };
+
+                db.Membresias.Add(membresia);
+                db.SaveChanges();
+
+            }
+                TempData["RegisterSuccess"] = "Cuenta creada correctamente. Ya puedes iniciar sesión y comenzar a acumular puntos con tu membresía básica.";
             return RedirectToAction("Login", "Account");
         }
 
@@ -196,14 +222,122 @@ namespace UtopiaBS.Controllers
             }
         }
 
+
+        // PERFIL
         [Authorize]
         public async Task<ActionResult> Perfil()
         {
-            var userId = User.Identity.GetUserId();
-            var usuario = await _userManager.FindByIdAsync(userId);
+            var id = User.Identity.GetUserId();
 
-            return View(usuario);
+            if (string.IsNullOrEmpty(id))
+                return RedirectToAction("Login");
+
+            var user = await _userManager.FindByIdAsync(id);
+
+            if (user == null)
+                return RedirectToAction("Login");
+
+            return View("Perfil", user);
         }
+
+
+        // EDITAR PERFIL - GET
+        [Authorize]
+        public async Task<ActionResult> EditarPerfil()
+        {
+            var id = User.Identity.GetUserId();
+            var user = await _userManager.FindByIdAsync(id);
+
+            var model = new UpdateProfileViewModel
+            {
+                UserName = user.UserName, 
+                Nombre = user.Nombre,
+                Apellido = user.Apellido,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                FechaNacimiento = user.FechaNacimiento ?? DateTime.Now
+            };
+
+            return View("EditarPerfil", model);
+        }
+
+
+        // EDITAR PERFIL - POST
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EditarPerfil(UpdateProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Hay campos vacíos o inválidos.";
+                return View("EditarPerfil", model);
+            }
+
+            if (!System.Text.RegularExpressions.Regex.IsMatch(model.PhoneNumber, @"^[0-9]{8,15}$"))
+            {
+                TempData["Error"] = "El teléfono debe contener solo números (8 a 15 dígitos).";
+                return View("EditarPerfil", model);
+            }
+
+            try
+            {
+                var userId = User.Identity.GetUserId();
+                var usuario = await _userManager.FindByIdAsync(userId);
+
+                if (usuario == null)
+                {
+                    TempData["Error"] = "El cliente no existe.";
+                    return View("EditarPerfil", model);
+                }
+
+                if (_userManager.Users.Any(u => u.UserName == model.UserName && u.Id != userId))
+                {
+                    TempData["Error"] = "Ese nombre de usuario ya está en uso.";
+                    return View("EditarPerfil", model);
+                }
+
+                if (_userManager.Users.Any(u => u.Email == model.Email && u.Id != userId))
+                {
+                    TempData["Error"] = "Ese correo ya está en uso.";
+                    return View("EditarPerfil", model);
+                }
+
+                usuario.UserName = model.UserName; 
+                usuario.Nombre = model.Nombre;
+                usuario.Apellido = model.Apellido;
+                usuario.Email = model.Email;
+                usuario.PhoneNumber = model.PhoneNumber;
+                usuario.FechaNacimiento = model.FechaNacimiento;
+
+                var result = await _userManager.UpdateAsync(usuario);
+
+                if (!result.Succeeded)
+                {
+                    TempData["Error"] = "No se pudo actualizar el perfil.";
+                    return View("EditarPerfil", model);
+                }
+
+                using (var db = new Context())
+                {
+                    var cliente = db.Clientes.FirstOrDefault(c => c.IdUsuario == userId);
+                    if (cliente != null)
+                    {
+                        cliente.Nombre = model.Nombre + " " + model.Apellido;
+                        db.SaveChanges();
+                    }
+                }
+
+                TempData["Success"] = "Perfil actualizado correctamente.";
+                return RedirectToAction("Perfil");
+            }
+            catch
+            {
+                TempData["Error"] = "Error de conexión al actualizar.";
+                return View("EditarPerfil", model);
+            }
+        }
+
 
         [AllowAnonymous]
         public ActionResult ForgotPassword()
@@ -290,6 +424,59 @@ namespace UtopiaBS.Controllers
             return RedirectToAction("Login");
         }
 
+        [Authorize(Roles = "Cliente")]
+        public ActionResult MisPuntos()
+        {
+            var userId = User.Identity.GetUserId();
+
+            using (var db = new Context())
+            {
+                // Buscar el cliente ligado al usuario
+                var cliente = db.Clientes.FirstOrDefault(c => c.IdUsuario == userId);
+
+                if (cliente == null)
+                {
+                    // No es cliente (o aún no tiene registro en Clientes)
+                    var modeloVacio = new MisPuntosViewModel
+                    {
+                        PuntosTotales = 0,
+                        TipoMembresia = "Sin membresía activa"
+                    };
+                    return View("MisPuntos", modeloVacio);
+                }
+
+                // Membresía activa (la Básica que creamos al registrar)
+                var membresia = db.Membresias
+                    .FirstOrDefault(m =>
+                        m.IdCliente == cliente.IdCliente &&
+                        (m.FechaFin == null || m.FechaFin >= DateTime.Today));
+
+                int puntosTotales = membresia?.PuntosAcumulados ?? 0;
+
+                // Movimientos de puntos
+                var movimientos = db.PuntosCliente
+                    .Where(p => p.IdCliente == cliente.IdCliente)
+                    .OrderByDescending(p => p.FechaRegistro)
+                    .Select(p => new MovimientoPuntosViewModel
+                    {
+                        Fecha = p.FechaRegistro,
+                        Descripcion = "Puntos por venta #" + p.IdVenta,
+                        Puntos = p.Puntos
+                    })
+                    .ToList();
+
+                var model = new MisPuntosViewModel
+                {
+                    PuntosTotales = puntosTotales,
+                    TipoMembresia = membresia != null ? "Membresía Básica" : "Sin membresía activa",
+                    FechaInicioMembresia = membresia?.FechaInicio,
+                    FechaFinMembresia = membresia?.FechaFin,
+                    Movimientos = movimientos
+                };
+
+                return View("MisPuntos", model);
+            }
+        }
 
     }
 }

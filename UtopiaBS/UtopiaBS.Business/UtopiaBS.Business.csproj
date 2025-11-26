@@ -95,6 +95,8 @@
     <Compile Include="Producto.B\CuponDescuentoService.cs" />
     <Compile Include="Producto.B\ProductoService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Puntos\PuntosService.cs" />
+    <Compile Include="Puntos\ResultadoPuntos.cs" />
     <Compile Include="Servicios\ServicioService.cs" />
     <Compile Include="Usuarios\ReporteUsuariosActivosService.cs" />
   </ItemGroup>

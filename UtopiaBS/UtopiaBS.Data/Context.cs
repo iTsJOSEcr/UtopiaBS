@@ -1,7 +1,6 @@
 ﻿using System.Data.Entity;
 using UtopiaBS.Entities;
 using UtopiaBS.Entities.Clientes;
-using UtopiaBS.Entities.Contabilidad;
 
 namespace UtopiaBS.Data
 {
@@ -23,7 +22,8 @@ namespace UtopiaBS.Data
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<DetalleVentaProducto> DetalleVentaProductos { get; set; }
         public DbSet<DetalleVentaServicio> DetalleVentaServicios { get; set; }
-
+        public DbSet<Membresia> Membresias { get; set; }
+        public DbSet<PuntosCliente> PuntosCliente { get; set; }
         public DbSet<UtopiaBS.Entities.Contabilidad.Ingreso> Ingresos { get; set; }
         public DbSet<UtopiaBS.Entities.Contabilidad.Egreso> Egresos { get; set; }
         public DbSet<UtopiaBS.Entities.Contabilidad.CierreSemanal> CierresSemanales { get; set; }

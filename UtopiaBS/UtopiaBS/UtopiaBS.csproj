@@ -214,9 +214,13 @@
     <Compile Include="Models\LoginViewModel.cs" />
     <Compile Include="Models\ForgotPasswordViewModel.cs" />
     <Compile Include="Models\RegisterViewModel.cs" />
+    <Compile Include="Models\UpdateProfileViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\Contabilidad\ResumenMensualViewModel.cs" />
     <Compile Include="ViewModels\InventarioViewModel.cs" />
+    <Compile Include="ViewModels\LineaVentaViewModel.cs" />
+    <Compile Include="ViewModels\MovimientoPuntosViewModel.cs" />
+    <Compile Include="ViewModels\VentaViewModel.cs" />
     <Compile Include="Views\Ventas\ViewModels\LineaVentaViewModel.cs" />
     <Compile Include="Views\Ventas\ViewModels\VentaViewModel.cs" />
   </ItemGroup>
@@ -333,6 +337,8 @@
     <Content Include="Views\CitaCliente\HistorialError.cshtml" />
     <Content Include="Views\CitaCliente\HistorialVacio.cshtml" />
     <Content Include="Views\Cita\Menu.cshtml" />
+    <Content Include="Views\Account\EditarPerfil.cshtml" />
+    <Content Include="Views\Account\MisPuntos.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
