@@ -19,5 +19,7 @@ namespace UtopiaBS.Data
         public DateTime? FechaNacimiento { get; set; }
         public string ResetToken { get; set; }
         public string Cedula { get; set; }
+        public bool Activo { get; set; } = true;
+        public DateTime? FechaUltimaActivacion { get; set; }
     }
 }

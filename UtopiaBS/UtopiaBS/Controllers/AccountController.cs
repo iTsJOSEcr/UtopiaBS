@@ -48,21 +48,32 @@ namespace UtopiaBS.Controllers
                 return View(model);
             }
 
-            // Revisar si está bloqueado
+            // 1️⃣ PRIMERO: cuenta desactivada (nuestro caso de GDU-005)
+            if (!user.Activo)
+            {
+                ModelState.AddModelError("",
+                    "Tu cuenta está desactivada temporalmente. Si necesitás volver a activarla, contactá al administrador.");
+                return View(model);
+            }
+
+            // 2️⃣ LUEGO: bloqueo por múltiples intentos fallidos
             if (await _userManager.IsLockedOutAsync(user.Id))
             {
                 ModelState.AddModelError("", "Tu cuenta está bloqueada por múltiples intentos fallidos.");
                 return View(model);
             }
 
-            // Validar contraseña
+            // 3️⃣ Validar contraseña
             if (await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 await _userManager.ResetAccessFailedCountAsync(user.Id);
 
                 // Crear cookie de sesión
-                var identity = await _userManager.CreateIdentityAsync(user, DefaultAuthenticationTypes.ApplicationCookie);
-                HttpContext.GetOwinContext().Authentication.SignIn(new AuthenticationProperties { IsPersistent = false }, identity);
+                var identity = await _userManager.CreateIdentityAsync(
+                    user, DefaultAuthenticationTypes.ApplicationCookie);
+
+                HttpContext.GetOwinContext().Authentication.SignIn(
+                    new AuthenticationProperties { IsPersistent = false }, identity);
 
                 // Registrar actividad
                 using (var db = new Context())
