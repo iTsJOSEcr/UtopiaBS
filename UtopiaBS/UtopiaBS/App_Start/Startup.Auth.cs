@@ -22,15 +22,18 @@ namespace UtopiaBS
                 LoginPath = new PathString("/Account/Login"),
                 LogoutPath = new PathString("/Account/Logout")
             });
+
         }
 
         private static UserManager<UsuarioDA> CreateUserManager(IdentityFactoryOptions<UserManager<UsuarioDA>> options, IOwinContext context)
         {
             var manager = new UserManager<UsuarioDA>(new UserStore<UsuarioDA>(context.Get<ApplicationDbContext>()));
+
             manager.PasswordValidator = new PasswordValidator
             {
                 RequiredLength = 6
             };
+
             return manager;
         }
     }
