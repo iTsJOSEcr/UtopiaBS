@@ -7,6 +7,7 @@ using UtopiaBS.Business.Puntos;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
 using UtopiaBS.Entities.Contabilidad;
+using UtopiaBS.Entities.Recompensas;
 using UtopiaBS.ViewModels;
 
 namespace UtopiaBS.Controllers
@@ -14,18 +15,14 @@ namespace UtopiaBS.Controllers
     [Authorize(Roles = "Administrador")]
     public class VentasController : Controller
     {
-        // =========================
-        // ✅ PUNTO DE VENTA
-        // =========================
+        //  PUNTO DE VENTA
         public ActionResult PuntoVenta()
         {
             var carrito = Session["Carrito"] as VentaViewModel ?? new VentaViewModel();
             return View(carrito);
         }
 
-        // =========================
-        // ✅ CARRITO PARCIAL
-        // =========================
+        //  CARRITO PARCIAL
         public PartialViewResult CarritoParcial()
         {
             var carrito = Session["Carrito"] as VentaViewModel ?? new VentaViewModel();
@@ -69,9 +66,7 @@ namespace UtopiaBS.Controllers
             return PartialView("_CarritoParcial", carrito);
         }
 
-        // =========================
-        // ✅ BUSCAR PRODUCTO
-        // =========================
+        //  BUSCAR PRODUCTO
         public JsonResult BuscarProducto(string termino)
         {
             using (var db = new Context())
@@ -93,9 +88,7 @@ namespace UtopiaBS.Controllers
             }
         }
 
-        // =========================
-        // ✅ BUSCAR SERVICIO
-        // =========================
+        //  BUSCAR SERVICIO
         public JsonResult BuscarServicio(string termino)
         {
             using (var db = new Context())
@@ -117,9 +110,7 @@ namespace UtopiaBS.Controllers
             }
         }
 
-        // =========================
-        // ✅ AGREGAR PRODUCTO AL CARRITO
-        // =========================
+        //  AGREGAR PRODUCTO AL CARRITO
         [HttpPost]
         public JsonResult AgregarAlCarrito(int idProducto)
         {
@@ -131,7 +122,7 @@ namespace UtopiaBS.Controllers
                 if (producto == null)
                     return Json(new { success = false, mensaje = "Producto no encontrado." });
 
-                // ✅ VALIDACIÓN DE VENCIMIENTO
+                // VALIDACIÓN DE VENCIMIENTO
                 if (producto.FechaExpiracion.HasValue)
                 {
                     var hoy = DateTime.Today;
@@ -175,9 +166,7 @@ namespace UtopiaBS.Controllers
             return Json(new { success = true });
         }
 
-        // =========================
-        // ✅ AGREGAR SERVICIO AL CARRITO
-        // =========================
+        // AGREGAR SERVICIO AL CARRITO
         [HttpPost]
         public JsonResult AgregarServicioAlCarrito(int idServicio, string nombre, decimal precioUnitario)
         {
@@ -218,9 +207,7 @@ namespace UtopiaBS.Controllers
             return Json(new { success = true });
         }
 
-        // =========================
-        // ✅ ACTUALIZAR LÍNEA
-        // =========================
+        // ACTUALIZAR LÍNEA
         [HttpPost]
         public JsonResult ActualizarLinea(int idProducto, int cantidad, bool esServicio)
         {
@@ -274,9 +261,7 @@ namespace UtopiaBS.Controllers
             });
         }
 
-        // =========================
-        // ✅ ELIMINAR LÍNEA
-        // =========================
+        // ELIMINAR LÍNEA
         [HttpPost]
         public JsonResult EliminarLinea(int idProducto, bool esServicio)
         {
@@ -310,9 +295,7 @@ namespace UtopiaBS.Controllers
             });
         }
 
-        // =========================
-        // ✅ APLICAR CUPÓN
-        // =========================
+        // APLICAR CUPÓN
         [HttpPost]
         public JsonResult AplicarCupon(string codigo)
         {
@@ -372,9 +355,7 @@ namespace UtopiaBS.Controllers
             }
         }
 
-        // =========================
-        // ✅ QUITAR CUPÓN
-        // =========================
+        // QUITAR CUPÓN
         [HttpPost]
         public JsonResult QuitarCupon()
         {
@@ -392,9 +373,7 @@ namespace UtopiaBS.Controllers
             });
         }
 
-        // =========================
-        // ✅ FINALIZAR VENTA
-        // =========================
+        // FINALIZAR VENTA
         [HttpPost]
         public JsonResult FinalizarVenta()
         {
@@ -413,7 +392,7 @@ namespace UtopiaBS.Controllers
             {
                 using (var db = new Context())
                 {
-                    // 1️⃣ Crear la venta
+                    // CREAR LA VENTA
                     var venta = new Venta
                     {
                         IdUsuario = userId,
@@ -423,13 +402,15 @@ namespace UtopiaBS.Controllers
                         NombreCliente = carrito.NombreCliente,
                         CedulaCliente = carrito.CedulaCliente,
                         MontoDescuento = carrito.Descuento,
-                        CuponId = null   // si luego usas cupones, aquí se llena
+
+                        // AQUÍ SE ASOCIA LA RECOMPENSA CANJEADA (SI EXISTE)
+                        CuponId = carrito.IdRecompensaCanjeada
                     };
 
                     db.Ventas.Add(venta);
-                    db.SaveChanges(); // aquí ya tienes IdVenta
+                    db.SaveChanges(); 
 
-                    // 2️⃣ Detalles y stock
+                    // DETALLES Y STOCK
                     foreach (var linea in carrito.Lineas)
                     {
                         var subtotalLinea = linea.PrecioUnitario * linea.Cantidad;
@@ -446,7 +427,6 @@ namespace UtopiaBS.Controllers
 
                             db.DetalleVentaServicios.Add(detalleServicio);
 
-                            // 👇 importante: en tu BD existe la columna SubTotal (NOT NULL)
                             db.Entry(detalleServicio)
                               .Property("SubTotal")
                               .CurrentValue = subtotalLinea;
@@ -463,17 +443,17 @@ namespace UtopiaBS.Controllers
 
                             db.DetalleVentaProductos.Add(detalleProducto);
 
-                            // 👇 mismo caso para productos
                             db.Entry(detalleProducto)
                               .Property("SubTotal")
                               .CurrentValue = subtotalLinea;
 
+                            // DESCONTAR STOCK
                             var producto = db.Productos.First(p => p.IdProducto == linea.IdProducto);
                             producto.CantidadStock -= linea.Cantidad;
                         }
                     }
 
-                    // 3️⃣ Acumulación de puntos (si hay cliente asociado)
+                    // ACUMULACIÓN DE PUNTOS (NO TOCA CANJE)
                     if (venta.IdCliente.HasValue)
                     {
                         var puntosService = new PuntosService();
@@ -490,7 +470,7 @@ namespace UtopiaBS.Controllers
                         puntosMensaje = "No se asignaron puntos porque no se seleccionó un cliente.";
                     }
 
-                    // 4️⃣ Crear ingreso contable
+                    // INGRESO CONTABLE
                     var ingreso = new Ingreso
                     {
                         Monto = venta.Total,
@@ -506,13 +486,13 @@ namespace UtopiaBS.Controllers
                     db.SaveChanges();
                 }
 
-                // 5️⃣ Limpiar carrito
+                // LIMPIAR CARRITO COMPLETO
                 Session["Carrito"] = new VentaViewModel();
 
                 return Json(new
                 {
                     success = true,
-                    mensaje = "Venta registrada correctamente.",
+                    mensaje = "✅ Venta registrada correctamente.",
                     puntosMensaje = puntosMensaje
                 });
             }
@@ -527,14 +507,12 @@ namespace UtopiaBS.Controllers
                 return Json(new
                 {
                     success = false,
-                    mensaje = "Error al registrar la venta: " + msg
+                    mensaje = "❌ Error al registrar la venta: " + msg
                 });
             }
         }
 
-        // =========================
-        // ✅ BUSCAR CLIENTE
-        // =========================
+        // BUSCAR CLIENTE
         public JsonResult BuscarCliente(string termino)
         {
             using (var db = new Context())
@@ -586,6 +564,102 @@ namespace UtopiaBS.Controllers
             Session["Carrito"] = carrito;
             return Json(new { success = true });
         }
+
+        [HttpPost]
+        public JsonResult CanjearRecompensa(int idRecompensa)
+        {
+            var carrito = Session["Carrito"] as VentaViewModel ?? new VentaViewModel();
+
+            if (!carrito.IdCliente.HasValue)
+                return Json(new { success = false, mensaje = "Debe seleccionar un cliente primero." });
+
+            try
+            {
+                using (var db = new Context())
+                {
+                    var clienteId = carrito.IdCliente.Value;
+
+                    var recompensa = db.Recompensas
+                        .FirstOrDefault(r => r.IdRecompensa == idRecompensa && r.Activa);
+
+                    if (recompensa == null)
+                        return Json(new { success = false, mensaje = "Recompensa no válida." });
+
+                    // CANJE DUPLICADO
+                    bool yaCanjeada = db.CanjeRecompensas
+                        .Any(c => c.IdCliente == clienteId && c.IdRecompensa == idRecompensa);
+
+                    if (yaCanjeada)
+                        return Json(new { success = false, mensaje = "Esta recompensa ya fue canjeada." });
+
+                    //OBTENER PUNTOS ACTUALES
+                    var membresia = db.Membresias
+                        .OrderByDescending(m => m.FechaInicio)
+                        .First(m => m.IdCliente == clienteId);
+
+                    int puntosActuales = membresia.PuntosAcumulados;
+
+                    if (puntosActuales < recompensa.PuntosNecesarios)
+                        return Json(new { success = false, mensaje = "No tiene puntos suficientes." });
+
+                    // REGISTRAR CANJE
+                    var canje = new CanjeRecompensa
+                    {
+                        IdCliente = clienteId,
+                        IdRecompensa = idRecompensa,
+                        FechaCanje = DateTime.Now,
+                        PuntosUtilizados = recompensa.PuntosNecesarios
+                    };
+
+                    db.CanjeRecompensas.Add(canje);
+
+                    // RESTAR PUNTOS
+                    membresia.PuntosAcumulados -= recompensa.PuntosNecesarios;
+
+                    // APLICAR BENEFICIO SEGÚN TIPO
+                    if (recompensa.Tipo == "Cupón")
+                    {
+                        carrito.Descuento += recompensa.Valor;
+                    }
+                    else if (recompensa.Tipo == "Servicio")
+                    {
+                        carrito.Lineas.Add(new LineaVentaViewModel
+                        {
+                            IdProducto = recompensa.IdRecompensa,
+                            NombreProducto = recompensa.Nombre + " (Recompensa)",
+                            PrecioUnitario = 0,
+                            Cantidad = 1,
+                            EsServicio = true
+                        });
+                    }
+                    else if (recompensa.Tipo == "Producto")
+                    {
+                        carrito.Lineas.Add(new LineaVentaViewModel
+                        {
+                            IdProducto = recompensa.IdRecompensa,
+                            NombreProducto = recompensa.Nombre + " (Recompensa)",
+                            PrecioUnitario = 0,
+                            Cantidad = 1,
+                            EsServicio = false
+                        });
+                    }
+
+                    db.SaveChanges();
+                    Session["Carrito"] = carrito;
+
+                    return Json(new
+                    {
+                        success = true,
+                        mensaje = "✅ Recompensa canjeada correctamente."
+                    });
+                }
+            }
+            catch
+            {
+                return Json(new { success = false, mensaje = "Error interno del servidor." });
+            }
+        }
+
 
     }
 }

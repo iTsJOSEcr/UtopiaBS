@@ -95,6 +95,7 @@
                             <i class="bi bi-check-circle-fill me-2"></i> Finalizar Venta
                         </button>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -119,6 +120,33 @@
         </div>
     </div>
 </div>
+
+<!-- ✅ MODAL DE RECOMPENSAS -->
+<div class="modal fade" id="modalRecompensas" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content rounded-4 shadow">
+
+            <div class="modal-header text-white"
+                 style="background-color:#1B263B;">
+                <h5 class="modal-title fw-bold">
+                    🎁 Canje de Recompensas
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div id="contenedorRecompensas" class="row g-3">
+                    <!-- SE CARGAN POR AJAX -->
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
 
 <!-- MODAL MENSAJE -->
 <div class="modal fade" id="modalMensajeVenta" tabindex="-1" aria-hidden="true">
@@ -167,6 +195,66 @@
             if (typeof callback === 'function') callback();
         });
     }
+
+    function abrirModalRecompensas() {
+
+    fetch('@Url.Action("ListarRecompensas", "Recompensas")')
+        .then(r => r.json())
+        .then(data => {
+
+            let html = "";
+
+            data.forEach(r => {
+                html += `
+                    <div class="col-md-6">
+                        <div class="card shadow-sm rounded-4 h-100">
+                            <div class="card-body text-center">
+                                <h5 class="fw-bold">${r.Nombre}</h5>
+                                <p class="small text-muted">${r.Descripcion}</p>
+                                <span class="badge bg-primary mb-2">
+                                    ${r.PuntosNecesarios} puntos
+                                </span>
+
+                                <button class="btn btn-warning w-100 mt-2"
+                                        onclick="canjearRecompensa(${r.IdRecompensa})">
+                                    Canjear
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            document.getElementById("contenedorRecompensas").innerHTML = html;
+
+            const modal = new bootstrap.Modal(document.getElementById('modalRecompensas'));
+            modal.show();
+        });
+}
+
+//  CANJEAR LA RECOMPENSA
+function canjearRecompensa(idRecompensa) {
+
+    fetch('@Url.Action("CanjearRecompensa", "Ventas")', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'idRecompensa=' + idRecompensa
+    })
+    .then(r => r.json())
+    .then(r => {
+
+            mostrarMensajeVenta(r.mensaje);
+
+            if (r.success) {
+                refreshCarritoPartial();
+                const modalRecompensas = bootstrap.Modal.getInstance(document.getElementById('modalRecompensas'));
+                modalRecompensas.hide();
+            }
+
+        });
+}
+
 
     function attachCarritoEvents() {
         // Eliminar línea

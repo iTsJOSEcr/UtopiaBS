@@ -41,7 +41,6 @@
             }
         </div>
 
-
         <!-- CONTENIDO -->
         <div class="card-body" style="background-color:#F8F9FA;">
             <p class="fs-5 text-secondary">
@@ -120,6 +119,44 @@
                         </div>
                     </div>
 
+                    <!-- MEMBRESIAS -->
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm rounded-4">
+                            <div class="card-body text-center py-4">
+                                <div class="mb-3 text-warning">
+                                    <i class="bi bi-stars display-5"></i>
+                                </div>
+
+                                <h5 class="fw-bold text-dark">Asignar Membresías</h5>
+
+                                <a href="@Url.Action("Panel", "Membresias")"
+                                   class="btn w-100 fw-semibold text-dark border-0 shadow-sm"
+                                   style="background-color:#FFD60A;">
+                                    <i class="bi bi-arrow-right-circle me-1"></i> Entrar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RECOMPENSAS -->
+                    <div class="col-md-4">
+                        <div class="card h-100 border-0 shadow-sm rounded-4">
+                            <div class="card-body text-center py-4">
+                                <div class="mb-3 text-danger">
+                                    <i class="bi bi-gift-fill display-5"></i>
+                                </div>
+
+                                <h5 class="fw-bold text-dark">Gestión de Recompensas</h5>
+
+                                <a href="@Url.Action("Index", "Recompensas")"
+                                   class="btn w-100 fw-semibold text-dark border-0 shadow-sm"
+                                   style="background-color:#FFD60A;">
+                                    <i class="bi bi-arrow-right-circle me-1"></i> Entrar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- CONTABILIDAD -->
                     <div class="col-md-4">
                         <div class="card h-100 border-0 shadow-sm rounded-4">
@@ -145,7 +182,7 @@
                                     <i class="bi bi-bar-chart-fill display-5"></i>
                                 </div>
                                 <h5 class="fw-bold text-dark">Reportes y Estadísticas</h5>
-                                <a href="@Url.Action("Reportes","Cita")"
+                                <a href="@Url.Action("Menu","Contabilidad")"
                                    class="btn w-100 fw-semibold text-dark border-0 shadow-sm"
                                    style="background-color:#FFD60A;">
                                     <i class="bi bi-arrow-right-circle me-1"></i> Entrar

@@ -205,7 +205,9 @@
     <Compile Include="Controllers\ContabilidadController.cs" />
     <Compile Include="Controllers\CuponDescuentoController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\MembresiasController.cs" />
     <Compile Include="Controllers\ProductoController.cs" />
+    <Compile Include="Controllers\RecompensasController.cs" />
     <Compile Include="Controllers\ReporteUsuariosActivosController.cs" />
     <Compile Include="Controllers\VentasController.cs" />
     <Compile Include="Global.asax.cs">
@@ -216,6 +218,8 @@
     <Compile Include="Models\RegisterViewModel.cs" />
     <Compile Include="Models\UpdateProfileViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ViewModels\AsignarMembresiaViewModel.cs" />
+    <Compile Include="ViewModels\ClienteMembresiaViewModel.cs" />
     <Compile Include="ViewModels\Contabilidad\ResumenMensualViewModel.cs" />
     <Compile Include="ViewModels\InventarioViewModel.cs" />
     <Compile Include="ViewModels\LineaVentaViewModel.cs" />
@@ -339,6 +343,12 @@
     <Content Include="Views\Cita\Menu.cshtml" />
     <Content Include="Views\Account\EditarPerfil.cshtml" />
     <Content Include="Views\Account\MisPuntos.cshtml" />
+    <Content Include="Views\Membresias\Asignar.cshtml" />
+    <Content Include="Views\Membresias\Panel.cshtml" />
+    <Content Include="Views\Contabilidad\Menu.cshtml" />
+    <Content Include="Views\Recompensas\Index.cshtml" />
+    <Content Include="Views\Recompensas\Crear.cshtml" />
+    <Content Include="Views\Recompensas\Editar.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -38,5 +38,11 @@ namespace UtopiaBS.ViewModels
             CuponAplicado = null;
             Descuento = 0;
         }
+
+        public int? IdRecompensaCanjeada { get; set; }
+        public string NombreRecompensa { get; set; }
+        public int PuntosUsados { get; set; }
+        public decimal BeneficioAplicado { get; set; }
+
     }
 }

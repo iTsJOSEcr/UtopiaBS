@@ -23,6 +23,12 @@ namespace UtopiaBS.Controllers
             return View();
         }
 
+        [HttpGet]
+        public ActionResult Menu()
+        {
+            return View();
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult AgregarIngreso(Ingreso ingreso)

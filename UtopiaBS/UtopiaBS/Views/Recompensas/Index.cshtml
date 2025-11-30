@@ -1,0 +1,181 @@
+﻿@model IEnumerable<UtopiaBS.Entities.Recompensas.Recompensa>
+
+@{
+    ViewBag.Title = "Panel de Recompensas";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+<div class="container py-5">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success text-center fw-semibold shadow-sm rounded-3 mb-3">
+            <i class="bi bi-check-circle me-2"></i> @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger text-center fw-semibold shadow-sm mb-3">
+            <i class="bi bi-exclamation-octagon me-1"></i> @TempData["Error"]
+        </div>
+    }
+
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+
+        <!-- ENCABEZADO -->
+        <div class="card-header text-white d-flex justify-content-between align-items-center"
+             style="background-color:#1B263B;">
+            <h3 class="mb-0 fw-bold">
+                🎁 Gestión de Recompensas
+            </h3>
+
+            <a href="@Url.Action("Crear")" class="btn btn-warning fw-semibold">
+                <i class="bi bi-plus-circle me-1"></i> Nueva Recompensa
+            </a>
+        </div>
+
+        <!-- CONTENIDO -->
+        <div class="card-body bg-light">
+
+            <div class="table-responsive rounded-3 shadow-sm">
+                <table class="table table-hover text-center align-middle mb-0">
+                    <thead class="text-white" style="background-color:#1B263B;">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Puntos</th>
+                            <th>Valor</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (var r in Model)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@r.Nombre</td>
+
+                                <td>
+                                    <span class="badge bg-info">@r.Tipo</span>
+                                </td>
+
+                                <td>
+                                    <span class="badge bg-primary">@r.PuntosNecesarios pts</span>
+                                </td>
+
+                                <td>
+                                    ₡ @r.Valor.ToString("N0")
+                                </td>
+
+                                <td>
+                                    @if (r.Activa)
+                                    {
+                                        <span class="badge bg-success">Activa</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactiva</span>
+                                    }
+                                </td>
+
+                                <td class="d-flex gap-2 justify-content-center">
+
+                                    <!-- EDITAR -->
+                                    <a href="@Url.Action("Editar", new { id = r.IdRecompensa })"
+                                       class="btn btn-sm btn-warning shadow-sm rounded-pill">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+
+                                    <!-- CAMBIAR ESTADO -->
+                                    @using (Html.BeginForm("CambiarEstado", "Recompensas", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@r.IdRecompensa" />
+
+                                        <button class="btn btn-sm shadow-sm rounded-pill @(r.Activa ? "btn-danger" : "btn-success")">
+                                            <i class="bi @(r.Activa ? "bi-x-circle" : "bi-check-circle")"></i>
+                                        </button>
+                                    }
+
+                                    <!-- ELIMINAR (CON MODAL) -->
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger rounded-pill shadow-sm btn-eliminar-recompensa"
+                                            data-id="@r.IdRecompensa">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ MODAL ELIMINAR RECOMPENSA -->
+<div class="modal fade" id="modalEliminarRecompensa" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+
+            <div class="modal-header text-white" style="background-color:#A4161A;">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Confirmar eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                <p class="fs-5 text-secondary">
+                    ¿Seguro que deseas eliminar esta recompensa?
+                </p>
+            </div>
+
+            <div class="modal-footer justify-content-center">
+
+                @using (Html.BeginForm("Eliminar", "Recompensas", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="idEliminarRecompensa" name="id" />
+
+                    <button type="button" class="btn btn-secondary px-4"
+                            data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="btn btn-danger px-4 fw-semibold">
+                        <i class="bi bi-trash me-1"></i> Eliminar
+                    </button>
+                }
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const modalEliminarRecompensa = new bootstrap.Modal(
+        document.getElementById('modalEliminarRecompensa')
+    );
+
+    document.querySelectorAll('.btn-eliminar-recompensa').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.getAttribute('data-id');
+            document.getElementById('idEliminarRecompensa').value = id;
+            modalEliminarRecompensa.show();
+        });
+    });
+</script>
