@@ -45,7 +45,6 @@
         margin-bottom: 4px;
     }
 
-    /* Número grande + etiqueta pts más pequeña */
     .points-total {
         display: flex;
         align-items: baseline;
@@ -116,6 +115,44 @@
             color: #fff;
         }
 
+    .alerta-vencimiento {
+        display: inline-block;
+        background: #ff2d2d;
+        color: #fff;
+        font-weight: 700;
+        border-radius: 50%;
+        width: 26px;
+        height: 26px;
+        text-align: center;
+        line-height: 26px;
+        margin-left: 10px;
+        cursor: pointer;
+        position: relative;
+        font-size: 16px;
+    }
+
+        .alerta-vencimiento:hover .tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(-5px);
+        }
+
+    .tooltip {
+        position: absolute;
+        left: 30px;
+        top: 0;
+        background: #333;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: 0.25s ease;
+        z-index: 20;
+    }
+
     @@keyframes fadeIn {
         from {
             opacity: 0;
@@ -139,15 +176,32 @@
                 <div class="points-total">
                     <span class="points-total-number">@Model.PuntosTotales</span>
                     <span class="points-total-suffix">pts</span>
+
+                    @* ---- alerta usando ViewModel ---- *@
+                    @if (Model.PuntosPorVencer)
+                    {
+                        <span class="alerta-vencimiento" role="button" aria-label="Alerta de vencimiento de puntos">
+                            !
+                            <span class="tooltip">
+                                Tus puntos están por vencerse.<br />
+                                Te quedan <strong>
+                                    @(Model.DiasParaVencerse == 1 ? "1 día" : Model.DiasParaVencerse + " días")
+                                </strong>.<br />
+                                Fecha límite: <strong>
+                                    @(Model.FechaFinMembresia.HasValue ? Model.FechaFinMembresia.Value.ToString("dd/MM/yyyy") : "")
+                                </strong>
+                            </span>
+                        </span>
+                    }
                 </div>
 
                 <div class="points-sub">
                     @{
-                        // Evitar "Membresía: Membresía Básica"
                         var tipoLimpio = Model.TipoMembresia ?? "";
                         tipoLimpio = tipoLimpio.Replace("Membresía", "").Trim();
                     }
                     Membresía: <strong>@tipoLimpio</strong>
+
                     @if (Model.FechaInicioMembresia.HasValue)
                     {
                         <span> · desde @Model.FechaInicioMembresia.Value.ToString("dd/MM/yyyy")</span>
