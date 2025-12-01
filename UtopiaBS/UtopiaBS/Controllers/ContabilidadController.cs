@@ -3,7 +3,7 @@ using System.Web.Mvc;
 using UtopiaBS.Business.Contabilidad;
 using UtopiaBS.Entities.Contabilidad;
 
-namespace UtopiaBS.Web.Controllers
+namespace UtopiaBS.Controllers
 {
     [Authorize(Roles = "Administrador")]
     public class ContabilidadController : Controller
@@ -20,6 +20,12 @@ namespace UtopiaBS.Web.Controllers
         {
             if (TempData["Mensaje"] != null)
                 ViewBag.Mensaje = TempData["Mensaje"];
+            return View();
+        }
+
+        [HttpGet]
+        public ActionResult Menu()
+        {
             return View();
         }
 

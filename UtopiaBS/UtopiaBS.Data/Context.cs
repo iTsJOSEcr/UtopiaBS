@@ -1,7 +1,7 @@
 ﻿using System.Data.Entity;
 using UtopiaBS.Entities;
 using UtopiaBS.Entities.Clientes;
-using UtopiaBS.Entities.Contabilidad;
+using UtopiaBS.Entities.Recompensas;
 
 namespace UtopiaBS.Data
 {
@@ -11,6 +11,8 @@ namespace UtopiaBS.Data
         {
 
         }
+        public DbSet<Recompensa> Recompensas { get; set; }
+        public DbSet<CanjeRecompensa> CanjeRecompensas { get; set; }
 
         public DbSet<Cliente> Clientes { get; set; }
 
@@ -23,12 +25,14 @@ namespace UtopiaBS.Data
         public DbSet<Venta> Ventas { get; set; }
         public DbSet<DetalleVentaProducto> DetalleVentaProductos { get; set; }
         public DbSet<DetalleVentaServicio> DetalleVentaServicios { get; set; }
-
+        public DbSet<Membresia> Membresias { get; set; }
+        public DbSet<PuntosCliente> PuntosCliente { get; set; }
         public DbSet<UtopiaBS.Entities.Contabilidad.Ingreso> Ingresos { get; set; }
         public DbSet<UtopiaBS.Entities.Contabilidad.Egreso> Egresos { get; set; }
         public DbSet<UtopiaBS.Entities.Contabilidad.CierreSemanal> CierresSemanales { get; set; }
         public DbSet<CuponDescuento> CuponDescuento { get; set; }
         public DbSet<UsuarioActividad> UsuarioActividad { get; set; }
+        public DbSet<TipoMembresia> TipoMembresia { get; set; }
 
     }
 }

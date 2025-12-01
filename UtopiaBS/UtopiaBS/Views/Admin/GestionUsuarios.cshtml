@@ -5,8 +5,6 @@
     ViewBag.Title = "Gestión de Usuarios";
 }
 
-<!-- Bootstrap -->
-<!-- Bootstrap & Icons -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
@@ -18,7 +16,6 @@
         <span class="text-danger">@TempData["TempPassword"]</span>
     </div>
 }
-
 
 <div class="container py-5">
     <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
@@ -78,7 +75,7 @@
                                 }
                             }
 
-                            bool activo = user.LockoutEndDateUtc == null || user.LockoutEndDateUtc <= DateTime.UtcNow;
+                            bool activo = user.Activo;
 
                             <tr>
                                 <td>@user.UserName</td>
@@ -109,26 +106,41 @@
                                     }
                                 </td>
 
-                                <!-- ACTIVAR / DESACTIVAR -->
+                                <!-- ESTADO: Activar / Desactivar + Eliminar -->
                                 <td>
-                                    @using (Html.BeginForm("ToggleEstado", "Admin", FormMethod.Post))
-                                    {
-                                        @Html.AntiForgeryToken()
-                                        @Html.Hidden("userId", user.Id)
+                                    <div class="d-flex flex-column align-items-center gap-2" style="min-width:140px;">
 
-                                        if (activo)
+                                        <!-- Activar / Desactivar -->
+                                        @using (Html.BeginForm("ToggleEstado", "Admin", FormMethod.Post))
                                         {
-                                            <button class="btn btn-danger btn-sm rounded-pill shadow-sm">
-                                                <i class="bi bi-person-x-fill"></i> Desactivar
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("userId", user.Id)
+
+                                            var textoToggle = activo ? "Desactivar" : "Activar";
+                                            var claseBtn = activo ? "btn-danger" : "btn-success";
+                                            var icono = activo ? "bi-person-x-fill" : "bi-person-check-fill";
+
+                                            <button type="submit"
+                                                    class="btn btn-sm @claseBtn rounded-pill shadow-sm px-3 w-100">
+                                                <i class="bi @icono me-1"></i>
+                                                @textoToggle
                                             </button>
                                         }
-                                        else
+
+                                        <!-- Eliminar cuenta -->
+                                        @using (Html.BeginForm("EliminarUsuario", "Admin", FormMethod.Post,
+                                            new { onsubmit = "return confirm('¿Seguro que deseas eliminar definitivamente esta cuenta?');" }))
                                         {
-                                            <button class="btn btn-success btn-sm rounded-pill shadow-sm">
-                                                <i class="bi bi-person-check-fill"></i> Activar
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("userId", user.Id)
+
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger rounded-pill shadow-sm px-3 w-100">
+                                                <i class="bi bi-trash-fill me-1"></i> Eliminar
                                             </button>
                                         }
-                                    }
+
+                                    </div>
                                 </td>
 
                                 <!-- RESET PASSWORD -->
@@ -162,7 +174,6 @@
     </div>
 </div>
 
-<!-- ESTILOS -->
 <style>
     body {
         background-color: #F1F5F9;
@@ -179,15 +190,6 @@
     .table-responsive::-webkit-scrollbar-thumb {
         background-color: #1B263B;
         border-radius: 4px;
-    }
-
-    .btn-outline-warning:hover {
-        background-color: #FFC107;
-        color: #000;
-    }
-
-    .modal-content {
-        border-radius: 1rem;
     }
 
     .alert-success {

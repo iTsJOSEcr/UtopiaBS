@@ -1,4 +1,4 @@
-﻿@model UtopiaBS.Web.ViewModels.VentaViewModel
+﻿@model UtopiaBS.ViewModels.VentaViewModel
 @{
     ViewBag.Title = "Punto de Venta";
 }
@@ -8,7 +8,6 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 
 <div class="container py-4">
-    <h2 class="text-center mb-5 fw-bold" style="color:#1B263B;">🛒 Punto de Venta</h2>
 
     <div class="row g-4">
         <!-- PANEL IZQUIERDO -->
@@ -57,10 +56,36 @@
         <div class="col-lg-7">
             <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
                 <div class="card-header text-white fw-semibold" style="background-color:#1B263B;">
-                    <i class="bi bi-cart4 me-2"></i> Carrito de Compra
+                    <i class="bi bi-cart4 me-2"></i> Módulo de Gestión de Ventas
                 </div>
 
                 <div class="card-body bg-white">
+
+                    <!-- 🔹 BUSCAR / SELECCIONAR CLIENTE (INLINE) -->
+                    <div class="mb-4 p-3 border rounded bg-light">
+                        <h5 class="fw-semibold mb-3">
+                            <i class="bi bi-person-badge me-1"></i> Cliente
+                        </h5>
+                        <div class="row g-2 align-items-end">
+                            <div class="col-md-6">
+                                <label for="txtBuscarCliente" class="form-label">Nombre o cédula</label>
+                                <input type="text" id="txtBuscarCliente" class="form-control" placeholder="Ej: 101010101 o Ana" />
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" id="btnBuscarCliente" class="btn btn-primary w-100 mt-4">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" id="btnLimpiarClientes" class="btn btn-outline-secondary w-100 mt-4">
+                                    Limpiar
+                                </button>
+                            </div>
+                        </div>
+                        <div id="resultadoClientes" class="mt-3"></div>
+                    </div>
+
+                    <!-- 🔹 CARRITO -->
                     <div id="carritoContainer">
                         @Html.Partial("_CarritoParcial", Model)
                     </div>
@@ -70,6 +95,7 @@
                             <i class="bi bi-check-circle-fill me-2"></i> Finalizar Venta
                         </button>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -94,6 +120,33 @@
         </div>
     </div>
 </div>
+
+<!-- ✅ MODAL DE RECOMPENSAS -->
+<div class="modal fade" id="modalRecompensas" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content rounded-4 shadow">
+
+            <div class="modal-header text-white"
+                 style="background-color:#1B263B;">
+                <h5 class="modal-title fw-bold">
+                    🎁 Canje de Recompensas
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div id="contenedorRecompensas" class="row g-3">
+                    <!-- SE CARGAN POR AJAX -->
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
 
 <!-- MODAL MENSAJE -->
 <div class="modal fade" id="modalMensajeVenta" tabindex="-1" aria-hidden="true">
@@ -127,6 +180,11 @@
     var urlQuitarCupon = '@Url.Action("QuitarCupon", "Ventas")';
     var urlFinalizarVenta = '@Url.Action("FinalizarVenta", "Ventas")';
 
+    // 🔹 Cliente
+    var urlBuscarCliente = '@Url.Action("BuscarCliente", "Ventas")';
+    var urlSeleccionarCliente = '@Url.Action("SeleccionarCliente", "Ventas")';
+    var urlQuitarClienteVenta = '@Url.Action("QuitarCliente", "Ventas")';
+
     function formatCurrency(value) {
         return value?.toLocaleString('es-CR', { style: 'currency', currency: 'CRC', minimumFractionDigits: 0 }) || '₡0';
     }
@@ -138,21 +196,94 @@
         });
     }
 
+    function abrirModalRecompensas() {
+
+    fetch('@Url.Action("ListarRecompensas", "Recompensas")')
+        .then(r => r.json())
+        .then(data => {
+
+            let html = "";
+
+            data.forEach(r => {
+                html += `
+                    <div class="col-md-6">
+                        <div class="card shadow-sm rounded-4 h-100">
+                            <div class="card-body text-center">
+                                <h5 class="fw-bold">${r.Nombre}</h5>
+                                <p class="small text-muted">${r.Descripcion}</p>
+                                <span class="badge bg-primary mb-2">
+                                    ${r.PuntosNecesarios} puntos
+                                </span>
+
+                                <button class="btn btn-warning w-100 mt-2"
+                                        onclick="canjearRecompensa(${r.IdRecompensa})">
+                                    Canjear
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+
+            document.getElementById("contenedorRecompensas").innerHTML = html;
+
+            const modal = new bootstrap.Modal(document.getElementById('modalRecompensas'));
+            modal.show();
+        });
+}
+
+//  CANJEAR LA RECOMPENSA
+function canjearRecompensa(idRecompensa) {
+
+    fetch('@Url.Action("CanjearRecompensa", "Ventas")', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'idRecompensa=' + idRecompensa
+    })
+    .then(r => r.json())
+    .then(r => {
+
+            mostrarMensajeVenta(r.mensaje);
+
+            if (r.success) {
+                refreshCarritoPartial();
+                const modalRecompensas = bootstrap.Modal.getInstance(document.getElementById('modalRecompensas'));
+                modalRecompensas.hide();
+            }
+
+        });
+}
+
+
     function attachCarritoEvents() {
+        // Eliminar línea
         $('#carritoContainer').off('click', '.btn-eliminar').on('click', '.btn-eliminar', function () {
             var id = $(this).closest('tr').data('id');
             var esServicio = $(this).closest('tr').data('esservicio') === true || $(this).closest('tr').data('esservicio') === 'true';
             eliminarLinea(id, esServicio);
         });
 
+        // Cambiar cantidad
         $('#carritoContainer').off('change', 'input[data-id]').on('change', 'input[data-id]', function () {
             onCantidadChange(this);
         });
 
+        // Cupón
         $('#carritoContainer').off('click', '#btnAplicarCupon').on('click', '#btnAplicarCupon', aplicarCupon);
         $('#carritoContainer').off('click', '#btnQuitarCupon').on('click', '#btnQuitarCupon', quitarCupon);
+
+        // Quitar cliente
+        $('#carritoContainer').off('click', '#btnQuitarCliente').on('click', '#btnQuitarCliente', function () {
+            $.post(urlQuitarClienteVenta, {}, function (res) {
+                if (res && res.success) {
+                    refreshCarritoPartial();
+                }
+            });
+        });
     }
 
+    // Buscar productos
     $('#btnBuscarProducto').on('click', function () {
         var termino = $('#txtBuscarProducto').val();
         $.get(urlBuscarProducto, { termino: termino }, function (res) {
@@ -166,7 +297,7 @@
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>${p.Nombre} - ${formatCurrency(p.PrecioUnitario)} <small class="text-muted">(Stock: ${p.CantidadStock})</small></span>
                         <button class="btn btn-sm text-dark fw-semibold btn-agregar" style="background-color:#FFD60A;"
-                                onclick="agregarProducto(${p.IdProducto}, '${p.Nombre}', ${p.PrecioUnitario}, ${p.CantidadStock})">
+                                onclick="agregarProducto(${p.IdProducto}, '${p.Nombre.replace("'", "\\'")}', ${p.PrecioUnitario}, ${p.CantidadStock})">
                             <i class='bi bi-plus-lg'></i> Agregar
                         </button>
                     </li>`;
@@ -175,6 +306,7 @@
         });
     });
 
+    // Buscar servicios
     $('#btnBuscarServicio').on('click', function () {
         var termino = $('#txtBuscarServicio').val();
         $.get(urlBuscarServicio, { termino: termino }, function (res) {
@@ -188,7 +320,7 @@
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>${s.Nombre} - ${formatCurrency(s.PrecioUnitario)}</span>
                         <button class="btn btn-sm text-dark fw-semibold btn-agregar" style="background-color:#FFD60A;"
-                                onclick="agregarServicio(${s.IdServicio}, '${s.Nombre}', ${s.PrecioUnitario})">
+                                onclick="agregarServicio(${s.IdServicio}, '${s.Nombre.replace("'", "\\'")}', ${s.PrecioUnitario})">
                             <i class='bi bi-plus-lg'></i> Agregar
                         </button>
                     </li>`;
@@ -198,21 +330,33 @@
     });
 
     function agregarProducto(idProducto, nombre, precio, stock) {
-        $.post(urlAgregarProducto, { idProducto, nombre, precioUnitario: precio }, function (res) {
-            if (res && res.success) refreshCarritoPartial(() => buscarProducto());
+        $.post(urlAgregarProducto, { idProducto }, function (res) {
+
+            if (res && res.success) {
+                refreshCarritoPartial();
+            } else {
+                const msg = res && res.mensaje
+                    ? "⚠️ " + res.mensaje
+                    : "No se pudo agregar el producto.";
+                mostrarMensajeVenta(msg);
+            }
+
+        }).fail(function () {
+            mostrarMensajeVenta("Ocurrió un error al conectar con el servidor.");
         });
     }
 
+
+
     function agregarServicio(idServicio, nombre, precio) {
         $.post(urlAgregarServicio, { idServicio, nombre, precioUnitario: precio }, function (res) {
-            if (res && res.success) refreshCarritoPartial(() => buscarServicio());
+            if (res && res.success) refreshCarritoPartial();
         });
     }
 
     function onCantidadChange(input) {
         var $input = $(input);
         var id = $input.data('id');
-        var precio = parseFloat($input.data('precio'));
         var esServicio = $input.data('esservicio') === true || $input.data('esservicio') === 'true';
         var cantidad = parseInt($input.val()) || 1;
         $.post(urlActualizarLinea, { idProducto: id, cantidad, esServicio }, function () {
@@ -243,10 +387,65 @@
         });
     }
 
+    // 🔹 Buscar clientes (inline)
+    $('#btnBuscarCliente').on('click', function () {
+        var termino = $('#txtBuscarCliente').val();
+        var $cont = $('#resultadoClientes').empty();
+
+        if (!termino) {
+            $cont.html('<div class="text-muted">Ingrese un criterio de búsqueda.</div>');
+            return;
+        }
+
+        $.get(urlBuscarCliente, { termino: termino }, function (res) {
+            if (!res || !res.length) {
+                $cont.html('<div class="text-muted">No se encontraron clientes.</div>');
+                return;
+            }
+
+            var html = '<ul class="list-group">';
+            res.forEach(function (c) {
+                html += `
+<li class="list-group-item d-flex justify-content-between align-items-center">
+    <div>
+        <strong>${c.NombreCompleto}</strong><br/>
+        <small class="text-muted">Cédula: ${c.Cedula}</small>
+    </div>
+    <button class="btn btn-sm btn-success"
+            onclick="seleccionarCliente(${c.IdCliente})">
+        <i class="bi bi-check2"></i> Seleccionar
+    </button>
+</li>`;
+            });
+            html += '</ul>';
+
+            $cont.html(html);
+        });
+    });
+
+    $('#btnLimpiarClientes').on('click', function () {
+        $('#txtBuscarCliente').val('');
+        $('#resultadoClientes').empty();
+    });
+
+    function seleccionarCliente(idCliente) {
+        $.post(urlSeleccionarCliente, { idCliente: idCliente }, function (res) {
+            if (res && res.success) {
+                refreshCarritoPartial();
+            }
+        });
+    }
+
     // --- MODALES DE CONFIRMACIÓN Y MENSAJE ---
     const modalConfirmar = new bootstrap.Modal(document.getElementById('modalConfirmarVenta'));
     const modalMensaje = new bootstrap.Modal(document.getElementById('modalMensajeVenta'));
     const mensajeBody = document.getElementById('mensajeVentaBody');
+
+    function mostrarMensajeVenta(mensaje) {
+        mensajeBody.innerHTML = mensaje;
+        modalMensaje.show();
+    }
+
 
     $('#btnFinalizarVenta').on('click', function () {
         modalConfirmar.show();
@@ -255,12 +454,24 @@
     $('#btnConfirmarVenta').on('click', function () {
         modalConfirmar.hide();
         $.post(urlFinalizarVenta, {}, function (res) {
-            mensajeBody.textContent = res?.mensaje || "Venta finalizada.";
-            modalMensaje.show();
-            if (res.success) {
+
+            if (res && res.success) {
+                let msg = res.mensaje || "Venta finalizada.";
+                if (res.puntosMensaje) {
+                    msg += "<br><small>" + res.puntosMensaje + "</small>";
+                }
+
+                mensajeBody.innerHTML = msg;
+                modalMensaje.show();
+
                 refreshCarritoPartial();
                 $('#resultadoBusquedaProductos, #resultadoBusquedaServicios').empty();
+                $('#resultadoClientes').empty();
+            } else {
+                mensajeBody.textContent = (res && res.mensaje) || "No se pudo completar la venta.";
+                modalMensaje.show();
             }
+
         }).fail(() => {
             mensajeBody.textContent = "Error al conectar con el servidor.";
             modalMensaje.show();
@@ -299,6 +510,7 @@
     .btn:focus {
         box-shadow: none !important;
     }
+
     .nav-tabs .nav-link {
         color: #ffffff;
         border: none;
@@ -315,11 +527,10 @@
         }
 
         .nav-tabs .nav-link.active {
-            background-color: #FFD60A !important; 
+            background-color: #FFD60A !important;
             color: #1B263B !important;
             border: none !important;
             border-radius: 10px 10px 0 0;
             box-shadow: inset 0 -2px 0 rgba(0,0,0,0.15);
         }
-
 </style>
