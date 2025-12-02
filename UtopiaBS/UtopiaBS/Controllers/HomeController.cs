@@ -52,6 +52,12 @@ namespace UtopiaBS.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Empleado")]
+        public ActionResult EmpleadoHome()
+        {
+            return View();
+        }
+
 
     }
 }

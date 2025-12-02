@@ -4,8 +4,10 @@
 
     bool autenticado = Request.IsAuthenticated;
     bool esAdmin = autenticado && User.IsInRole("Administrador");
+    bool esEmpleado = autenticado && User.IsInRole("Empleado");
     bool esCliente = autenticado && User.IsInRole("Cliente");
     bool esAdminHome = autenticado && Request.RawUrl.ToLower().Contains("/home/adminhome");
+
 }
 
 <!DOCTYPE html>
@@ -19,6 +21,8 @@
 
     <link rel="icon" type="image/x-icon" href="@Url.Content("~/Content/assets/favicon.ico")" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700" rel="stylesheet" />
@@ -41,7 +45,7 @@
             <div class="container-fluid px-4">
                 <!-- LOGO -->
                 <a class="navbar-brand fw-semibold"
-                   href="@(esAdmin ? Url.Action("AdminHome", "Home") : Url.Action("Index", "Home"))">
+                   href="@(esAdmin? Url.Action("AdminHome", "Home"): esEmpleado? Url.Action("EmpleadoHome", "Home"): Url.Action("Index", "Home"))">
                     <i class="fas fa-spa me-2 text-warning"></i> UTOPIA BEAUTY SALON
                 </a>
 
@@ -85,6 +89,38 @@
                                 </ul>
                             </li>
                         }
+
+                        @* -------- MENÚ EMPLEADO -------- *@
+                        @if (esEmpleado && !esAdminHome)
+                        {
+                            <li class="nav-item dropdown mx-lg-1">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarEmpleado" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-briefcase me-1"></i> Operaciones
+                                </a>
+                                <ul class="dropdown-menu fadeIn" aria-labelledby="navbarEmpleado">
+
+                                    <li>
+                                        <a class="dropdown-item" href="@Url.Action("ListarAgendadas", "Cita")">
+                                            <i class="fas fa-calendar-check me-2 text-info"></i> Citas del Día
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item" href="@Url.Action("Administrar", "Cita")">
+                                            <i class="fas fa-tools me-2 text-warning"></i> Administrar Citas
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item" href="@Url.Action("PuntoVenta", "Ventas")">
+                                            <i class="fas fa-cash-register me-2 text-success"></i> Punto de Venta
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </li>
+                        }
+
 
                         @* -------- MENÚ ADMIN -------- *@
                         @if (esAdmin && !esAdminHome)
@@ -152,7 +188,7 @@
                                     </li>
                                     <li>
                                         <a class="dropdown-item" href="@Url.Action("Index", "Recompensas")">
-                                            <i class="fas fa-gift-fill me-2 text-info"></i> Gestión de Recompensas
+                                            <i class="fas fa-gift me-2 text-info"></i> Gestión de Recompensas
                                         </a>
                                     </li>
                                 </ul>
@@ -230,25 +266,25 @@
             font-size: 0.94rem;
         }
 
-        #mainNav .nav-link,
-        #mainNav .navbar-brand,
-        #mainNav .dropdown-item {
-            color: #f1f1f1 !important;
-        }
+            #mainNav .nav-link,
+            #mainNav .navbar-brand,
+            #mainNav .dropdown-item {
+                color: #f1f1f1 !important;
+            }
 
-        #mainNav .nav-link:hover,
-        #mainNav .dropdown-item:hover {
-            color: #FFD60A !important;
-            text-shadow: 0 0 3px rgba(255, 214, 10, 0.35);
-        }
+                #mainNav .nav-link:hover,
+                #mainNav .dropdown-item:hover {
+                    color: #FFD60A !important;
+                    text-shadow: 0 0 3px rgba(255, 214, 10, 0.35);
+                }
 
-        #mainNav .dropdown-menu {
-            background-color: #141414;
-            border: none;
-            border-radius: 8px;
-            padding: 0.4rem 0;
-            min-width: 220px;
-        }
+            #mainNav .dropdown-menu {
+                background-color: #141414;
+                border: none;
+                border-radius: 8px;
+                padding: 0.4rem 0;
+                min-width: 220px;
+            }
     </style>
 
     @RenderBody()
@@ -264,5 +300,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/Scripts/js/scripts.js"></script>
     @RenderSection("Scripts", required: false)
+
 </body>
 </html>

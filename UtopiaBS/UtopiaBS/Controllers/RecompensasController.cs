@@ -5,6 +5,8 @@ using UtopiaBS.Entities.Recompensas;
 
 namespace UtopiaBS.Controllers
 {
+    [Authorize(Roles = "Administrador")]
+
     public class RecompensasController : Controller
     {
         // CLIENTES (POS)

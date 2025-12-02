@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
 using UtopiaBS.Business;
+using UtopiaBS.Business.Services;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
 
@@ -84,11 +86,14 @@ namespace UtopiaBS.Controllers
                         TempData["Error"] = "No se encontró el perfil de cliente.";
                         return RedirectToAction("Listar");
                     }
-
                     var citasPendientes = db.Citas
                         .Include("Empleado")
                         .Include("Servicio")
-                        .Where(c => c.IdEstadoCita == 1 && c.IdCliente == clienteId.Value)
+                        .Where(c =>
+                            (c.IdEstadoCita == 1 || c.IdEstadoCita == 2) &&  
+                            c.IdCliente == clienteId.Value
+                        )
+                        .OrderBy(c => c.FechaHora)
                         .ToList();
 
                     var citasDisponibles = db.Citas
@@ -173,11 +178,12 @@ namespace UtopiaBS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult CancelarCliente(int idCita, string motivo)
+        public async Task<ActionResult> CancelarCliente(int idCita, string motivo)
         {
             var userId = User.Identity.GetUserId();
 
             using (var db = new Context())
+            using (var identityDb = new ApplicationDbContext())
             {
                 var cliente = db.Clientes.FirstOrDefault(c => c.IdUsuario == userId);
                 if (cliente == null)
@@ -186,10 +192,46 @@ namespace UtopiaBS.Controllers
                     return RedirectToAction("MisCitas");
                 }
 
+                // Cancelamos con la lógica de negocio
                 var service = new CitaService();
                 var resultado = service.CancelarPorCliente(idCita, cliente.IdCliente, motivo);
-
                 TempData["Mensaje"] = resultado;
+
+                // Buscamos la cita para el correo
+                var cita = db.Citas
+                    .Include("Servicio")
+                    .Include("Empleado")
+                    .FirstOrDefault(c => c.IdCita == idCita);
+
+                //  Buscamos el usuario del cliente en Identity
+                var usuario = identityDb.Users.FirstOrDefault(u => u.Id == userId);
+
+                // Envío de correo
+                if (cita != null && usuario != null)
+                {
+                    string mensaje = $@"
+                        <h2> Cita Cancelada</h2>
+                        <p>Hola <strong>{usuario.UserName}</strong>,</p>
+
+                        <p>Tu cita ha sido cancelada con el siguiente motivo:</p>
+                        <blockquote>{motivo}</blockquote>
+
+                        <ul>
+                            <li><strong>Servicio:</strong> {cita.Servicio?.Nombre}</li>
+                            <li><strong>Profesional:</strong> {cita.Empleado?.Nombre}</li>
+                            <li><strong>Fecha:</strong> {cita.FechaHora:dd/MM/yyyy}</li>
+                            <li><strong>Hora:</strong> {cita.FechaHora:hh\\:mm tt}</li>
+                        </ul>
+
+                        <p><strong>Utopía Beauty Salon</strong></p>
+                        ";
+
+                    await EmailService.EnviarCorreoAsync(
+                        usuario.Email,
+                        "❌ Cita Cancelada - Utopía Beauty Salon",
+                        mensaje
+                    );
+                }
             }
 
             return RedirectToAction("MisCitas");

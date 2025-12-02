@@ -10,5 +10,6 @@ namespace UtopiaBS.Entities
         public string UserId { get; set; }
         public System.DateTime FechaInicio { get; set; }
         public System.DateTime? FechaFin { get; set; }
+
     }
 }

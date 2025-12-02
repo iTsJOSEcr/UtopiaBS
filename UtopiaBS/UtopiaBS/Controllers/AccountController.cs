@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using UtopiaBS.Business.Services;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
 using UtopiaBS.Entities.Clientes;
@@ -15,14 +17,28 @@ using UtopiaBS.Models;
 
 namespace UtopiaBS.Controllers
 {
+    [Authorize(Roles = "Administrador")]
     public class AccountController : Controller
     {
         private readonly UserManager<UsuarioDA> _userManager;
 
         public AccountController()
         {
-            _userManager = new UserManager<UsuarioDA>(new UserStore<UsuarioDA>(new ApplicationDbContext()));
+            var db = new ApplicationDbContext();
+
+            _userManager = new UserManager<UsuarioDA>(
+                new UserStore<UsuarioDA>(db));
+
+            _userManager.UserTokenProvider =
+                new DataProtectorTokenProvider<UsuarioDA>(
+                    new Microsoft.Owin.Security.DataProtection
+                        .DpapiDataProtectionProvider("UtopiaBS")
+                    .Create("Identity"))
+                {
+                    TokenLifespan = TimeSpan.FromHours(2)
+                };
         }
+
 
         [AllowAnonymous]
         public ActionResult Login() => View();
@@ -38,44 +54,74 @@ namespace UtopiaBS.Controllers
                 return View(model);
             }
 
-            // Buscar usuario por username o correo
+            //  Buscar usuario por username o correo
             var user = _userManager.Users
                 .FirstOrDefault(u => u.UserName == model.UserName || u.Email == model.UserName);
 
+            //  No existe
             if (user == null)
             {
                 ModelState.AddModelError("", "La cuenta no existe en el sistema.");
                 return View(model);
             }
 
-            // 1️⃣ PRIMERO: cuenta desactivada (nuestro caso de GDU-005)
+            //  CUENTA DESACTIVADA → SOLO MOSTRAMOS OPCIÓN DE REACTIVAR
             if (!user.Activo)
             {
+                var token = await _userManager.GenerateUserTokenAsync(
+                    "ReactivarCuenta", user.Id);
+
+                var enlace = Url.Action("ConfirmarReactivacion", "Account",
+                    new { userId = user.Id, token = token },
+                    protocol: Request.Url.Scheme);
+
+                string mensaje = $@"
+        <h2>Reactivación de cuenta</h2>
+        <p>Hola {user.UserName},</p>
+        <p>Tu cuenta está desactivada.</p>
+        <p>Haz clic aquí para reactivarla de forma segura:</p>
+        <p><a href='{enlace}'>Reactivar cuenta</a></p>
+        <p>Utopía Beauty Salon</p>
+    ";
+
+                await EmailService.EnviarCorreoAsync(
+                    user.Email,
+                    "Reactivación de cuenta - Utopía Beauty Salon",
+                    mensaje
+                );
+
                 ModelState.AddModelError("",
-                    "Tu cuenta está desactivada temporalmente. Si necesitás volver a activarla, contactá al administrador.");
+                    "Tu cuenta está desactivada. Te enviamos un correo para reactivarla.");
+
                 return View(model);
             }
 
-            // 2️⃣ LUEGO: bloqueo por múltiples intentos fallidos
+
+            //  Bloqueo por intentos fallidos
             if (await _userManager.IsLockedOutAsync(user.Id))
             {
-                ModelState.AddModelError("", "Tu cuenta está bloqueada por múltiples intentos fallidos.");
+                ModelState.AddModelError("",
+                    "Tu cuenta está bloqueada por múltiples intentos fallidos.");
                 return View(model);
             }
 
-            // 3️⃣ Validar contraseña
+            //  Validar contraseña
             if (await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 await _userManager.ResetAccessFailedCountAsync(user.Id);
 
-                // Crear cookie de sesión
+                //  Crear cookie de sesión
                 var identity = await _userManager.CreateIdentityAsync(
                     user, DefaultAuthenticationTypes.ApplicationCookie);
 
                 HttpContext.GetOwinContext().Authentication.SignIn(
-                    new AuthenticationProperties { IsPersistent = false }, identity);
+                    new AuthenticationProperties
+                    {
+                        IsPersistent = true,
+                        ExpiresUtc = DateTime.UtcNow.AddHours(6)
+                    },
+                    identity);
 
-                // Registrar actividad
                 using (var db = new Context())
                 {
                     db.UsuarioActividad.Add(new UsuarioActividad
@@ -86,18 +132,21 @@ namespace UtopiaBS.Controllers
                     db.SaveChanges();
                 }
 
+                //  Redirección por rol
                 if (await _userManager.IsInRoleAsync(user.Id, "Administrador"))
                     return RedirectToAction("AdminHome", "Home");
+
+                if (await _userManager.IsInRoleAsync(user.Id, "Empleado"))
+                    return RedirectToAction("EmpleadoHome", "Home");
 
                 return RedirectToAction("Index", "Home");
             }
 
+            // Contraseña incorrecta
             await _userManager.AccessFailedAsync(user.Id);
-
             ModelState.AddModelError("", "Usuario o contraseña incorrectos.");
             return View(model);
         }
-
 
         [AllowAnonymous]
         public ActionResult Register() => View();
@@ -110,95 +159,107 @@ namespace UtopiaBS.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
-            // 1) Usuario duplicado
-            if (_userManager.Users.Any(u => u.UserName == model.UserName))
+            try
             {
-                ModelState.AddModelError("", "El nombre de usuario ya está registrado.");
-                return View(model);
-            }
-
-            // 2) Correo duplicado
-            if (_userManager.Users.Any(u => u.Email == model.Email))
-            {
-                ModelState.AddModelError("", "El correo electrónico ya está en uso.");
-                return View(model);
-            }
-
-            // 3) Cédula duplicada (en AspNetUsers)
-            if (_userManager.Users.Any(u => u.Cedula == model.Cedula))
-            {
-                ModelState.AddModelError("", "Ya existe un usuario registrado con esta cédula.");
-                return View(model);
-            }
-
-            // Crear usuario de Identity
-            var user = new UsuarioDA
-            {
-                UserName = model.UserName,
-                Email = model.Email,
-                PhoneNumber = model.PhoneNumber,
-                PhoneNumberConfirmed = true,
-                Nombre = model.Nombre,
-                Apellido = model.Apellido,
-                FechaNacimiento = model.FechaNacimiento,
-                Cedula = model.Cedula  
-            };
-
-            var result = await _userManager.CreateAsync(user, model.Password);
-
-            if (!result.Succeeded)
-            {
-                AddErrors(result);
-                return View(model);
-            }
-
-            // Asegurar rol "Cliente"
-            var roleManager = new RoleManager<IdentityRole>(new RoleStore<IdentityRole>(new ApplicationDbContext()));
-            if (!await roleManager.RoleExistsAsync("Cliente"))
-                await roleManager.CreateAsync(new IdentityRole("Cliente"));
-
-            await _userManager.AddToRoleAsync(user.Id, "Cliente");
-
-            // Crear Cliente + Membresía Básica
-            using (var db = new Context())
-            {
-                // Evitar duplicar cliente para el mismo usuario
-                if (db.Clientes.Any(c => c.IdUsuario == user.Id))
+                //  Usuario duplicado
+                if (_userManager.Users.Any(u => u.UserName == model.UserName))
                 {
-                    ModelState.AddModelError("", "El cliente ya está registrado.");
+                    ModelState.AddModelError("", "El nombre de usuario ya está registrado.");
                     return View(model);
                 }
 
-                // Crear fila en Clientes
-                var cliente = new Cliente
+                // Correo duplicado
+                if (_userManager.Users.Any(u => u.Email == model.Email))
                 {
-                    Nombre = model.Nombre + " " + model.Apellido,
-                    IdTipoMembresia = null,
-                    IdUsuario = user.Id,
-                    Cedula = model.Cedula
+                    ModelState.AddModelError("", "El correo electrónico ya está en uso.");
+                    return View(model);
+                }
+
+                // Cédula duplicada
+                if (_userManager.Users.Any(u => u.Cedula == model.Cedula))
+                {
+                    ModelState.AddModelError("", "Ya existe un usuario registrado con esta cédula.");
+                    return View(model);
+                }
+
+                // Crear usuario de Identity
+                var user = new UsuarioDA
+                {
+                    UserName = model.UserName,
+                    Email = model.Email,
+                    PhoneNumber = model.PhoneNumber,
+                    PhoneNumberConfirmed = true,
+                    Nombre = model.Nombre,
+                    Apellido = model.Apellido,
+                    FechaNacimiento = model.FechaNacimiento,
+                    Cedula = model.Cedula,
+                    Activo = true,
+                    FechaUltimaActivacion = DateTime.Now
                 };
 
-                db.Clientes.Add(cliente);
-                db.SaveChanges();
+                var result = await _userManager.CreateAsync(user, model.Password);
 
-                // Buscar el tipo de membresía Básica
-                int idTipoBasica = 1; // 👈 ID real de la membresía Básica en tu BD
-
-                var membresia = new Membresia
+                if (!result.Succeeded)
                 {
-                    IdCliente = cliente.IdCliente,
-                    IdTipoMembresia = idTipoBasica,
-                    FechaInicio = DateTime.Now,
-                    FechaFin = null,
-                    PuntosAcumulados = 0
-                };
+                    AddErrors(result);
+                    return View(model);
+                }
 
-                db.Membresias.Add(membresia);
-                db.SaveChanges();
+                //  Asegurar rol "Cliente"
+                var roleManager = new RoleManager<IdentityRole>(
+                    new RoleStore<IdentityRole>(new ApplicationDbContext()));
 
+                if (!await roleManager.RoleExistsAsync("Cliente"))
+                    await roleManager.CreateAsync(new IdentityRole("Cliente"));
+
+                await _userManager.AddToRoleAsync(user.Id, "Cliente");
+
+                //  Crear Cliente + Membresía
+                using (var db = new Context())
+                {
+                    if (db.Clientes.Any(c => c.IdUsuario == user.Id))
+                    {
+                        ModelState.AddModelError("", "El cliente ya está registrado.");
+                        return View(model);
+                    }
+
+                    var cliente = new Cliente
+                    {
+                        Nombre = model.Nombre + " " + model.Apellido,
+                        IdUsuario = user.Id,
+                        Cedula = model.Cedula
+                    };
+
+                    db.Clientes.Add(cliente);
+                    db.SaveChanges();
+
+                    int idTipoBasica = 1;
+
+                    var membresia = new Membresia
+                    {
+                        IdCliente = cliente.IdCliente,
+                        IdTipoMembresia = idTipoBasica,
+                        FechaInicio = DateTime.Now,
+                        FechaFin = null,
+                        PuntosAcumulados = 0
+                    };
+
+                    db.Membresias.Add(membresia);
+                    db.SaveChanges();
+                }
+
+                TempData["RegisterSuccess"] =
+                    "Cuenta creada correctamente. Ya puedes iniciar sesión y comenzar a acumular puntos.";
+
+                return RedirectToAction("Login", "Account");
             }
-                TempData["RegisterSuccess"] = "Cuenta creada correctamente. Ya puedes iniciar sesión y comenzar a acumular puntos con tu membresía básica.";
-            return RedirectToAction("Login", "Account");
+            catch
+            {
+                TempData["Error"] =
+                    "El sistema está tardando más de lo normal. Intenta nuevamente en unos minutos.";
+
+                return RedirectToAction("Register");
+            }
         }
 
         [Authorize]
@@ -261,7 +322,7 @@ namespace UtopiaBS.Controllers
 
             var model = new UpdateProfileViewModel
             {
-                UserName = user.UserName, 
+                UserName = user.UserName,
                 Nombre = user.Nombre,
                 Apellido = user.Apellido,
                 Email = user.Email,
@@ -314,7 +375,7 @@ namespace UtopiaBS.Controllers
                     return View("EditarPerfil", model);
                 }
 
-                usuario.UserName = model.UserName; 
+                usuario.UserName = model.UserName;
                 usuario.Nombre = model.Nombre;
                 usuario.Apellido = model.Apellido;
                 usuario.Email = model.Email;
@@ -361,79 +422,90 @@ namespace UtopiaBS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ForgotPassword(string email)
         {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                TempData["Error"] = "Debes ingresar tu correo.";
-                return View();
-            }
-
             var user = await _userManager.FindByEmailAsync(email);
 
             if (user == null)
             {
-                TempData["Error"] = "No existe ninguna cuenta con este correo.";
+                TempData["Error"] = "No existe una cuenta con ese correo.";
                 return View();
             }
 
-            // Crear token seguro
-            var token = Guid.NewGuid().ToString("N") + Guid.NewGuid().ToString("N");
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user.Id);
 
-            using (var db = new ApplicationDbContext())
-            {
-                var userDb = db.Users.FirstOrDefault(u => u.Id == user.Id);
-                userDb.ResetToken = token;
+            var enlace = Url.Action("ResetPassword", "Account",
+                new { userId = user.Id, token = token },
+                protocol: Request.Url.Scheme);
 
-                db.SaveChanges();
-            }
+            string mensaje = $@"
+        <h2>Recuperación de contraseña</h2>
+        <p>Hola {user.UserName},</p>
+        <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+        <p><a href='{enlace}'>Restablecer contraseña</a></p>
+        <p>Utopía Beauty Salon</p>
+    ";
 
-            // Redirigir a la pantalla de cambio de contraseña
-            return RedirectToAction("ResetPassword", new { token = token });
+            await EmailService.EnviarCorreoAsync(
+                user.Email,
+                "Recuperar contraseña - Utopía Beauty Salon",
+                mensaje
+            );
+
+            TempData["Success"] = "Revisa tu correo para recuperar tu contraseña.";
+            return RedirectToAction("Login");
         }
 
         [AllowAnonymous]
-        public ActionResult ResetPassword(string token)
+        public ActionResult ResetPassword(string userId, string token)
         {
-            if (string.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+            {
+                TempData["Error"] = "Enlace de recuperación inválido.";
                 return RedirectToAction("Login");
+            }
 
+            ViewBag.UserId = userId;
             ViewBag.Token = token;
+
             return View();
         }
+
 
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ResetPassword(string token, string password, string confirmPassword)
+        public async Task<ActionResult> ResetPassword(
+            string userId,
+            string token,
+            string password,
+            string confirmPassword)
         {
-            if (string.IsNullOrEmpty(token))
-                return RedirectToAction("Login");
-
             if (password != confirmPassword)
             {
                 TempData["Error"] = "Las contraseñas no coinciden.";
-                return RedirectToAction("ResetPassword", new { token });
+                return RedirectToAction("ResetPassword", new { userId, token });
             }
 
-            using (var db = new ApplicationDbContext())
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
             {
-                var user = db.Users.FirstOrDefault(u => u.ResetToken == token);
-
-                if (user == null)
-                {
-                    TempData["Error"] = "El enlace no es válido o ya fue utilizado.";
-                    return RedirectToAction("Login");
-                }
-
-                var result = await _userManager.RemovePasswordAsync(user.Id);
-                await _userManager.AddPasswordAsync(user.Id, password);
-
-                user.ResetToken = null;
-                db.SaveChanges();
+                TempData["Error"] = "El usuario no existe.";
+                return RedirectToAction("Login");
             }
 
-            TempData["Success"] = "Tu contraseña fue actualizada correctamente.";
-            return RedirectToAction("Login");
+            var result = await _userManager.ResetPasswordAsync(userId, token, password);
+
+            if (result.Succeeded)
+            {
+                TempData["Success"] = "Tu contraseña fue actualizada correctamente.";
+                return RedirectToAction("Login");
+            }
+
+            TempData["Error"] = "No se pudo cambiar la contraseña.";
+            return RedirectToAction("ResetPassword", new { userId, token });
         }
+
+
 
         [Authorize(Roles = "Cliente")]
         public ActionResult MisPuntos()
@@ -488,6 +560,131 @@ namespace UtopiaBS.Controllers
                 return View("MisPuntos", model);
             }
         }
+
+        [Authorize(Roles = "Cliente")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult DesactivarMiCuenta()
+        {
+            try
+            {
+                string userId = User.Identity.GetUserId();
+
+                var user = _userManager.FindById(userId);
+
+                if (user == null)
+                {
+                    // Escenario 3
+                    TempData["Error"] = "La cuenta no existe.";
+                    return RedirectToAction("Perfil");
+                }
+
+                // Escenario 4 → Regla de 7 días
+                if (user.FechaUltimaActivacion.HasValue &&
+                    user.FechaUltimaActivacion.Value.AddDays(7) > DateTime.Now)
+                {
+                    TempData["Error"] =
+                        "Tu cuenta no se puede desactivar porque tiene menos de 7 días de haber sido activada.";
+                    return RedirectToAction("Perfil");
+                }
+
+                // DESACTIVAMOS
+                user.Activo = false;
+                user.LockoutEnabled = true;
+                user.LockoutEndDateUtc = DateTime.UtcNow.AddYears(10);
+
+                _userManager.Update(user);
+
+                // Cerrar sesión automáticamente
+                HttpContext.GetOwinContext().Authentication.SignOut();
+
+                // Escenario 2
+                TempData["Success"] = "Tu cuenta fue desactivada temporalmente exitosamente.";
+
+                return RedirectToAction("Login", "Account");
+            }
+            catch
+            {
+                // Escenario 5
+                TempData["Error"] = "Ocurrió un error de conexión al intentar desactivar la cuenta.";
+                return RedirectToAction("Perfil");
+            }
+        }
+
+        [AllowAnonymous]
+        public async Task<ActionResult> ConfirmarReactivacion(string userId, string token)
+        {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+            {
+                TempData["Error"] = "Enlace inválido.";
+                return RedirectToAction("Login");
+            }
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                TempData["Error"] = "Cuenta inválida.";
+                return RedirectToAction("Login");
+            }
+
+            bool valido = await _userManager.VerifyUserTokenAsync(
+                user.Id, "ReactivarCuenta", token);
+
+            if (!valido)
+            {
+                TempData["Error"] = "Este enlace ha expirado o ya fue utilizado.";
+                return RedirectToAction("Login");
+            }
+
+            ViewBag.UserId = userId;
+            ViewBag.Token = token;
+
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<ActionResult> ConfirmarReactivacionPost(string userId, string token)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                TempData["Error"] = "La cuenta no existe.";
+                return RedirectToAction("Login");
+            }
+
+            bool valido = await _userManager.VerifyUserTokenAsync(
+                user.Id, "ReactivarCuenta", token);
+
+            if (!valido)
+            {
+                TempData["Error"] = "Este enlace ya no es válido.";
+                return RedirectToAction("Login");
+            }
+
+            user.Activo = true;
+            user.LockoutEndDateUtc = null;
+            user.FechaUltimaActivacion = DateTime.Now;
+
+            await _userManager.UpdateAsync(user);
+
+            TempData["Success"] = "✅ Tu cuenta fue reactivada correctamente.";
+            return RedirectToAction("Login");
+        }
+        public ActionResult ProbarError()
+        {
+            TempData["Error"] = "Este es un mensaje de error de prueba";
+            return RedirectToAction("Login");
+        }
+
+        public ActionResult ProbarSuccess()
+        {
+            TempData["Success"] = "Este es un mensaje de éxito de prueba";
+            return RedirectToAction("Login");
+        }
+
 
     }
 }

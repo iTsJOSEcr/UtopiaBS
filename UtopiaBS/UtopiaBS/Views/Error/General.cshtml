@@ -1,0 +1,15 @@
+﻿@{
+    ViewBag.Title = "Error del sistema";
+}
+
+<div style="max-width:500px;margin:100px auto;text-align:center;">
+    <h2 style="color:#d9534f;">⚠️ Ocurrió un problema</h2>
+    <p>
+        El sistema está tardando más de lo esperado o hubo un problema interno.
+        Por favor intenta nuevamente en unos minutos.
+    </p>
+
+    <a href="@Url.Action("Login", "Account")" class="btn btn-primary rounded-pill">
+        Volver al inicio
+    </a>
+</div>
