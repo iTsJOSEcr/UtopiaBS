@@ -11,7 +11,7 @@
         <!-- ENCABEZADO -->
         <div class="card-header text-white" style="background-color:#1B263B;">
             <h3 class="mb-0 fw-bold">
-                <i class="bi bi-calendar-heart me-2 text-warning"></i> Mis Citas Pendientes
+                <i class="bi bi-calendar-heart me-2 text-warning"></i> Mis Citas
             </h3>
         </div>
 
@@ -56,11 +56,20 @@
                                     <td>@(cita.Servicio?.Nombre ?? "Sin asignar")</td>
 
                                     <td>
-                                        <span class="badge rounded-pill px-3 py-2"
-                                              style="background-color:#5C636A; color:white;">
-                                            Pendiente
-                                        </span>
+                                        @if (cita.IdEstadoCita == 1)
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2 bg-secondary">
+                                                Pendiente
+                                            </span>
+                                        }
+                                        else if (cita.IdEstadoCita == 2)
+                                        {
+                                            <span class="badge rounded-pill px-3 py-2 bg-success">
+                                                Confirmada
+                                            </span>
+                                        }
                                     </td>
+
 
                                     <td>
                                         <button class="btn btn-outline-warning btn-sm me-2 rounded-pill shadow-sm cambiar-btn"

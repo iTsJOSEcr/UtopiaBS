@@ -6,6 +6,8 @@ using System.IO;
 
 namespace UtopiaBS.Controllers
 {
+    [Authorize(Roles = "Administrador")]
+
     public class ReporteUsuariosActivosController : Controller
     {
         private readonly ReporteUsuariosActivosService _service;

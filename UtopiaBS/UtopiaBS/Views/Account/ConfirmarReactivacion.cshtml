@@ -1,0 +1,57 @@
+﻿@{
+    ViewBag.Title = "Confirmar Reactivación";
+}
+
+<div class="login-light-card">
+    <h3 class="text-center mb-3 fw-bold">Reactivar cuenta</h3>
+
+    <p class="text-center text-muted mb-4">
+        ¿Deseas reactivar tu cuenta ahora?
+    </p>
+
+    @using (Html.BeginForm("ConfirmarReactivacionPost", "Account", FormMethod.Post))
+    {
+        <input type="hidden" name="userId" value="@ViewBag.UserId" />
+        <input type="hidden" name="token" value="@ViewBag.Token" />
+
+        <button type="submit" class="btn-main mb-3">
+            ✅ Sí, reactivar mi cuenta
+        </button>
+    }
+
+
+    <div class="text-center">
+        <a href="@Url.Action("Login","Account")"
+           class="btn btn-outline-secondary rounded-pill px-4">
+            Cancelar
+        </a>
+    </div>
+    }
+</div>
+
+<style>
+    .login-light-card {
+        width: 390px;
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 35px;
+        border: 1px solid #e6e6e6;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+        margin: 60px auto;
+        text-align: center;
+    }
+
+    .btn-main {
+        background: #6a11cb;
+        color: #fff;
+        border-radius: 8px;
+        width: 100%;
+        border: none;
+        padding: 10px 0;
+        font-weight: 500;
+    }
+
+        .btn-main:hover {
+            background: #5712a8;
+        }
+</style>

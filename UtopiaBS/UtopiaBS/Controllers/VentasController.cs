@@ -12,7 +12,8 @@ using UtopiaBS.ViewModels;
 
 namespace UtopiaBS.Controllers
 {
-    [Authorize(Roles = "Administrador")]
+    [Authorize(Roles = "Administrador,Empleado")]
+
     public class VentasController : Controller
     {
         //  PUNTO DE VENTA
