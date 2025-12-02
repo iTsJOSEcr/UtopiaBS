@@ -4,6 +4,7 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin;
 using Microsoft.Owin.Security.Cookies;
 using Owin;
+using System;
 using UtopiaBS.Data;
 
 [assembly: OwinStartup(typeof(UtopiaBS.Startup))]
@@ -20,8 +21,10 @@ namespace UtopiaBS
             {
                 AuthenticationType = DefaultAuthenticationTypes.ApplicationCookie,
                 LoginPath = new PathString("/Account/Login"),
-                LogoutPath = new PathString("/Account/Logout")
-            });
+                LogoutPath = new PathString("/Account/Logout"),
+                    ExpireTimeSpan = TimeSpan.FromHours(6),
+                SlidingExpiration = true
+            }); 
 
         }
 

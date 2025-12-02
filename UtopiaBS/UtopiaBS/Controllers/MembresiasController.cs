@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Mvc;
+using UtopiaBS.Business.Services;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
 using UtopiaBS.ViewModels;
@@ -10,6 +13,7 @@ namespace UtopiaBS.Controllers
     [Authorize(Roles = "Administrador")]
     public class MembresiasController : Controller
     {
+        // PANEL DE MEMBRESÍAS
         public ActionResult Panel()
         {
             using (var db = new Context())
@@ -59,9 +63,8 @@ namespace UtopiaBS.Controllers
                 return View(data);
             }
         }
-        // =========================
-        // ✅ FORMULARIO ASIGNAR
-        // =========================
+    
+        // ASIGNAR
         public ActionResult Asignar(int? idCliente)
         {
             using (var db = new Context())
@@ -106,6 +109,7 @@ namespace UtopiaBS.Controllers
             }
         }
 
+        // CAMBIAR ESTADO
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CambiarEstado(int idCliente)
@@ -175,14 +179,14 @@ namespace UtopiaBS.Controllers
                         return RedirectToAction("Asignar");
                     }
 
-                    // ✅ 1. BUSCAR MEMBRESÍA ACTIVA
+                    // BUSCAR MEMBRESÍA ACTIVA
                     var membresiaActiva = db.Membresias
                         .Where(m => m.IdCliente == model.IdCliente &&
                                     (m.FechaFin == null || m.FechaFin >= hoy))
                         .OrderByDescending(m => m.FechaInicio)
                         .FirstOrDefault();
 
-                    // ✅ 2. CALCULAR FECHA FIN
+                    // CALCULAR FECHA FIN
                     DateTime fechaFin;
                     switch (model.IdTipoMembresia)
                     {
@@ -194,7 +198,7 @@ namespace UtopiaBS.Controllers
                             return RedirectToAction("Asignar");
                     }
 
-                    // ✅ 3. SI EXISTE → UPDATE
+                    // SI EXISTE → UPDATE
                     if (membresiaActiva != null)
                     {
                         membresiaActiva.IdTipoMembresia = model.IdTipoMembresia;
@@ -203,7 +207,7 @@ namespace UtopiaBS.Controllers
                     }
                     else
                     {
-                        // ✅ 4. SI NO EXISTE → INSERT
+                        //  SI NO EXISTE → INSERT
                         var nueva = new Membresia
                         {
                             IdCliente = model.IdCliente,
@@ -216,7 +220,7 @@ namespace UtopiaBS.Controllers
                         db.Membresias.Add(nueva);
                     }
 
-                    // ✅ 5. REFLEJO EN CLIENTE
+                    //  REFLEJO EN CLIENTE
                     cliente.IdTipoMembresia = model.IdTipoMembresia;
 
                     db.SaveChanges();
@@ -231,5 +235,87 @@ namespace UtopiaBS.Controllers
                 return RedirectToAction("Asignar");
             }
         }
+
+        [HttpPost]
+        [Authorize(Roles = "Administrador")]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> EnviarAlertasVencimiento()
+        {
+            try
+            {
+                using (var db = new Context())
+                using (var dbIdentity = new ApplicationDbContext())
+                {
+                    var hoy = DateTime.Today;
+
+                    var clientesConVencimiento = (
+                        from m in db.Membresias
+                        join c in db.Clientes on m.IdCliente equals c.IdCliente
+                        where m.FechaFin.HasValue
+                        && DbFunctions.DiffDays(hoy, m.FechaFin.Value) <= 7
+                        && DbFunctions.DiffDays(hoy, m.FechaFin.Value) >= 0
+                        select new
+                        {
+                            Cliente = c.Nombre,
+                            UserId = c.IdUsuario,
+                            FechaVencimiento = m.FechaFin.Value,
+                            Puntos = m.PuntosAcumulados
+                        }
+                    ).ToList();
+
+                    if (!clientesConVencimiento.Any())
+                    {
+                        TempData["Error"] = "ℹ No hay clientes con puntos próximos a vencer.";
+                        return RedirectToAction("Panel");
+                    }
+
+                    int enviados = 0;
+                    int errores = 0;
+
+                    foreach (var item in clientesConVencimiento)
+                    {
+                        var usuario = dbIdentity.Users.FirstOrDefault(u => u.Id == item.UserId);
+
+                        if (usuario == null || string.IsNullOrWhiteSpace(usuario.Email))
+                        {
+                            errores++;
+                            continue;
+                        }
+
+                        string mensaje = $@"
+                <h2>⚠️ Tus puntos están por vencer</h2>
+                <p>Hola <strong>{item.Cliente}</strong>,</p>
+                <p>Tienes <strong>{item.Puntos} puntos</strong> próximos a vencer.</p>
+                <p><strong>Fecha de vencimiento:</strong> {item.FechaVencimiento:dd/MM/yyyy}</p>
+                <p>Te recomendamos usarlos antes de que expiren.</p>
+                <p>Utopía Beauty Salon</p>";
+
+                        try
+                        {
+                            await EmailService.EnviarCorreoAsync(
+                                usuario.Email,
+                                "⚠️ Notificación de Puntos por Vencer - Utopía",
+                                mensaje
+                            );
+
+                            enviados++;
+                        }
+                        catch
+                        {
+                            errores++;
+                        }
+                    }
+
+                    TempData["Success"] = $"✅ Correos enviados: {enviados}. Errores: {errores}.";
+                    return RedirectToAction("Panel");
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "❌ Error real al enviar las notificaciones: " + ex.Message;
+                return RedirectToAction("Panel");
+            }
+        }
+
     }
 }

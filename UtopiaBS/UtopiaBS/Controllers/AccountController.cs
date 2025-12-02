@@ -13,11 +13,8 @@ using UtopiaBS.Entities;
 using UtopiaBS.Entities.Clientes;
 using UtopiaBS.Models;
 
-
-
 namespace UtopiaBS.Controllers
 {
-    [Authorize(Roles = "Administrador")]
     public class AccountController : Controller
     {
         private readonly UserManager<UsuarioDA> _userManager;
@@ -39,7 +36,9 @@ namespace UtopiaBS.Controllers
                 };
         }
 
+        // ===================== LOGIN =====================
 
+        [HttpGet]
         [AllowAnonymous]
         public ActionResult Login() => View();
 
@@ -48,24 +47,24 @@ namespace UtopiaBS.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Login(LoginViewModel model)
         {
-            if (string.IsNullOrWhiteSpace(model.UserName) || string.IsNullOrWhiteSpace(model.Password))
+            if (string.IsNullOrWhiteSpace(model.UserName) ||
+                string.IsNullOrWhiteSpace(model.Password))
             {
                 ModelState.AddModelError("", "No se puede iniciar sesión: hay campos en blanco.");
                 return View(model);
             }
 
-            //  Buscar usuario por username o correo
+            // Buscar usuario por username o correo
             var user = _userManager.Users
                 .FirstOrDefault(u => u.UserName == model.UserName || u.Email == model.UserName);
 
-            //  No existe
             if (user == null)
             {
                 ModelState.AddModelError("", "La cuenta no existe en el sistema.");
                 return View(model);
             }
 
-            //  CUENTA DESACTIVADA → SOLO MOSTRAMOS OPCIÓN DE REACTIVAR
+            // Cuenta desactivada → enviar enlace de reactivación
             if (!user.Activo)
             {
                 var token = await _userManager.GenerateUserTokenAsync(
@@ -76,13 +75,13 @@ namespace UtopiaBS.Controllers
                     protocol: Request.Url.Scheme);
 
                 string mensaje = $@"
-        <h2>Reactivación de cuenta</h2>
-        <p>Hola {user.UserName},</p>
-        <p>Tu cuenta está desactivada.</p>
-        <p>Haz clic aquí para reactivarla de forma segura:</p>
-        <p><a href='{enlace}'>Reactivar cuenta</a></p>
-        <p>Utopía Beauty Salon</p>
-    ";
+                <h2>Reactivación de cuenta</h2>
+                <p>Hola {user.UserName},</p>
+                <p>Tu cuenta está desactivada.</p>
+                <p>Haz clic aquí para reactivarla de forma segura:</p>
+                <p><a href='{enlace}'>Reactivar cuenta</a></p>
+                <p>Utopía Beauty Salon</p>
+                ";
 
                 await EmailService.EnviarCorreoAsync(
                     user.Email,
@@ -96,8 +95,7 @@ namespace UtopiaBS.Controllers
                 return View(model);
             }
 
-
-            //  Bloqueo por intentos fallidos
+            // Bloqueo por intentos fallidos
             if (await _userManager.IsLockedOutAsync(user.Id))
             {
                 ModelState.AddModelError("",
@@ -105,19 +103,19 @@ namespace UtopiaBS.Controllers
                 return View(model);
             }
 
-            //  Validar contraseña
+            // Validar contraseña
             if (await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 await _userManager.ResetAccessFailedCountAsync(user.Id);
 
-                //  Crear cookie de sesión
+                // Crear cookie de sesión
                 var identity = await _userManager.CreateIdentityAsync(
                     user, DefaultAuthenticationTypes.ApplicationCookie);
 
                 HttpContext.GetOwinContext().Authentication.SignIn(
                     new AuthenticationProperties
                     {
-                        IsPersistent = true,
+                        IsPersistent = false,
                         ExpiresUtc = DateTime.UtcNow.AddHours(6)
                     },
                     identity);
@@ -132,7 +130,7 @@ namespace UtopiaBS.Controllers
                     db.SaveChanges();
                 }
 
-                //  Redirección por rol
+                // Redirección por rol
                 if (await _userManager.IsInRoleAsync(user.Id, "Administrador"))
                     return RedirectToAction("AdminHome", "Home");
 
@@ -148,6 +146,9 @@ namespace UtopiaBS.Controllers
             return View(model);
         }
 
+        // ===================== REGISTRO =====================
+
+        [HttpGet]
         [AllowAnonymous]
         public ActionResult Register() => View();
 
@@ -159,9 +160,16 @@ namespace UtopiaBS.Controllers
             if (!ModelState.IsValid)
                 return View(model);
 
+            // Validar requisitos de contraseña
+            if (!PasswordCumpleRequisitos(model.Password))
+            {
+                TempData["Error"] = "La contraseña debe tener al menos 8 caracteres, incluir al menos 1 mayúscula y 1 carácter especial.";
+                return View(model);
+            }
+
             try
             {
-                //  Usuario duplicado
+                // Usuario duplicado
                 if (_userManager.Users.Any(u => u.UserName == model.UserName))
                 {
                     ModelState.AddModelError("", "El nombre de usuario ya está registrado.");
@@ -205,7 +213,7 @@ namespace UtopiaBS.Controllers
                     return View(model);
                 }
 
-                //  Asegurar rol "Cliente"
+                // Asegurar rol "Cliente"
                 var roleManager = new RoleManager<IdentityRole>(
                     new RoleStore<IdentityRole>(new ApplicationDbContext()));
 
@@ -214,7 +222,7 @@ namespace UtopiaBS.Controllers
 
                 await _userManager.AddToRoleAsync(user.Id, "Cliente");
 
-                //  Crear Cliente + Membresía
+                // Crear Cliente + Membresía
                 using (var db = new Context())
                 {
                     if (db.Clientes.Any(c => c.IdUsuario == user.Id))
@@ -262,7 +270,11 @@ namespace UtopiaBS.Controllers
             }
         }
 
+        // ===================== LOGOUT =====================
+
+        [HttpPost]
         [Authorize]
+        [ValidateAntiForgeryToken]
         public ActionResult Logout()
         {
             var userId = User.Identity.GetUserId();
@@ -280,22 +292,22 @@ namespace UtopiaBS.Controllers
                     db.SaveChanges();
                 }
             }
-            HttpContext.GetOwinContext().Authentication.SignOut();
+
+            // Cerrar sesión
+            var auth = HttpContext.GetOwinContext().Authentication;
+            auth.SignOut(
+                DefaultAuthenticationTypes.ApplicationCookie,
+                DefaultAuthenticationTypes.ExternalCookie
+            );
+
+            Session.Clear();
+            Session.Abandon();
 
             return RedirectToAction("Login", "Account");
         }
 
+        // ===================== PERFIL =====================
 
-        private void AddErrors(IdentityResult result)
-        {
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError("", error);
-            }
-        }
-
-
-        // PERFIL
         [Authorize]
         public async Task<ActionResult> Perfil()
         {
@@ -312,8 +324,7 @@ namespace UtopiaBS.Controllers
             return View("Perfil", user);
         }
 
-
-        // EDITAR PERFIL - GET
+        [HttpGet]
         [Authorize]
         public async Task<ActionResult> EditarPerfil()
         {
@@ -333,8 +344,6 @@ namespace UtopiaBS.Controllers
             return View("EditarPerfil", model);
         }
 
-
-        // EDITAR PERFIL - POST
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
@@ -410,6 +419,7 @@ namespace UtopiaBS.Controllers
             }
         }
 
+        // ===================== OLVIDAR CONTRASEÑA =====================
 
         [AllowAnonymous]
         public ActionResult ForgotPassword()
@@ -437,12 +447,12 @@ namespace UtopiaBS.Controllers
                 protocol: Request.Url.Scheme);
 
             string mensaje = $@"
-        <h2>Recuperación de contraseña</h2>
-        <p>Hola {user.UserName},</p>
-        <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-        <p><a href='{enlace}'>Restablecer contraseña</a></p>
-        <p>Utopía Beauty Salon</p>
-    ";
+                <h2>Recuperación de contraseña</h2>
+                <p>Hola {user.UserName},</p>
+                <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+                <p><a href='{enlace}'>Restablecer contraseña</a></p>
+                <p>Utopía Beauty Salon</p>
+            ";
 
             await EmailService.EnviarCorreoAsync(
                 user.Email,
@@ -454,6 +464,24 @@ namespace UtopiaBS.Controllers
             return RedirectToAction("Login");
         }
 
+        // ===================== VALIDACIÓN DE CONTRASEÑA =====================
+
+        // 1 mayúscula, 1 carácter especial, longitud >= 8
+        private bool PasswordCumpleRequisitos(string password)
+        {
+            if (string.IsNullOrEmpty(password))
+                return false;
+
+            bool tieneMayuscula = password.Any(char.IsUpper);
+            bool tieneCaracterEspecial = password.Any(ch => !char.IsLetterOrDigit(ch) && !char.IsWhiteSpace(ch));
+            bool longitudOk = password.Length >= 8;
+
+            return tieneMayuscula && tieneCaracterEspecial && longitudOk;
+        }
+
+        // ===================== RESET PASSWORD =====================
+
+        [HttpGet]
         [AllowAnonymous]
         public ActionResult ResetPassword(string userId, string token)
         {
@@ -469,7 +497,6 @@ namespace UtopiaBS.Controllers
             return View();
         }
 
-
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -479,12 +506,25 @@ namespace UtopiaBS.Controllers
             string password,
             string confirmPassword)
         {
+            // 1) Coincidencia
             if (password != confirmPassword)
             {
                 TempData["Error"] = "Las contraseñas no coinciden.";
-                return RedirectToAction("ResetPassword", new { userId, token });
+                ViewBag.UserId = userId;
+                ViewBag.Token = token;
+                return View();
             }
 
+            // 2) Requisitos
+            if (!PasswordCumpleRequisitos(password))
+            {
+                TempData["Error"] = "La nueva contraseña no cumple los requisitos. Debe tener al menos 8 caracteres, incluir al menos 1 mayúscula y 1 carácter especial.";
+                ViewBag.UserId = userId;
+                ViewBag.Token = token;
+                return View();
+            }
+
+            // 3) Buscar usuario
             var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
@@ -493,6 +533,7 @@ namespace UtopiaBS.Controllers
                 return RedirectToAction("Login");
             }
 
+            // 4) Resetear contraseña
             var result = await _userManager.ResetPasswordAsync(userId, token, password);
 
             if (result.Succeeded)
@@ -502,10 +543,12 @@ namespace UtopiaBS.Controllers
             }
 
             TempData["Error"] = "No se pudo cambiar la contraseña.";
-            return RedirectToAction("ResetPassword", new { userId, token });
+            ViewBag.UserId = userId;
+            ViewBag.Token = token;
+            return View();
         }
 
-
+        // ===================== MIS PUNTOS =====================
 
         [Authorize(Roles = "Cliente")]
         public ActionResult MisPuntos()
@@ -514,12 +557,10 @@ namespace UtopiaBS.Controllers
 
             using (var db = new Context())
             {
-                // Buscar el cliente ligado al usuario
                 var cliente = db.Clientes.FirstOrDefault(c => c.IdUsuario == userId);
 
                 if (cliente == null)
                 {
-                    // No es cliente (o aún no tiene registro en Clientes)
                     var modeloVacio = new MisPuntosViewModel
                     {
                         PuntosTotales = 0,
@@ -528,7 +569,6 @@ namespace UtopiaBS.Controllers
                     return View("MisPuntos", modeloVacio);
                 }
 
-                // Membresía activa (la Básica que creamos al registrar)
                 var membresia = db.Membresias
                     .FirstOrDefault(m =>
                         m.IdCliente == cliente.IdCliente &&
@@ -536,7 +576,6 @@ namespace UtopiaBS.Controllers
 
                 int puntosTotales = membresia?.PuntosAcumulados ?? 0;
 
-                // Movimientos de puntos
                 var movimientos = db.PuntosCliente
                     .Where(p => p.IdCliente == cliente.IdCliente)
                     .OrderByDescending(p => p.FechaRegistro)
@@ -561,10 +600,12 @@ namespace UtopiaBS.Controllers
             }
         }
 
+        // ===================== DESACTIVAR CUENTA (TEMPORAL) =====================
+
         [Authorize(Roles = "Cliente")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult DesactivarMiCuenta()
+        public ActionResult DesactivarCuentaTemporal()
         {
             try
             {
@@ -574,12 +615,11 @@ namespace UtopiaBS.Controllers
 
                 if (user == null)
                 {
-                    // Escenario 3
                     TempData["Error"] = "La cuenta no existe.";
                     return RedirectToAction("Perfil");
                 }
 
-                // Escenario 4 → Regla de 7 días
+                // Regla de 7 días
                 if (user.FechaUltimaActivacion.HasValue &&
                     user.FechaUltimaActivacion.Value.AddDays(7) > DateTime.Now)
                 {
@@ -588,7 +628,6 @@ namespace UtopiaBS.Controllers
                     return RedirectToAction("Perfil");
                 }
 
-                // DESACTIVAMOS
                 user.Activo = false;
                 user.LockoutEnabled = true;
                 user.LockoutEndDateUtc = DateTime.UtcNow.AddYears(10);
@@ -598,18 +637,57 @@ namespace UtopiaBS.Controllers
                 // Cerrar sesión automáticamente
                 HttpContext.GetOwinContext().Authentication.SignOut();
 
-                // Escenario 2
                 TempData["Success"] = "Tu cuenta fue desactivada temporalmente exitosamente.";
-
                 return RedirectToAction("Login", "Account");
             }
             catch
             {
-                // Escenario 5
                 TempData["Error"] = "Ocurrió un error de conexión al intentar desactivar la cuenta.";
                 return RedirectToAction("Perfil");
             }
         }
+
+        // ===================== DESACTIVAR CUENTA (PERMANENTE) =====================
+
+        [Authorize(Roles = "Cliente")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult DesactivarCuentaPermanente()
+        {
+            try
+            {
+                string userId = User.Identity.GetUserId();
+                var user = _userManager.FindById(userId);
+
+                if (user == null)
+                {
+                    TempData["Error"] = "La cuenta no existe.";
+                    return RedirectToAction("Perfil");
+                }
+
+                // Marcamos como inactiva y bloqueada "para siempre"
+                user.Activo = false;
+                user.LockoutEnabled = true;
+                user.LockoutEndDateUtc = DateTime.UtcNow.AddYears(100);
+
+                _userManager.Update(user);
+
+                // Cerrar sesión
+                HttpContext.GetOwinContext().Authentication.SignOut();
+                Session.Clear();
+                Session.Abandon();
+
+                TempData["Success"] = "Tu cuenta fue eliminada de forma permanente.";
+                return RedirectToAction("Login", "Account");
+            }
+            catch
+            {
+                TempData["Error"] = "Ocurrió un error al intentar eliminar la cuenta.";
+                return RedirectToAction("Perfil");
+            }
+        }
+
+        // ===================== CONFIRMAR REACTIVACIÓN =====================
 
         [AllowAnonymous]
         public async Task<ActionResult> ConfirmarReactivacion(string userId, string token)
@@ -673,18 +751,15 @@ namespace UtopiaBS.Controllers
             TempData["Success"] = "✅ Tu cuenta fue reactivada correctamente.";
             return RedirectToAction("Login");
         }
-        public ActionResult ProbarError()
+
+        // ===================== ERRORES IDENTITY =====================
+
+        private void AddErrors(IdentityResult result)
         {
-            TempData["Error"] = "Este es un mensaje de error de prueba";
-            return RedirectToAction("Login");
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error);
+            }
         }
-
-        public ActionResult ProbarSuccess()
-        {
-            TempData["Success"] = "Este es un mensaje de éxito de prueba";
-            return RedirectToAction("Login");
-        }
-
-
     }
 }
