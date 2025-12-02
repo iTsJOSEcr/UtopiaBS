@@ -18,6 +18,23 @@ namespace UtopiaBS.Models
 
         public DateTime? FechaInicioMembresia { get; set; }
         public DateTime? FechaFinMembresia { get; set; }
+        public bool PuntosPorVencer
+{
+    get
+    {
+        if (!FechaFinMembresia.HasValue) return false;
+        return (FechaFinMembresia.Value - DateTime.Today).TotalDays <= 7;
+    }
+}
+
+public int DiasParaVencerse
+{
+    get
+    {
+        if (!FechaFinMembresia.HasValue) return 0;
+        return (FechaFinMembresia.Value - DateTime.Today).Days;
+    }
+}
 
         public List<MovimientoPuntosViewModel> Movimientos { get; set; }
 
