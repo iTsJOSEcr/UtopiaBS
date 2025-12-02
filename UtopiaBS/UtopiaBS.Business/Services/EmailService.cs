@@ -13,7 +13,7 @@ namespace UtopiaBS.Business.Services
             // El correo viene del web.config (esto está bien)
             string correoSistema = ConfigurationManager.AppSettings["CorreoSistema"];
 
-            // ✅ La clave ahora viene de la VARIABLE DE ENTORNO (NO del web.config)
+            //  La clave ahora viene de la VARIABLE DE ENTORNO (NO del web.config)
             string clave = Environment.GetEnvironmentVariable("UTOPIA_SMTP_PASS");
 
             if (string.IsNullOrEmpty(clave))

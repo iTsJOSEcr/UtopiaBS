@@ -23,5 +23,7 @@ namespace UtopiaBS.Data
         public string Cedula { get; set; }
         public bool Activo { get; set; } = true;
         public DateTime? FechaUltimaActivacion { get; set; }
+        public bool Eliminado { get; set; }
+
     }
 }

@@ -103,6 +103,8 @@
 
         @Html.ValidationSummary(true, "", new { @class = "text-danger mb-2" })
 
+
+
         <div class="mb-3">
             @Html.LabelFor(m => m.UserName)
             @Html.TextBoxFor(m => m.UserName, new { @class = "form-control", placeholder = "Nombre de usuario" })
@@ -167,11 +169,27 @@
             @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
         </div>
 
-        <div class="mb-3">
-            @Html.LabelFor(m => m.Password)
-            @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Contraseña" })
-            @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+        <div class="mb-3 position-relative">
+            @Html.LabelFor(m => m.Password, new { @class = "form-label fw-semibold" })
+
+            @Html.PasswordFor(m => m.Password, new
+            {
+                @class = "form-control",
+                placeholder = "Ingrese su contraseña"
+            })
+
+            <!-- ✅ MENSAJE BONITO SOLO DEBAJO DEL INPUT -->
+            @Html.ValidationMessageFor(m => m.Password, "", new
+            {
+                @class = "text-danger fw-semibold small mt-1 d-block"
+            })
+
+            <!-- ✅ AYUDA VISUAL DE REQUISITOS -->
+            <small class="text-muted">
+                Mínimo 8 caracteres, 1 mayúscula y 1 carácter especial.
+            </small>
         </div>
+
 
         <div class="mb-4">
             @Html.LabelFor(m => m.ConfirmPassword)

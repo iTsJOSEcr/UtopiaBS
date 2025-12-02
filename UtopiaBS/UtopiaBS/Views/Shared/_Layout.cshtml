@@ -222,10 +222,15 @@
                                 <li><hr class="dropdown-divider" /></li>
 
                                 <li>
-                                    <a class="dropdown-item" href="@Url.Action("Logout", "Account")">
-                                        <i class="fas fa-sign-out-alt me-2 text-danger"></i> Cerrar sesión
-                                    </a>
+                                    @using (Html.BeginForm("Logout", "Account", FormMethod.Post))
+                                    {
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item border-0 bg-transparent text-start w-100">
+                                            <i class="fas fa-sign-out-alt me-2 text-danger"></i> Cerrar sesión
+                                        </button>
+                                    }
                                 </li>
+
                             </ul>
                         </li>
 
