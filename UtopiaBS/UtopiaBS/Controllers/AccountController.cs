@@ -454,6 +454,19 @@ namespace UtopiaBS.Controllers
             return RedirectToAction("Login");
         }
 
+        // Validar requisitos: 1 mayúscula, 1 carácter especial y longitud >= 10
+        private bool PasswordCumpleRequisitos(string password)
+        {
+            if (string.IsNullOrEmpty(password))
+                return false;
+
+            bool tieneMayuscula = password.Any(char.IsUpper);
+            bool tieneCaracterEspecial = password.Any(ch => !char.IsLetterOrDigit(ch) && !char.IsWhiteSpace(ch));
+            bool longitudOk = password.Length >= 10;
+
+            return tieneMayuscula && tieneCaracterEspecial && longitudOk;
+        }
+
         [AllowAnonymous]
         public ActionResult ResetPassword(string userId, string token)
         {
@@ -474,17 +487,30 @@ namespace UtopiaBS.Controllers
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ResetPassword(
-            string userId,
-            string token,
-            string password,
-            string confirmPassword)
+    string userId,
+    string token,
+    string password,
+    string confirmPassword)
         {
+            // 1) Validación de coincidencia
             if (password != confirmPassword)
             {
                 TempData["Error"] = "Las contraseñas no coinciden.";
-                return RedirectToAction("ResetPassword", new { userId, token });
+                ViewBag.UserId = userId;
+                ViewBag.Token = token;
+                return View();
             }
 
+            // 2) Validación de requisitos de seguridad
+            if (!PasswordCumpleRequisitos(password))
+            {
+                TempData["Error"] = "La nueva contraseña no cumple los requisitos. Debe tener al menos 10 caracteres, incluir al menos 1 mayúscula y 1 carácter especial.";
+                ViewBag.UserId = userId;
+                ViewBag.Token = token;
+                return View();
+            }
+
+            // 3) Buscar usuario
             var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
@@ -493,6 +519,7 @@ namespace UtopiaBS.Controllers
                 return RedirectToAction("Login");
             }
 
+            // 4) Intentar resetear la contraseña con el token
             var result = await _userManager.ResetPasswordAsync(userId, token, password);
 
             if (result.Succeeded)
@@ -501,9 +528,14 @@ namespace UtopiaBS.Controllers
                 return RedirectToAction("Login");
             }
 
+            // Si no pudo, agregar errores (opcional: detallar)
+            // Puedes usar AddErrors(result) si quieres mostrar los mensajes internos de Identity
             TempData["Error"] = "No se pudo cambiar la contraseña.";
-            return RedirectToAction("ResetPassword", new { userId, token });
+            ViewBag.UserId = userId;
+            ViewBag.Token = token;
+            return View();
         }
+
 
 
 
