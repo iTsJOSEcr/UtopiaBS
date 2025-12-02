@@ -113,6 +113,7 @@
         </div>
 
         <div class="edit-group mb-3">
+            <label><i class="bi bi-phone"></i> Teléfono</label>
             @Html.TextBoxFor(m => m.PhoneNumber, new
             {
                 @class = "form-control edit-input",
@@ -125,6 +126,7 @@
         </div>
 
         <div class="edit-group mb-3">
+            <label><i class="bi bi-calendar"></i> Fecha de Nacimiento</label>
             @Html.TextBoxFor(
                 m => m.FechaNacimiento,
                 "{0:yyyy-MM-dd}",

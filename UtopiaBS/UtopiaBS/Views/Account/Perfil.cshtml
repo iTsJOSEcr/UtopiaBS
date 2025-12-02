@@ -4,63 +4,29 @@
     ViewBag.Title = "Mi Perfil";
 }
 
-<style>
-    .profile-card {
-        max-width: 450px;
-        margin: 50px auto;
-        background: #ffffff;
-        border-radius: 18px;
-        padding: 35px;
-        text-align: center;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-        animation: fadeIn .4s ease-in-out;
-    }
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    .profile-avatar {
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #6a11cb, #2575fc);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 32px;
-        font-weight: 600;
-        margin: 0 auto 20px;
-    }
-
-    .profile-label {
-        font-size: 13px;
-        text-transform: uppercase;
-        color: #888;
-        margin-bottom: -2px;
-    }
-
-    .profile-value {
-        font-size: 17px;
-        font-weight: 600;
-        margin-bottom: 18px;
-        color: #333;
-    }
-
-    .btn-edit {
-        background: #6a11cb;
-        color: #fff;
-        border-radius: 10px;
-        padding: 10px 20px;
-        text-decoration: none;
-        display: inline-block;
-        transition: .2s;
-    }
-
-        .btn-edit:hover {
-            background: #5712a8;
-            color: #fff;
-        }
-</style>
 
 <div class="profile-card">
+
+    @if (TempData["Error"] != null)
+    {
+        <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'Acción no permitida',
+            text: '@TempData["Error"]',
+             html: '@Html.Raw(TempData["Error"])',
+            width: 360,
+            padding: '1.2em',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#6a11cb'
+        });
+        </script>
+    }
+
+
 
     @if (TempData["Success"] != null)
     {
@@ -104,7 +70,98 @@
         </div>
     </div>
 
-    <a class="btn-edit" href="@Url.Action("EditarPerfil", "Account")">
-        Editar perfil
-    </a>
+    <div class="d-grid gap-3">
+
+        <a class="btn-edit text-center" href="@Url.Action("EditarPerfil", "Account")">
+            Editar perfil
+        </a>
+
+        @using (Html.BeginForm("DesactivarMiCuenta", "Account", FormMethod.Post, new { id = "formDesactivar" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <button type="button" id="btnDesactivar" class="btn btn-outline-danger rounded-pill shadow-sm px-4">
+                <i class="bi bi-person-x-fill me-2"></i>
+                Desactivar mi cuenta
+            </button>
+        }
+
+    </div>
+
+    <script>
+        document.getElementById("btnDesactivar").addEventListener("click", function () {
+            Swal.fire({
+                title: "¿Desactivar cuenta?",
+                text: "Perderás el acceso hasta reactivarla.",
+                icon: "warning",
+                width: 350,
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#6c757d",
+                confirmButtonText: "Desactivar",
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById("formDesactivar").submit();
+                }
+            });
+        });
+    </script>
+
+    <style>
+        .profile-card {
+            max-width: 450px;
+            margin: 50px auto;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 35px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            animation: fadeIn .4s ease-in-out;
+        }
+
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: 600;
+            margin: 0 auto 20px;
+        }
+
+        .profile-label {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: -2px;
+        }
+
+        .profile-value {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 18px;
+            color: #333;
+        }
+
+        .btn-edit {
+            background: #6a11cb;
+            color: #fff;
+            border-radius: 10px;
+            padding: 10px 20px;
+            text-decoration: none;
+            display: inline-block;
+            transition: .2s;
+        }
+
+            .btn-edit:hover {
+                background: #5712a8;
+                color: #fff;
+            }
+    </style>
+
 </div>

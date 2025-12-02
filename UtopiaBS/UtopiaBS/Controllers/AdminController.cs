@@ -10,6 +10,8 @@ using UtopiaBS.Entities;
 namespace UtopiaBS.Controllers
 {
     [Authorize(Roles = "Administrador")]
+
+
     public class AdminController : Controller
     {
         private readonly UserManager<UsuarioDA> _userManager;
@@ -17,10 +19,13 @@ namespace UtopiaBS.Controllers
         public AdminController()
         {
             var db = new ApplicationDbContext();
+
             _userManager = new UserManager<UsuarioDA>(new UserStore<UsuarioDA>(db));
+
             _userManager.UserTokenProvider =
                 new DataProtectorTokenProvider<UsuarioDA>(
-                    new Microsoft.Owin.Security.DataProtection.DpapiDataProtectionProvider("UtopiaBS")
+                    new Microsoft.Owin.Security.DataProtection
+                        .DpapiDataProtectionProvider("UtopiaBS")
                     .Create("Identity"))
                 {
                     TokenLifespan = TimeSpan.FromHours(2)
@@ -31,8 +36,20 @@ namespace UtopiaBS.Controllers
         public ActionResult GestionUsuarios()
         {
             var usuarios = _userManager.Users.ToList();
+
+            using (var db = new Context())
+            {
+                var usuariosConHistorial = db.UsuarioActividad
+                    .Select(a => a.UserId)
+                    .Distinct()
+                    .ToList();
+
+                ViewBag.UsuariosConHistorial = usuariosConHistorial;
+            }
+
             return View(usuarios);
         }
+
 
         // ASIGNAR / CAMBIAR ROL
         [HttpPost]
@@ -67,7 +84,7 @@ namespace UtopiaBS.Controllers
             return RedirectToAction("GestionUsuarios");
         }
 
-        // ✅ ACTIVAR / DESACTIVAR USUARIO (con regla de 7 días)
+        //  ACTIVAR / DESACTIVAR USUARIO (con regla de 7 días)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ToggleEstado(string userId)
@@ -91,7 +108,7 @@ namespace UtopiaBS.Controllers
 
                 if (user.Activo)
                 {
-                    // 👉 Quiere DESACTIVAR
+                    //  Quiere DESACTIVAR
 
                     // Escenario 4: solo se puede desactivar si han pasado 7 días desde la última activación
                     if (user.FechaUltimaActivacion.HasValue &&
@@ -113,7 +130,7 @@ namespace UtopiaBS.Controllers
                 }
                 else
                 {
-                    // 👉 Quiere ACTIVAR
+                    // Quiere ACTIVAR
 
                     user.Activo = true;
                     user.FechaUltimaActivacion = DateTime.Now;
@@ -134,14 +151,14 @@ namespace UtopiaBS.Controllers
             return RedirectToAction("GestionUsuarios");
         }
 
-        // ✅ ELIMINAR CUENTA (escenarios 1, 3 y 5)
+        // ELIMINAR CUENTA
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EliminarUsuario(string userId)
         {
             if (string.IsNullOrEmpty(userId))
             {
-                TempData["Error"] = "Debe seleccionar un usuario.";
+                TempData["Error"] = "No se recibió el usuario a eliminar.";
                 return RedirectToAction("GestionUsuarios");
             }
 
@@ -151,74 +168,64 @@ namespace UtopiaBS.Controllers
 
                 if (user == null)
                 {
-                    // Escenario 3: no existe
-                    TempData["Error"] = "La cuenta no existe.";
+                    TempData["Error"] = "La cuenta no existe o ya fue eliminada.";
                     return RedirectToAction("GestionUsuarios");
                 }
 
-                // 🔹 Primero eliminar datos relacionados en tu BD de negocio
                 using (var db = new Context())
                 {
-                    // 1) Historial de actividad
+                    //  Eliminar actividad
                     var actividades = db.UsuarioActividad
                         .Where(a => a.UserId == user.Id)
                         .ToList();
-                    if (actividades.Any())
-                    {
-                        db.UsuarioActividad.RemoveRange(actividades);
-                        db.SaveChanges();
-                    }
 
-                    // 2) Cliente ligado a este usuario
+                    if (actividades.Any())
+                        db.UsuarioActividad.RemoveRange(actividades);
+
+                    //  Buscar cliente ligado
                     var cliente = db.Clientes.FirstOrDefault(c => c.IdUsuario == user.Id);
 
                     if (cliente != null)
                     {
-                        var idCliente = cliente.IdCliente;
-
-                        // 2.1) Puntos del cliente
+                        //  Eliminar puntos
                         var puntos = db.PuntosCliente
-                            .Where(p => p.IdCliente == idCliente)
+                            .Where(p => p.IdCliente == cliente.IdCliente)
                             .ToList();
+
                         if (puntos.Any())
-                        {
                             db.PuntosCliente.RemoveRange(puntos);
-                            db.SaveChanges();
-                        }
 
-                        // 2.2) Membresías del cliente
+                        //  Eliminar membresías
                         var membresias = db.Membresias
-                            .Where(m => m.IdCliente == idCliente)
+                            .Where(m => m.IdCliente == cliente.IdCliente)
                             .ToList();
-                        if (membresias.Any())
-                        {
-                            db.Membresias.RemoveRange(membresias);
-                            db.SaveChanges();
-                        }
 
-                        // 2.3) Eliminar el cliente
+                        if (membresias.Any())
+                            db.Membresias.RemoveRange(membresias);
+
+                        // . Eliminar cliente
                         db.Clientes.Remove(cliente);
-                        db.SaveChanges();
                     }
+
+                    db.SaveChanges();
                 }
 
-                // 🔹 Ahora sí, eliminar el usuario de Identity
+                //  Eliminar roles
+                var roles = _userManager.GetRoles(userId).ToList();
+                if (roles.Any())
+                    _userManager.RemoveFromRoles(userId, roles.ToArray());
+
+                // Eliminar usuario de Identity
                 var result = _userManager.Delete(user);
 
                 if (result.Succeeded)
-                {
-                    // Escenario 1: eliminada correctamente
-                    TempData["Success"] = "La cuenta se eliminó exitosamente.";
-                }
+                    TempData["Success"] = "✅ La cuenta fue eliminada correctamente.";
                 else
-                {
-                    TempData["Error"] = "No se pudo eliminar la cuenta.";
-                }
+                    TempData["Error"] = "❌ Identity no permitió eliminar la cuenta.";
             }
-            catch
+            catch (Exception)
             {
-                // Escenario 5: error de conexión (para el enunciado de la historia)
-                TempData["Error"] = "Hubo un error de conexión al intentar eliminar la cuenta.";
+                TempData["Error"] = "❌ No se pudo eliminar la cuenta porque tiene datos relacionados.";
             }
 
             return RedirectToAction("GestionUsuarios");
@@ -284,5 +291,45 @@ namespace UtopiaBS.Controllers
                 return View(registros);
             }
         }
+
+        [Authorize(Roles = "Administrador,Empleado,Cliente")]
+        public ActionResult Bitacora(string userId, DateTime? fecha)
+        {
+            using (var db = new Context())
+            {
+                var query = db.UsuarioActividad.AsQueryable();
+
+                // FILTRAR POR USUARIO
+                if (!string.IsNullOrEmpty(userId))
+                {
+                    query = query.Where(x => x.UserId == userId);
+                }
+
+                // FILTRAR POR FECHA
+                if (fecha.HasValue)
+                {
+                    var inicio = fecha.Value.Date;
+                    var fin = inicio.AddDays(1);
+                    query = query.Where(x => x.FechaInicio >= inicio && x.FechaInicio < fin);
+                }
+
+                var resultado = query
+                    .OrderByDescending(x => x.FechaInicio)
+                    .ToList();
+
+                // NO EXISTE USUARIO O FECHA
+                if ((userId != null || fecha != null) && !resultado.Any())
+                {
+                    TempData["Error"] =
+                        "No existen registros de bitácora para los filtros ingresados.";
+                }
+
+                // Para mostrar combo de usuarios en la vista
+                ViewBag.Usuarios = _userManager.Users.ToList();
+
+                return View(resultado);
+            }
+        }
+
     }
 }
