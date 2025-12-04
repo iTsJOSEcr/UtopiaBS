@@ -15,35 +15,54 @@
     <!-- Services-->
         <section class="page-section" id="services">
             <div class="container">
-                <div class="text-center">
-                    <h2 class="section-heading text-uppercase">Servicios</h2>
-                </div>
                 <div class="row text-center">
+                    <!-- CORTES -->
                     <div class="col-md-4">
                         <span class="fa-stack fa-4x">
                             <i class="fas fa-circle fa-stack-2x text-primary"></i>
-                            <i class="fas fa-shopping-cart fa-stack-1x fa-inverse"></i>
+                            <i class="fas fa-scissors fa-stack-1x fa-inverse"></i>
                         </span>
                         <h4 class="my-3">Cortes</h4>
-                        <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
+                        <p class="text-muted">Cortes modernos y clásicos según tu estilo.</p>
                     </div>
+
+                    <!-- PEINADOS -->
                     <div class="col-md-4">
                         <span class="fa-stack fa-4x">
                             <i class="fas fa-circle fa-stack-2x text-primary"></i>
-                            <i class="fas fa-laptop fa-stack-1x fa-inverse"></i>
+                            <i class="fas fa-user fa-stack-1x fa-inverse"></i>
                         </span>
                         <h4 class="my-3">Peinados</h4>
-                        <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
+                        <p class="text-muted">Peinados para toda ocasión: casual, eventos y bodas.</p>
                     </div>
+
+                    <!-- TINTES -->
                     <div class="col-md-4">
                         <span class="fa-stack fa-4x">
                             <i class="fas fa-circle fa-stack-2x text-primary"></i>
-                            <i class="fas fa-lock fa-stack-1x fa-inverse"></i>
+                            <i class="fas fa-paint-brush fa-stack-1x fa-inverse"></i>
                         </span>
                         <h4 class="my-3">Tintes</h4>
-                        <p class="text-muted">Lorem ipsum dolor sit amet, consectetur adipisicing elit...</p>
+                        <p class="text-muted">Coloración profesional para realzar tu belleza.</p>
                     </div>
                 </div>
+
+                <!-- BOTÓN DE REGISTRO Y RESERVA -->
+                <div class="text-center mt-5">
+                    <h3 class="fw-bold mb-3">¿Lista para tu cambio de look? ✨</h3>
+                    <p class="text-muted mb-4">
+                        Regístrate en Utopía Beauty Salon y reserva tu cita en pocos pasos.
+                    </p>
+
+                    <a href="@Url.Action("Register", "Account")" class="btn btn-lg btn-primary px-5 shadow-lg rounded-pill me-3">
+                        <i class="fas fa-user-plus me-2"></i> Registrarme
+                    </a>
+
+                    <a href="@Url.Action("Reservar", "Citas")" class="btn btn-lg btn-outline-primary px-5 shadow-sm rounded-pill">
+                        <i class="fas fa-calendar-check me-2"></i> Reservar cita
+                    </a>
+                </div>
+
             </div>
         </section>
 

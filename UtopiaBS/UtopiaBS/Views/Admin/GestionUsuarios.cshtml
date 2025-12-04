@@ -130,33 +130,6 @@
                                         }
 
 
-                                        <!-- Eliminar cuenta -->
-                                        @if (!((List<string>)ViewBag.UsuariosConHistorial).Contains(user.Id))
-                                        {
-                                            <!-- ✅ SOLO SI NO TIENE HISTORIAL -->
-                                            using (Html.BeginForm("EliminarUsuario", "Admin", FormMethod.Post,
-                                                new { onsubmit = "return confirm('⚠️ Esta acción es permanente.\n\n¿Deseas eliminar esta cuenta definitivamente?');" }))
-                                            {
-                                                @Html.AntiForgeryToken()
-                                                @Html.Hidden("userId", user.Id)
-
-                                                <button type="submit"
-                                                        class="btn btn-sm btn-outline-danger rounded-pill shadow-sm px-3 w-100">
-                                                    <i class="bi bi-trash-fill me-1"></i> Eliminar
-                                                </button>
-                                            }
-                                        }
-                                        else
-                                        {
-                                            <!-- 🚫 SI TIENE HISTORIAL → NO SE ELIMINA -->
-                                            <button class="btn btn-sm btn-outline-secondary rounded-pill shadow-sm px-3 w-100"
-                                                    disabled
-                                                    title="Este usuario tiene historial y no puede eliminarse">
-                                                <i class="bi bi-shield-lock me-1"></i> Protegido
-                                            </button>
-                                        }
-
-
                                     </div>
                                 </td>
 
