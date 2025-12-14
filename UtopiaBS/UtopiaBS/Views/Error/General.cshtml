@@ -13,3 +13,12 @@
         Volver al inicio
     </a>
 </div>
+@section Scripts {
+    <script>
+        (function () {
+            // Serializamos el mensaje desde Razor como JSON para evitar errores de sintaxis y XSS
+            var mensaje = @Html.Raw(System.Web.Helpers.Json.Encode(ViewBag.mensaje ?? "Ocurrió un error"));
+            console.log("Error: " + mensaje);
+        })();
+    </script>
+}

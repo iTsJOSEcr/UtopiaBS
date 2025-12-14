@@ -6,12 +6,21 @@ using System.Web.Mvc;
 
 namespace UtopiaBS.Controllers
 {
-    [Authorize(Roles = "Administrador")]
-
+    [AllowAnonymous]
     public class ErrorController : Controller
     {
         public ActionResult General()
         {
+            // Si el mensaje viene por TempData lo pasamos a ViewBag
+            if (TempData.ContainsKey("mensaje"))
+            {
+                ViewBag.mensaje = TempData["mensaje"] as string;
+            }
+            else
+            {
+                ViewBag.mensaje = "Ocurrió un error inesperado.";
+            }
+
             return View();
         }
 
