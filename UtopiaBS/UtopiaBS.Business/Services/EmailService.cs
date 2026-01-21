@@ -10,10 +10,8 @@ namespace UtopiaBS.Business.Services
     {
         public static async Task EnviarCorreoAsync(string para, string asunto, string cuerpoHtml)
         {
-            // El correo viene del web.config (esto está bien)
             string correoSistema = ConfigurationManager.AppSettings["CorreoSistema"];
 
-            //  La clave ahora viene de la VARIABLE DE ENTORNO (NO del web.config)
             string clave = Environment.GetEnvironmentVariable("UTOPIA_SMTP_PASS");
 
             if (string.IsNullOrEmpty(clave))
@@ -26,10 +24,16 @@ namespace UtopiaBS.Business.Services
 
             using (var smtp = new SmtpClient("smtp.gmail.com", 587))
             {
-                smtp.Credentials = new NetworkCredential(correoSistema, clave);
                 smtp.EnableSsl = true;
+
+                // ⭐ ESTA LÍNEA ERA LA QUE FALTABA ⭐
+                smtp.UseDefaultCredentials = false;
+
+                smtp.Credentials = new NetworkCredential(correoSistema, clave);
+
                 await smtp.SendMailAsync(mensaje);
             }
         }
+
     }
 }
