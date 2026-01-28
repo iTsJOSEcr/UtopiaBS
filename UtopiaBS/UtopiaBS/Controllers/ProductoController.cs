@@ -116,7 +116,7 @@ namespace UtopiaBS.Controllers
         public ActionResult Eliminar(int id)
         {
             string resultado = service.EliminarProducto(id);
-            TempData["Mensaje"] = resultado;
+            TempData["MensajeProducto"] = resultado;
             return RedirectToAction("Listar");
         }
 

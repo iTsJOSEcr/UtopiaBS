@@ -21,7 +21,7 @@
 
             <div class="d-flex gap-2">
                 @Html.ActionLink("➕ Agregar Producto", "Agregar", "Producto", null,
-                    new { @class = "btn btn-light btn-sm fw-semibold rounded-pill shadow-sm" })
+                         new { @class = "btn btn-light btn-sm fw-semibold rounded-pill shadow-sm" })
 
                 <a class="btn btn-warning btn-sm fw-semibold rounded-pill shadow-sm"
                    href="@Url.Action("ExportarInventario", "Producto")">
@@ -124,8 +124,8 @@
 
                                 <td>
                                     @Html.ActionLink("✏️", "Editar", "Producto",
-                                        new { id = item.IdProducto },
-                                        new { @class = "btn btn-sm btn-outline-warning me-1 rounded-pill shadow-sm", title = "Editar" })
+                                             new { id = item.IdProducto },
+                                             new { @class = "btn btn-sm btn-outline-warning me-1 rounded-pill shadow-sm", title = "Editar" })
 
                                     <button type="button"
                                             class="btn btn-sm btn-outline-danger rounded-pill shadow-sm eliminar-btn"
@@ -224,8 +224,8 @@
 
                                     <td>
                                         @Html.ActionLink("✏️", "Editar", "CuponDescuento",
-                                            new { id = cupon.CuponId },
-                                            new { @class = "btn btn-sm btn-outline-warning me-1 rounded-pill shadow-sm" })
+                                                 new { id = cupon.CuponId },
+                                                 new { @class = "btn btn-sm btn-outline-warning me-1 rounded-pill shadow-sm" })
 
                                         <button type="button"
                                                 class="btn btn-sm btn-outline-danger rounded-pill shadow-sm eliminar-btn"

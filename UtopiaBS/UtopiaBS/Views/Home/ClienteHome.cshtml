@@ -1,0 +1,122 @@
+﻿@{
+    ViewBag.Title = "Panel del Cliente";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+
+<style>
+    /* ❌ Quitamos la barra SOLO en ClienteHome */
+    body {
+        padding-top: 0 !important;
+    }
+</style>
+
+<div class="container py-4 py-md-5">
+    <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+
+        <!-- ENCABEZADO -->
+        <div class="card-header text-white d-flex align-items-center justify-content-between"
+             style="background-color:#1B263B;">
+            <h3 class="mb-0 fw-bold">
+                <i class="bi bi-person-heart me-2"></i> Panel del Cliente
+            </h3>
+            <span class="badge bg-success fw-semibold px-3 py-2">Cliente</span>
+        </div>
+
+        <!-- CONTENIDO -->
+        <div class="card-body" style="background-color:#F8F9FA;">
+            <p class="fs-6 fs-md-5 text-secondary">
+                Bienvenido, desde aquí puedes gestionar tus citas y beneficios.
+            </p>
+
+            <div class="row g-3 g-md-4 mt-3">
+
+                <!-- RESERVAR CITA -->
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                        <div class="card-body text-center py-4">
+                            <div class="mb-3 text-success">
+                                <i class="bi bi-calendar-plus display-5"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark">Reservar Cita</h6>
+                            <a href="@Url.Action("Listar","CitaCliente")"
+                               class="btn w-100 fw-semibold text-dark border-0 shadow-sm mt-2"
+                               style="background-color:#FFD60A;">
+                                <i class="bi bi-arrow-right-circle me-1"></i> Entrar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MIS CITAS -->
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                        <div class="card-body text-center py-4">
+                            <div class="mb-3 text-primary">
+                                <i class="bi bi-calendar-check display-5"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark">Mis Citas</h6>
+                            <a href="@Url.Action("MisCitas","CitaCliente")"
+                               class="btn w-100 fw-semibold text-dark border-0 shadow-sm mt-2"
+                               style="background-color:#FFD60A;">
+                                <i class="bi bi-arrow-right-circle me-1"></i> Ver
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HISTORIAL -->
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                        <div class="card-body text-center py-4">
+                            <div class="mb-3 text-info">
+                                <i class="bi bi-clock-history display-5"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark">Historial</h6>
+                            <a href="@Url.Action("Historial","CitaCliente")"
+                               class="btn w-100 fw-semibold text-dark border-0 shadow-sm mt-2"
+                               style="background-color:#FFD60A;">
+                                <i class="bi bi-arrow-right-circle me-1"></i> Ver
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MIS PUNTOS -->
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                        <div class="card-body text-center py-4">
+                            <div class="mb-3 text-warning">
+                                <i class="bi bi-stars display-5"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark">Mis Puntos</h6>
+                            <a href="@Url.Action("MisPuntos","Account")"
+                               class="btn w-100 fw-semibold text-dark border-0 shadow-sm mt-2"
+                               style="background-color:#FFD60A;">
+                                <i class="bi bi-arrow-right-circle me-1"></i> Ver
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PERFIL -->
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                        <div class="card-body text-center py-4">
+                            <div class="mb-3 text-secondary">
+                                <i class="bi bi-person-circle display-5"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark">Mi Perfil</h6>
+                            <a href="@Url.Action("Perfil","Account")"
+                               class="btn w-100 fw-semibold text-dark border-0 shadow-sm mt-2"
+                               style="background-color:#FFD60A;">
+                                <i class="bi bi-arrow-right-circle me-1"></i> Editar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

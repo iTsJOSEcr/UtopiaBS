@@ -63,7 +63,7 @@ namespace UtopiaBS.Controllers
                 return View(data);
             }
         }
-    
+
         // ASIGNAR
         public ActionResult Asignar(int? idCliente)
         {
@@ -127,7 +127,7 @@ namespace UtopiaBS.Controllers
 
                     if (membresia == null)
                     {
-                        TempData["Error"] = "❌ El cliente no tiene membresía asignada.";
+                        TempData["Error"] = " El cliente no tiene membresía asignada.";
                         return RedirectToAction("Panel");
                     }
 
@@ -135,13 +135,13 @@ namespace UtopiaBS.Controllers
                     {
                         // Desactivar
                         membresia.FechaFin = hoy.AddDays(-1);
-                        TempData["Success"] = "✅ Membresía desactivada correctamente.";
+                        TempData["Success"] = "Membresía desactivada correctamente.";
                     }
                     else
                     {
                         // Reactivar por 1 año
                         membresia.FechaFin = hoy.AddYears(1);
-                        TempData["Success"] = "✅ Membresía reactivada correctamente.";
+                        TempData["Success"] = "Membresía reactivada correctamente.";
                     }
 
                     db.SaveChanges();
@@ -149,7 +149,7 @@ namespace UtopiaBS.Controllers
             }
             catch
             {
-                TempData["Error"] = "❌ Error al cambiar el estado de la membresía.";
+                TempData["Error"] = "Error al cambiar el estado de la membresía.";
             }
 
             return RedirectToAction("Panel");
@@ -175,7 +175,7 @@ namespace UtopiaBS.Controllers
                     var cliente = db.Clientes.FirstOrDefault(c => c.IdCliente == model.IdCliente);
                     if (cliente == null)
                     {
-                        TempData["Error"] = "❌ Cliente no encontrado.";
+                        TempData["Error"] = "Cliente no encontrado.";
                         return RedirectToAction("Asignar");
                     }
 
@@ -194,7 +194,7 @@ namespace UtopiaBS.Controllers
                         case 2: fechaFin = model.FechaInicio.AddYears(2); break;
                         case 3: fechaFin = model.FechaInicio.AddYears(3); break;
                         default:
-                            TempData["Error"] = "❌ Tipo de membresía inválido.";
+                            TempData["Error"] = "Tipo de membresía inválido.";
                             return RedirectToAction("Asignar");
                     }
 
@@ -225,13 +225,13 @@ namespace UtopiaBS.Controllers
 
                     db.SaveChanges();
 
-                    TempData["Success"] = "✅ La membresía fue actualizada correctamente.";
+                    TempData["Success"] = "La membresía fue actualizada correctamente.";
                     return RedirectToAction("Panel");
                 }
             }
             catch (Exception)
             {
-                TempData["Error"] = "❌ Error al guardar la información.";
+                TempData["Error"] = "Error al guardar la información.";
                 return RedirectToAction("Asignar");
             }
         }
@@ -283,12 +283,41 @@ namespace UtopiaBS.Controllers
                         }
 
                         string mensaje = $@"
-                <h2>⚠️ Tus puntos están por vencer</h2>
-                <p>Hola <strong>{item.Cliente}</strong>,</p>
-                <p>Tienes <strong>{item.Puntos} puntos</strong> próximos a vencer.</p>
-                <p><strong>Fecha de vencimiento:</strong> {item.FechaVencimiento:dd/MM/yyyy}</p>
-                <p>Te recomendamos usarlos antes de que expiren.</p>
-                <p>Utopía Beauty Salon</p>";
+                        <div style='font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;'>
+                            <div style='max-width:600px; margin:auto; background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 0 10px rgba(0,0,0,0.1);'>
+        
+                                <div style='background-color:#f0b429; color:white; padding:20px; text-align:center;'>
+                                    <h2 style='margin:0;'>⚠️ Tus puntos están por vencer</h2>
+                                </div>
+
+                                <div style='padding:25px; color:#333;'>
+                                    <p style='font-size:16px;'>Hola <strong>{item.Cliente}</strong>,</p>
+
+                                    <p style='font-size:15px;'>
+                                        Queremos recordarte que tienes <strong>{item.Puntos} puntos</strong> que están próximos a vencer.
+                                    </p>
+
+                                    <div style='background-color:#f3f3f3; border-radius:6px; padding:15px; margin:20px 0;'>
+                                        <p style='margin:6px 0;'><strong>⭐ Puntos disponibles:</strong> {item.Puntos}</p>
+                                        <p style='margin:6px 0;'><strong>📅 Fecha de vencimiento:</strong> {item.FechaVencimiento:dd/MM/yyyy}</p>
+                                    </div>
+
+                                    <p style='font-size:15px;'>
+                                        Te recomendamos aprovecharlos antes de su vencimiento y disfrutar de nuestros servicios. ✨
+                                    </p>
+
+                                    <p style='margin-top:30px;'>
+                                        Con cariño,<br>
+                                        <strong>Utopía Beauty Salon</strong>
+                                    </p>
+                                </div>
+
+                                <div style='background-color:#eeeeee; text-align:center; padding:10px; font-size:12px; color:#777;'>
+                                    © {DateTime.Now.Year} Utopía Beauty Salon · Todos los derechos reservados
+                                </div>
+                            </div>
+                        </div>";
+
 
                         try
                         {
@@ -306,13 +335,13 @@ namespace UtopiaBS.Controllers
                         }
                     }
 
-                    TempData["Success"] = $"✅ Correos enviados: {enviados}. Errores: {errores}.";
+                    TempData["Success"] = $"Correos enviados: {enviados}. Errores: {errores}.";
                     return RedirectToAction("Panel");
                 }
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "❌ Error real al enviar las notificaciones: " + ex.Message;
+                TempData["Error"] = "Error real al enviar las notificaciones: " + ex.Message;
                 return RedirectToAction("Panel");
             }
         }

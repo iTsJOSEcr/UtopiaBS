@@ -63,7 +63,7 @@ namespace UtopiaBS.Controllers
                 db.SaveChanges();
             }
 
-            TempData["Success"] = "✅ Recompensa creada.";
+            TempData["Success"] = "Recompensa creada.";
             return RedirectToAction("Index");
         }
 
@@ -78,25 +78,25 @@ namespace UtopiaBS.Controllers
             }
         }
 
-[HttpPost]
-[ValidateAntiForgeryToken]
-public ActionResult Editar(Recompensa model)
-{
-    using (var db = new Context())
-    {
-        var recompensa = db.Recompensas.Find(model.IdRecompensa);
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Editar(Recompensa model)
+        {
+            using (var db = new Context())
+            {
+                var recompensa = db.Recompensas.Find(model.IdRecompensa);
 
-        recompensa.Nombre = model.Nombre;
-        recompensa.Tipo = model.Tipo;
-        recompensa.PuntosNecesarios = model.PuntosNecesarios;
-        recompensa.Valor = model.Valor;
-        recompensa.Activa = model.Activa; 
+                recompensa.Nombre = model.Nombre;
+                recompensa.Tipo = model.Tipo;
+                recompensa.PuntosNecesarios = model.PuntosNecesarios;
+                recompensa.Valor = model.Valor;
+                recompensa.Activa = model.Activa;
 
-        db.SaveChanges();
-    }
+                db.SaveChanges();
+            }
 
-    return RedirectToAction("Index");
-}
+            return RedirectToAction("Index");
+        }
 
         //  ACTIVAR / DESACTIVAR
         [HttpPost]
@@ -141,13 +141,13 @@ public ActionResult Editar(Recompensa model)
                     db.Recompensas.Remove(recompensa);
                     db.SaveChanges();
 
-                    TempData["Success"] = "✅ Recompensa eliminada correctamente.";
+                    TempData["Success"] = "Recompensa eliminada correctamente.";
                     return RedirectToAction("Index");
                 }
             }
             catch
             {
-                TempData["Error"] = "❌ Error al eliminar la recompensa.";
+                TempData["Error"] = "Error al eliminar la recompensa.";
                 return RedirectToAction("Index");
             }
         }

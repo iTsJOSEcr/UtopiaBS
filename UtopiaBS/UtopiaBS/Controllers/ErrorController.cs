@@ -11,10 +11,13 @@ namespace UtopiaBS.Controllers
     {
         public ActionResult General()
         {
-            // Si el mensaje viene por TempData lo pasamos a ViewBag
-            if (TempData.ContainsKey("mensaje"))
+            if (TempData.ContainsKey("Error"))
             {
-                ViewBag.mensaje = TempData["mensaje"] as string;
+                ViewBag.mensaje = TempData["Error"];
+            }
+            else if (TempData.ContainsKey("Mensaje"))
+            {
+                ViewBag.mensaje = TempData["Mensaje"];
             }
             else
             {
@@ -23,7 +26,6 @@ namespace UtopiaBS.Controllers
 
             return View();
         }
-
         public ActionResult NotFound()
         {
             return View();

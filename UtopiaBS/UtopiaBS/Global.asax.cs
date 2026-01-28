@@ -19,8 +19,8 @@ namespace UtopiaBS
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
-            //descomentar cuando la base de datos se publique 
-           // IdentitySeeder.Seed();
+      
+            IdentitySeeder.Seed();
         }
 
         protected void Application_Error()

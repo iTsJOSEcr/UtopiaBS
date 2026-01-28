@@ -175,7 +175,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
 
-            <form method="post" action="@Url.Action("CancelarCliente", "CitaCliente")">
+            <form method="post" action="@Url.Action("Cancelar", "CitaCliente")">
+
                 @Html.AntiForgeryToken()
 
                 <div class="modal-body" style="background-color:#F8FAFC;">

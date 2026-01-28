@@ -7,6 +7,8 @@
     bool esEmpleado = autenticado && User.IsInRole("Empleado");
     bool esCliente = autenticado && User.IsInRole("Cliente");
     bool esAdminHome = autenticado && Request.RawUrl.ToLower().Contains("/home/adminhome");
+    bool esClienteHome = autenticado && Request.RawUrl.ToLower().Contains("/home/clientehome");
+
 
 }
 
@@ -45,9 +47,16 @@
             <div class="container-fluid px-4">
                 <!-- LOGO -->
                 <a class="navbar-brand fw-semibold"
-                   href="@(esAdmin? Url.Action("AdminHome", "Home"): esEmpleado? Url.Action("EmpleadoHome", "Home"): Url.Action("Index", "Home"))">
+                   href="@(User.IsInRole("Administrador")
+            ? Url.Action("AdminHome", "Home")
+            : User.IsInRole("Empleado")
+                ? Url.Action("EmpleadoHome", "Home")
+                : User.IsInRole("Cliente")
+                    ? Url.Action("ClienteHome", "Home")
+                    : Url.Action("Index", "Home"))">
                     <i class="fas fa-spa me-2 text-warning"></i> UTOPIA BEAUTY SALON
                 </a>
+
 
                 <!-- BOTÓN RESPONSIVE -->
                 <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive"

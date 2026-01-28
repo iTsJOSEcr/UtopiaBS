@@ -137,7 +137,13 @@ namespace UtopiaBS.Controllers
                 if (await _userManager.IsInRoleAsync(user.Id, "Empleado"))
                     return RedirectToAction("EmpleadoHome", "Home");
 
+                if (await _userManager.IsInRoleAsync(user.Id, "Cliente"))
+                    return RedirectToAction("ClienteHome", "Home");
+                
+                // fallback de seguridad
                 return RedirectToAction("Index", "Home");
+
+
             }
 
             // Contraseña incorrecta
@@ -437,32 +443,43 @@ namespace UtopiaBS.Controllers
             if (user == null)
             {
                 TempData["Error"] = "No existe una cuenta con ese correo.";
-                return View();
+                return RedirectToAction("ForgotPassword");
             }
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user.Id);
 
-            var enlace = Url.Action("ResetPassword", "Account",
+            var enlace = Url.Action(
+                "ResetPassword",
+                "Account",
                 new { userId = user.Id, token = token },
-                protocol: Request.Url.Scheme);
+                protocol: Request.Url.Scheme
+            );
 
             string mensaje = $@"
-                <h2>Recuperación de contraseña</h2>
-                <p>Hola {user.UserName},</p>
-                <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-                <p><a href='{enlace}'>Restablecer contraseña</a></p>
-                <p>Utopía Beauty Salon</p>
-            ";
+        <h2>Recuperación de contraseña</h2>
+        <p>Hola {user.UserName},</p>
+        <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+        <p><a href='{enlace}'>Restablecer contraseña</a></p>
+        <p>Utopía Beauty Salon</p>
+    ";
 
-            await EmailService.EnviarCorreoAsync(
-                user.Email,
-                "Recuperar contraseña - Utopía Beauty Salon",
-                mensaje
-            );
+            try
+            {
+                await EmailService.EnviarCorreoAsync(
+                    user.Email,
+                    "Recuperar contraseña - Utopía Beauty Salon",
+                    mensaje
+                );
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.Message);
+            }
 
             TempData["Success"] = "Revisa tu correo para recuperar tu contraseña.";
             return RedirectToAction("Login");
         }
+
 
         // ===================== VALIDACIÓN DE CONTRASEÑA =====================
 
