@@ -1,12 +1,17 @@
-﻿using Microsoft.AspNet.Identity;
+﻿using DocumentFormat.OpenXml.Drawing.Wordprocessing;
+using DocumentFormat.OpenXml.Vml;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using System;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.UI.WebControls.WebParts;
 using UtopiaBS.Business.Services;
 using UtopiaBS.Data;
 using UtopiaBS.Entities;
@@ -74,14 +79,62 @@ namespace UtopiaBS.Controllers
                     new { userId = user.Id, token = token },
                     protocol: Request.Url.Scheme);
 
+
                 string mensaje = $@"
-                <h2>Reactivación de cuenta</h2>
-                <p>Hola {user.UserName},</p>
-                <p>Tu cuenta está desactivada.</p>
-                <p>Haz clic aquí para reactivarla de forma segura:</p>
-                <p><a href='{enlace}'>Reactivar cuenta</a></p>
-                <p>Utopía Beauty Salon</p>
-                ";
+                    < div style = 'font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;' >
+                        < div style = 'max-width:600px; margin:auto; background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 0 10px rgba(0,0,0,0.1);' >
+
+                            < !--Header-- >
+                            < div style = 'background-color:#6a11cb; color:white; padding:20px; text-align:center;' >
+                                < h2 style = 'margin:0;' >🔐 Recuperación de contraseña </ h2 >
+                            </ div >
+
+                            < !--Body-- >
+                            < div style = 'padding:25px; color:#333;' >
+                                < p style = 'font-size:16px;' > Hola<strong>{ user.UserName}</ strong >,</ p >
+
+                                < p style = 'font-size:15px;' >
+                                    Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en
+                                    <strong> Utopía Beauty Salon</ strong >.
+                                </ p >
+
+                                < p style = 'font-size:15px;' >
+                                    Para continuar de forma segura, haz clic en el siguiente botón:
+                                </ p >
+
+                                < div style = 'text-align:center; margin:30px 0;' >
+                                    < a href = '{enlace}'
+                                       style = 'background-color:#FFD60A;
+                                              color:#000;
+                                              padding: 14px 28px;
+                                    text - decoration:none;
+                                    border - radius:30px;
+                                    font - weight:bold;
+                                display: inline - block;
+                                    font - size:15px; '>
+                                        Restablecer contraseña
+                                    </ a >
+                                </ div >
+
+                                < p style = 'font-size:14px; color:#555;' >
+                                    Si no realizaste esta solicitud, puedes ignorar este mensaje con total tranquilidad.
+                                    Tu cuenta permanecerá segura.
+                                </ p >
+
+                                < p style = 'margin-top:30px;' >
+                                    Con cariño,< br />
+                                    < strong > Utopía Beauty Salon</ strong > 💜
+                                </ p >
+                            </ div >
+
+                            < !--Footer-- >
+                            < div style = 'background-color:#eeeeee; text-align:center; padding:10px; font-size:12px; color:#777;' >
+                                © { DateTime.Now.Year}
+                                    Utopía Beauty Salon · Todos los derechos reservados
+                            </ div >
+
+                        </ div >
+                    </ div > ";
 
                 await EmailService.EnviarCorreoAsync(
                     user.Email,
@@ -448,20 +501,72 @@ namespace UtopiaBS.Controllers
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user.Id);
 
+            var tokenCodificado = HttpServerUtility.UrlTokenEncode(
+                System.Text.Encoding.UTF8.GetBytes(token)
+            );
+
             var enlace = Url.Action(
                 "ResetPassword",
                 "Account",
-                new { userId = user.Id, token = token },
+                new { userId = user.Id, token = tokenCodificado },
                 protocol: Request.Url.Scheme
             );
 
+
             string mensaje = $@"
-        <h2>Recuperación de contraseña</h2>
-        <p>Hola {user.UserName},</p>
-        <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-        <p><a href='{enlace}'>Restablecer contraseña</a></p>
-        <p>Utopía Beauty Salon</p>
-    ";
+            <div style='font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;'>
+                <div style='max-width:600px; margin:auto; background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 0 10px rgba(0,0,0,0.1);'>
+
+                    <!-- Header -->
+                    <div style='background-color:#6a11cb; color:white; padding:20px; text-align:center;'>
+                        <h2 style='margin:0;'>🔐 Recuperación de contraseña</h2>
+                    </div>
+
+                    <!-- Body -->
+                    <div style='padding:25px; color:#333;'>
+                        <p style='font-size:16px;'>Hola <strong>{user.UserName}</strong>,</p>
+
+                        <p style='font-size:15px;'>
+                            Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en
+                            <strong>Utopía Beauty Salon</strong>.
+                        </p>
+
+                        <p style='font-size:15px;'>
+                            Para continuar de forma segura, haz clic en el siguiente botón:
+                        </p>
+
+                        <div style='text-align:center; margin:30px 0;'>
+                            <a href='{enlace}'
+                               style='background-color:#FFD60A;
+                                      color:#000;
+                                      padding:14px 28px;
+                                      text-decoration:none;
+                                      border-radius:30px;
+                                      font-weight:bold;
+                                      display:inline-block;
+                                      font-size:15px;'>
+                                Restablecer contraseña
+                            </a>
+                        </div>
+
+                        <p style='font-size:14px; color:#555;'>
+                            Si no realizaste esta solicitud, puedes ignorar este mensaje con total tranquilidad.
+                            Tu cuenta permanecerá segura.
+                        </p>
+
+                        <p style='margin-top:30px;'>
+                            Con cariño,<br />
+                            <strong>Utopía Beauty Salon</strong> 💜
+                        </p>
+                    </div>
+
+                    <!-- Footer -->
+                    <div style='background-color:#eeeeee; text-align:center; padding:10px; font-size:12px; color:#777;'>
+                        © {DateTime.Now.Year} Utopía Beauty Salon · Todos los derechos reservados
+                    </div>
+
+                </div>
+            </div>";
 
             try
             {
@@ -514,6 +619,7 @@ namespace UtopiaBS.Controllers
             return View();
         }
 
+
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -523,7 +629,7 @@ namespace UtopiaBS.Controllers
             string password,
             string confirmPassword)
         {
-            // 1) Coincidencia
+            // 1️⃣ Validar coincidencia
             if (password != confirmPassword)
             {
                 TempData["Error"] = "Las contraseñas no coinciden.";
@@ -532,26 +638,35 @@ namespace UtopiaBS.Controllers
                 return View();
             }
 
-            // 2) Requisitos
+            // 2️⃣ Validar requisitos
             if (!PasswordCumpleRequisitos(password))
             {
-                TempData["Error"] = "La nueva contraseña no cumple los requisitos. Debe tener al menos 8 caracteres, incluir al menos 1 mayúscula y 1 carácter especial.";
+                TempData["Error"] = "La contraseña debe tener al menos 8 caracteres, una mayúscula y un carácter especial.";
                 ViewBag.UserId = userId;
                 ViewBag.Token = token;
                 return View();
             }
 
-            // 3) Buscar usuario
+            // 3️⃣ Buscar usuario
             var user = await _userManager.FindByIdAsync(userId);
-
             if (user == null)
             {
                 TempData["Error"] = "El usuario no existe.";
                 return RedirectToAction("Login");
             }
 
-            // 4) Resetear contraseña
-            var result = await _userManager.ResetPasswordAsync(userId, token, password);
+            // 4️⃣ Decodificar token AQUÍ
+            var tokenBytes = HttpServerUtility.UrlTokenDecode(token);
+            if (tokenBytes == null)
+            {
+                TempData["Error"] = "El enlace de recuperación es inválido o expiró.";
+                return RedirectToAction("Login");
+            }
+
+            var decodedToken = System.Text.Encoding.UTF8.GetString(tokenBytes);
+
+            // 5️⃣ Resetear contraseña
+            var result = await _userManager.ResetPasswordAsync(userId, decodedToken, password);
 
             if (result.Succeeded)
             {
@@ -559,7 +674,7 @@ namespace UtopiaBS.Controllers
                 return RedirectToAction("Login");
             }
 
-            TempData["Error"] = "No se pudo cambiar la contraseña.";
+            TempData["Error"] = string.Join("<br>", result.Errors);
             ViewBag.UserId = userId;
             ViewBag.Token = token;
             return View();
@@ -765,7 +880,7 @@ namespace UtopiaBS.Controllers
 
             await _userManager.UpdateAsync(user);
 
-            TempData["Success"] = "✅ Tu cuenta fue reactivada correctamente.";
+            TempData["Success"] = "Tu cuenta fue reactivada correctamente.";
             return RedirectToAction("Login");
         }
 

@@ -3,18 +3,67 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!-- Masthead -->
+<!-- Masthead-->
 <header class="masthead">
     <div class="container">
-        <div class="masthead-subheading">
-            Bienvenidos a Utopia Beauty Salon!
-        </div>
-
-        @* Si luego quieres algún botón aquí, se agrega *@
-        @*
-            <a class="btn btn-primary btn-xl text-uppercase">
-                Ver más
-            </a>
-        *@
+        <div class="masthead-subheading">Bienvenidos a Utopia Beauty Salon!</div>
+        <!--  <div class="masthead-heading text-uppercase">It's Nice To Meet You</div> -->
+        <a class="btn btn-primary btn-xl text-uppercase" href="#services">Nuestros Servicios</a>
     </div>
 </header>
+
+<!-- Services-->
+<section class="page-section" id="services">
+    <div class="container">
+        <div class="row text-center">
+            <!-- CORTES -->
+            <div class="col-md-4">
+                <span class="fa-stack fa-4x">
+                    <i class="fas fa-circle fa-stack-2x text-primary"></i>
+                    <i class="fas fa-scissors fa-stack-1x fa-inverse"></i>
+                </span>
+                <h4 class="my-3">Cortes</h4>
+                <p class="text-muted">Cortes modernos y clásicos según tu estilo.</p>
+            </div>
+
+            <!-- PEINADOS -->
+            <div class="col-md-4">
+                <span class="fa-stack fa-4x">
+                    <i class="fas fa-circle fa-stack-2x text-primary"></i>
+                    <i class="fas fa-user fa-stack-1x fa-inverse"></i>
+                </span>
+                <h4 class="my-3">Peinados</h4>
+                <p class="text-muted">Peinados para toda ocasión: casual, eventos y bodas.</p>
+            </div>
+
+            <!-- TINTES -->
+            <div class="col-md-4">
+                <span class="fa-stack fa-4x">
+                    <i class="fas fa-circle fa-stack-2x text-primary"></i>
+                    <i class="fas fa-paint-brush fa-stack-1x fa-inverse"></i>
+                </span>
+                <h4 class="my-3">Tintes</h4>
+                <p class="text-muted">Coloración profesional para realzar tu belleza.</p>
+            </div>
+        </div>
+
+        <!-- BOTÓN DE REGISTRO Y RESERVA -->
+        <div class="text-center mt-5">
+            <h3 class="fw-bold mb-3">¿Lista para tu cambio de look? ✨</h3>
+            <p class="text-muted mb-4">
+                Regístrate en Utopía Beauty Salon y reserva tu cita en pocos pasos.
+            </p>
+
+            <a href="@Url.Action("Register", "Account")" class="btn btn-lg btn-primary px-5 shadow-lg rounded-pill me-3">
+                <i class="fas fa-user-plus me-2"></i> Registrarme
+            </a>
+
+            <a href="@Url.Action("Login", "Account")" class="btn btn-lg btn-outline-primary px-5 shadow-sm rounded-pill">
+                <i class="fas fa-calendar-check me-2"></i> Reservar cita
+            </a>
+        </div>
+
+    </div>
+</section>
+
+

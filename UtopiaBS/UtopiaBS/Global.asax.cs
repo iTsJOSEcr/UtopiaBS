@@ -65,7 +65,7 @@ namespace UtopiaBS
 
                 viewResult.ExecuteResult(controller.ControllerContext);
             }
-            catch (Exception exRendering)
+            catch (Exception)
             {
                 // Si la renderización falla, aseguramos que la respuesta no quede en blanco
                 Response.Clear();
