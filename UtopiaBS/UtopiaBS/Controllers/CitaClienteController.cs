@@ -178,64 +178,76 @@ namespace UtopiaBS.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> CancelarCliente(int idCita, string motivo)
+        [Authorize(Roles = "Cliente")]
+        public async Task<ActionResult> Cancelar(int idCita, string motivo)
         {
-            var userId = User.Identity.GetUserId();
-
-            using (var db = new Context())
-            using (var identityDb = new ApplicationDbContext())
+            try
             {
-                var cliente = db.Clientes.FirstOrDefault(c => c.IdUsuario == userId);
-                if (cliente == null)
+                var userId = User.Identity.GetUserId();
+
+                using (var db = new Context())
                 {
-                    TempData["Error"] = "No se encontró el perfil del cliente.";
-                    return RedirectToAction("MisCitas");
+                    var clienteId = db.Clientes
+                        .Where(c => c.IdUsuario == userId)
+                        .Select(c => c.IdCliente)
+                        .FirstOrDefault();
+
+                    if (clienteId == 0)
+                    {
+                        TempData["Error"] = "No se encontró tu perfil de cliente.";
+                        return RedirectToAction("MisCitas");
+                    }
+
+                    var cita = db.Citas
+                        .Include("Servicio")
+                        .Include("Empleado")
+                        .FirstOrDefault(c => c.IdCita == idCita && c.IdCliente == clienteId);
+
+                    if (cita == null)
+                    {
+                        TempData["Error"] = "No tienes permiso para cancelar esta cita.";
+                        return RedirectToAction("MisCitas");
+                    }
+
+                    // Cancelación
+                    cita.IdEstadoCita = 3; // CANCELADA
+                    cita.MotivoCancelacion = motivo;
+                    cita.CanceladaPor = "Cliente";
+                    cita.FechaCancelacion = DateTime.Now;
+
+                    db.SaveChanges();
                 }
 
-                // Cancelamos con la lógica de negocio
-                var service = new CitaService();
-                var resultado = service.CancelarPorCliente(idCita, cliente.IdCliente, motivo);
-                TempData["Mensaje"] = resultado;
+                TempData["Mensaje"] = "Cita cancelada correctamente.";
 
-                // Buscamos la cita para el correo
-                var cita = db.Citas
-                    .Include("Servicio")
-                    .Include("Empleado")
-                    .FirstOrDefault(c => c.IdCita == idCita);
-
-                //  Buscamos el usuario del cliente en Identity
-                var usuario = identityDb.Users.FirstOrDefault(u => u.Id == userId);
-
-                // Envío de correo
-                if (cita != null && usuario != null)
+                // 📧 Correo (no crítico)
+                try
                 {
-                    string mensaje = $@"
-                        <h2> Cita Cancelada</h2>
-                        <p>Hola <strong>{usuario.UserName}</strong>,</p>
-
-                        <p>Tu cita ha sido cancelada con el siguiente motivo:</p>
-                        <blockquote>{motivo}</blockquote>
-
-                        <ul>
-                            <li><strong>Servicio:</strong> {cita.Servicio?.Nombre}</li>
-                            <li><strong>Profesional:</strong> {cita.Empleado?.Nombre}</li>
-                            <li><strong>Fecha:</strong> {cita.FechaHora:dd/MM/yyyy}</li>
-                            <li><strong>Hora:</strong> {cita.FechaHora:hh\\:mm tt}</li>
-                        </ul>
-
-                        <p><strong>Utopía Beauty Salon</strong></p>
-                        ";
-
-                    await EmailService.EnviarCorreoAsync(
-                        usuario.Email,
-                        "❌ Cita Cancelada - Utopía Beauty Salon",
-                        mensaje
-                    );
+                    using (var identityDb = new ApplicationDbContext())
+                    {
+                        var usuario = identityDb.Users.FirstOrDefault(u => u.Id == userId);
+                        if (usuario != null && !string.IsNullOrEmpty(usuario.Email))
+                        {
+                            await EmailService.EnviarCorreoAsync(
+                                usuario.Email,
+                                "❌ Cita Cancelada - Utopía Beauty Salon",
+                                "Tu cita fue cancelada correctamente."
+                            );
+                        }
+                    }
                 }
+                catch { }
+            }
+            catch
+            {
+                TempData["Error"] = "Ocurrió un error al cancelar la cita.";
             }
 
             return RedirectToAction("MisCitas");
         }
+
+
+
 
     }
 }

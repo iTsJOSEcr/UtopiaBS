@@ -353,10 +353,10 @@
     <Content Include="Views\Recompensas\Crear.cshtml" />
     <Content Include="Views\Recompensas\Editar.cshtml" />
     <Content Include="Views\Account\ConfirmarReactivacion.cshtml" />
-    <Content Include="Views\Error\General.cshtml" />
     <Content Include="Views\Admin\Actividad.cshtml" />
     <Content Include="Views\Home\EmpleadoHome.cshtml" />
     <Content Include="Views\Cita\MenuEmpleado.cshtml" />
+    <Content Include="Views\Home\ClienteHome.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

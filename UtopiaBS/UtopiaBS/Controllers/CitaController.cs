@@ -60,7 +60,7 @@ namespace UtopiaBS.Controllers
             return View(citas);
         }
 
-        // ✅ CONFIRMAR CITA (ADMIN / EMPLEADO) + CORREO AL CLIENTE
+        // CONFIRMAR CITA (ADMIN / EMPLEADO) + CORREO AL CLIENTE
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> ConfirmarCita(int id)
@@ -90,20 +90,45 @@ namespace UtopiaBS.Controllers
                     if (usuario != null)
                     {
                         string mensaje = $@"
-                    <h2>✅ Cita Confirmada</h2>
-                    <p>Hola <strong>{usuario.UserName}</strong>,</p>
-                    <p>Tu cita ha sido confirmada con éxito.</p>
-                    <ul>
-                        <li><strong>Servicio:</strong> {cita.Servicio?.Nombre}</li>
-                        <li><strong>Profesional:</strong> {cita.Empleado?.Nombre}</li>
-                        <li><strong>Fecha:</strong> {cita.FechaHora:dd/MM/yyyy}</li>
-                        <li><strong>Hora:</strong> {cita.FechaHora:hh\\:mm tt}</li>
-                    </ul>
-                    <p>Te esperamos en <strong>Utopía Beauty Salon</strong>.</p>";
+                        <div style='font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;'>
+                            <div style='max-width:600px; margin:auto; background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 0 10px rgba(0,0,0,0.1);'>
+        
+                                <div style='background-color:#d4a5a5; color:white; padding:20px; text-align:center;'>
+                                    <h2 style='margin:0;'>✨ Cita Confirmada ✨</h2>
+                                </div>
 
+                                <div style='padding:25px; color:#333;'>
+                                    <p style='font-size:16px;'>Hola <strong>{usuario.UserName}</strong>,</p>
+
+                                    <p style='font-size:15px;'>
+                                        ¡Tenemos buenas noticias! 💖 Tu cita ha sido <strong>confirmada con éxito</strong>.
+                                    </p>
+
+                                    <div style='background-color:#f3f3f3; border-radius:6px; padding:15px; margin:20px 0;'>
+                                        <p style='margin:6px 0;'><strong>💇 Servicio:</strong> {cita.Servicio?.Nombre}</p>
+                                        <p style='margin:6px 0;'><strong>👩‍🎨 Profesional:</strong> {cita.Empleado?.Nombre}</p>
+                                        <p style='margin:6px 0;'><strong>📅 Fecha:</strong> {cita.FechaHora:dd/MM/yyyy}</p>
+                                        <p style='margin:6px 0;'><strong>⏰ Hora:</strong> {cita.FechaHora:hh\\:mm tt}</p>
+                                    </div>
+
+                                    <p style='font-size:15px;'>
+                                        Te esperamos con mucho gusto para brindarte una experiencia única y especial. 🌸
+                                    </p>
+
+                                    <p style='margin-top:30px;'>
+                                        Con cariño,<br>
+                                        <strong>Utopía Beauty Salon</strong>
+                                    </p>
+                                </div>
+
+                                <div style='background-color:#eeeeee; text-align:center; padding:10px; font-size:12px; color:#777;'>
+                                    © {DateTime.Now.Year} Utopía Beauty Salon · Todos los derechos reservados
+                                </div>
+                            </div>
+                        </div>";
                         await EmailService.EnviarCorreoAsync(
                             usuario.Email,
-                            "✅ Cita Confirmada - Utopía Beauty Salon",
+                            "Cita Confirmada - Utopía Beauty Salon",
                             mensaje
                         );
                     }
@@ -114,61 +139,95 @@ namespace UtopiaBS.Controllers
             return RedirectToAction("ListarAgendadas");
         }
 
-        //  CANCELAR CITA (ADMIN / EMPLEADO) + CORREO AL CLIENTE
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> CancelarCita(int id)
         {
-            using (var db = new Context())
-            using (var identityDb = new ApplicationDbContext())
+            try
             {
-                var cita = db.Citas
-                    .Include("Cliente")
-                    .Include("Servicio")
-                    .Include("Empleado")
-                    .FirstOrDefault(c => c.IdCita == id);
-
-                if (cita == null)
+                using (var db = new Context())
+                using (var identityDb = new ApplicationDbContext())
                 {
-                    TempData["Error"] = "La cita no existe.";
-                    return RedirectToAction("ListarAgendadas");
-                }
+                    var cita = db.Citas
+                        .Include("Cliente")
+                        .Include("Servicio")
+                        .Include("Empleado")
+                        .FirstOrDefault(c => c.IdCita == id);
 
-                cita.IdEstadoCita = 4; // CANCELADA
-                db.SaveChanges();
-
-                if (cita.Cliente != null && !string.IsNullOrEmpty(cita.Cliente.IdUsuario))
-                {
-                    var usuario = identityDb.Users.FirstOrDefault(u => u.Id == cita.Cliente.IdUsuario);
-
-                    if (usuario != null)
+                    if (cita == null)
                     {
-                        string mensaje = $@"
-                        <h2>❌ Cita Cancelada</h2>
-                        <p>Hola <strong>{usuario.UserName}</strong>,</p>
-                        <p>Tu cita ha sido cancelada por el salón.</p>
-                        <ul>
-                            <li><strong>Servicio:</strong> {cita.Servicio?.Nombre}</li>
-                            <li><strong>Profesional:</strong> {cita.Empleado?.Nombre}</li>
-                            <li><strong>Fecha:</strong> {cita.FechaHora:dd/MM/yyyy}</li>
-                            <li><strong>Hora:</strong> {cita.FechaHora:hh\\:mm tt}</li>
-                        </ul>
-                        <p>Si deseas reagendar, puedes hacerlo desde tu cuenta en el sistema.</p>
-                        <p><strong>Utopía Beauty Salon</strong></p>";
+                        TempData["Error"] = "La cita no existe.";
+                        return RedirectToAction("ListarAgendadas");
+                    }
+
+                    // Estado 3 = CANCELADA
+                    cita.IdEstadoCita = 3;
+                    db.SaveChanges();
+
+                    if (cita.Cliente != null && !string.IsNullOrEmpty(cita.Cliente.IdUsuario))
+                    {
+                        var usuario = identityDb.Users
+                            .FirstOrDefault(u => u.Id == cita.Cliente.IdUsuario);
+
+                        if (usuario != null && !string.IsNullOrEmpty(usuario.Email))
+                        {
+                            string mensaje = $@"
+                            <div style='font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;'>
+                                <div style='max-width:600px; margin:auto; background-color:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 0 10px rgba(0,0,0,0.1);'>
+        
+                                    <div style='background-color:#c97a7a; color:white; padding:20px; text-align:center;'>
+                                        <h2 style='margin:0;'>❌ Cita Cancelada</h2>
+                                    </div>
+
+                                    <div style='padding:25px; color:#333;'>
+                                        <p style='font-size:16px;'>Hola <strong>{usuario.UserName}</strong>,</p>
+
+                                        <p style='font-size:15px;'>
+                                            Queremos informarte que tu cita ha sido <strong>cancelada</strong>.
+                                        </p>
+
+                                        <div style='background-color:#f3f3f3; border-radius:6px; padding:15px; margin:20px 0;'>
+                                            <p style='margin:6px 0;'><strong>💇 Servicio:</strong> {cita.Servicio?.Nombre}</p>
+                                            <p style='margin:6px 0;'><strong>👩‍🎨 Profesional:</strong> {cita.Empleado?.Nombre}</p>
+                                            <p style='margin:6px 0;'><strong>📅 Fecha:</strong> {cita.FechaHora:dd/MM/yyyy}</p>
+                                            <p style='margin:6px 0;'><strong>⏰ Hora:</strong> {cita.FechaHora:hh\:mm tt}</p>
+                                        </div>
+
+                                        <p style='font-size:15px;'>
+                                            Si deseas reprogramar tu cita o tienes alguna consulta, estaremos encantados de ayudarte. 💖
+                                        </p>
+
+                                        <p style='margin-top:30px;'>
+                                            Con cariño,<br>
+                                            <strong>Utopía Beauty Salon</strong>
+                                        </p>
+                                    </div>
+
+                                    <div style='background-color:#eeeeee; text-align:center; padding:10px; font-size:12px; color:#777;'>
+                                        © {DateTime.Now.Year} Utopía Beauty Salon · Todos los derechos reservados
+                                    </div>
+                                </div>
+                            </div>";
 
                             await EmailService.EnviarCorreoAsync(
-                            usuario.Email,
-                            "Cita Cancelada - Utopía Beauty Salon",
-                            mensaje
-                        );
+                                usuario.Email,
+                                "Cita Cancelada - Utopía Beauty Salon",
+                                mensaje
+                            );
+                        }
                     }
                 }
+
+                TempData["Mensaje"] = "Cita cancelada y correo enviado al cliente.";
+                return RedirectToAction("ListarAgendadas");
             }
-
-            TempData["Mensaje"] = "Cita cancelada y correo enviado al cliente.";
-            return RedirectToAction("ListarAgendadas");
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex);
+                TempData["Error"] = "Error al cancelar la cita.";
+                return RedirectToAction("ListarAgendadas");
+            }
         }
-
         // GET: Cita/Administrar
         public ActionResult Administrar()
         {
@@ -255,7 +314,7 @@ namespace UtopiaBS.Controllers
                     return RedirectToAction("Reportes");
                 }
 
-                string nombreArchivo = (profesionalNombre != null ? $"{profesionalNombre.Replace(" ", "_")}_" : "")
+                string nombreArchivo = (profesionalNombre != null ? $"{profesionalNombre.Replace(" ", "")}" : "")
                     + $"Reporte_Citas_{inicio:yyyyMMdd}_{fin:yyyyMMdd}.{(formato == "excel" ? "xlsx" : "pdf")}";
 
                 string mimeType = formato == "excel"
@@ -283,65 +342,6 @@ namespace UtopiaBS.Controllers
             {
                 return Json(new { error = "Error al generar estadísticas: " + ex.Message }, JsonRequestBehavior.AllowGet);
             }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Cliente")]
-        public async Task<ActionResult> Cancelar(int idCita, string motivo)
-        {
-            var userId = User.Identity.GetUserId();
-
-            using (var db = new Context())
-            using (var identityDb = new ApplicationDbContext())
-            {
-                var clienteId = db.Clientes
-                    .Where(c => c.IdUsuario == userId)
-                    .Select(c => (int?)c.IdCliente)
-                    .FirstOrDefault();
-
-                if (clienteId == null)
-                {
-                    TempData["Error"] = "No se encontró el perfil del cliente.";
-                    return RedirectToAction("MisCitas", "CitaCliente");
-                }
-
-                // Primero aplicamos la lógica de negocio
-                var resultado = _citaService.CancelarPorCliente(idCita, clienteId.Value, motivo);
-                TempData[resultado.StartsWith("Cita cancelada") ? "Mensaje" : "Error"] = resultado;
-
-                // Luego buscamos la cita y el usuario para el correo
-                var cita = db.Citas
-                    .Include("Servicio")
-                    .Include("Empleado")
-                    .FirstOrDefault(c => c.IdCita == idCita);
-
-                var usuario = identityDb.Users.FirstOrDefault(u => u.Id == userId);
-
-                if (cita != null && usuario != null)
-                {
-                    string mensaje = $@"
-                    <h2>❌ Cita Cancelada</h2>
-                    <p>Hola <strong>{usuario.UserName}</strong>,</p>
-                    <p>Tu cita ha sido cancelada con el siguiente motivo:</p>
-                    <blockquote>{motivo}</blockquote>
-                    <ul>
-                        <li><strong>Servicio:</strong> {cita.Servicio?.Nombre}</li>
-                        <li><strong>Profesional:</strong> {cita.Empleado?.Nombre}</li>
-                        <li><strong>Fecha:</strong> {cita.FechaHora:dd/MM/yyyy}</li>
-                        <li><strong>Hora:</strong> {cita.FechaHora:hh\\:mm tt}</li>
-                    </ul>
-                    <p><strong>Utopía Beauty Salon</strong></p>";
-
-                    await EmailService.EnviarCorreoAsync(
-                        usuario.Email,
-                        "❌ Cita Cancelada - Utopía Beauty Salon",
-                        mensaje
-                    );
-                }
-            }
-
-            return RedirectToAction("MisCitas", "CitaCliente");
         }
     }
 }

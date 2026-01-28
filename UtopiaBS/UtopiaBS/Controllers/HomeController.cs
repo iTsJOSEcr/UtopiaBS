@@ -59,6 +59,12 @@ namespace UtopiaBS.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Cliente")]
+        public ActionResult ClienteHome()
+        {
+            return View();
+        }
+
 
     }
 }

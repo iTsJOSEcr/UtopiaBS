@@ -148,9 +148,16 @@
             locale: "es",
             enableTime: true,
             time_24hr: true,
-            dateFormat: "d/m/Y H:i",
+
+            // Valor real que se envía al servidor
+            dateFormat: "Y-m-d H:i",
+
+            // Valor bonito que ve el usuario
+            altInput: true,
+            altFormat: "d/m/Y H:i",
+
             minuteIncrement: 5,
-            allowInput: true,
+            allowInput: true
         });
     });
 </script>
