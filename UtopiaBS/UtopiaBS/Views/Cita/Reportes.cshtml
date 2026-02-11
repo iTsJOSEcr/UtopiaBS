@@ -185,12 +185,32 @@
     let chartProfesional, chartHorario;
     let profesionalActual = null;
 
-    // 🎨 Paleta estable de colores (reutilizable)
     const coloresProfesionales = [
-        "#1B263B", "#118AB2", "#06D6A0", "#FFD166", "#EF476F", "#9C27B0", "#FF9800", "#2E8B57"
+        "#1B263B", "#118AB2", "#06D6A0", "#FFD166",
+        "#EF476F", "#9C27B0", "#FF9800", "#2E8B57"
     ];
 
-    // Efecto suave al actualizar contenido
+    // ============================
+    // 🔔 NUEVA ALERTA PERSONALIZADA
+    // ============================
+    function mostrarAlerta(mensaje, tipo = "danger") {
+
+        const container = document.getElementById("estadisticasContainer");
+
+        const alerta = document.createElement("div");
+        alerta.className = `alert alert-${tipo} text-center mt-3 shadow-sm border-0 rounded-pill`;
+        alerta.innerHTML = `
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            ${mensaje}
+        `;
+
+        container.prepend(alerta);
+
+        setTimeout(() => {
+            alerta.remove();
+        }, 3000);
+    }
+
     function smoothUpdate(element, callback) {
         element.classList.add("fade");
         setTimeout(() => {
@@ -209,6 +229,7 @@
         fetch(url)
             .then(r => r.json())
             .then(data => {
+
                 if (data.error) {
                     document.getElementById("estadisticasContenido").innerHTML =
                         `<div class="alert alert-danger">${data.error}</div>`;
@@ -216,21 +237,21 @@
                 }
 
                 const contenedor = document.getElementById("estadisticasContenido");
+
                 smoothUpdate(contenedor, () => {
+
                     profesionalActual = profesional;
 
-                    // === TÍTULO ===
                     let titulo = profesional
-                        ? `<h4 class="fw-bold text-dark mb-3 animate__animated animate__fadeInDown">
+                        ? `<h4 class="fw-bold text-dark mb-3">
                                 <i class="bi bi-person-badge text-primary me-2"></i>
                                 Estadísticas de ${profesional}
                            </h4>`
-                        : `<h4 class="fw-bold text-dark mb-3 animate__animated animate__fadeInDown">
+                        : `<h4 class="fw-bold text-dark mb-3">
                                 <i class="bi bi-graph-up text-success me-2"></i>
                                 Estadísticas del período
                            </h4>`;
 
-                    // === TARJETAS ===
                     let html = `
                         ${titulo}
                         <div class="row mt-4">
@@ -253,10 +274,10 @@
                         const color = profesional
                             ? (p.Profesional === profesional ? "#FFD166" : "#C0C0C0")
                             : coloresProfesionales[i % coloresProfesionales.length];
-                        return `<p class="color-item"
-                                                        style="color:${color}; font-weight:600; transition:all 0.3s ease;">
-                                                        ${p.Profesional}: <b>${p.TotalCitas}</b>
-                                                    </p>`;
+                        return `
+                                                <p style="color:${color}; font-weight:600;">
+                                                    ${p.Profesional}: <b>${p.TotalCitas}</b>
+                                                </p>`;
                     }).join("")}
                                     </div>
                                 </div>
@@ -266,7 +287,9 @@
                         <div class="card shadow-sm border-0 mb-3">
                             <div class="card-body">
                                 <h5 class="text-warning fw-bold mb-3">🕓 Citas por Horario</h5>
-                                ${data.PorHorario.map(h => `<p>${h.Franja}: <b>${h.Total}</b></p>`).join("")}
+                                ${data.PorHorario.map(h =>
+                        `<p>${h.Franja}: <b>${h.Total}</b></p>`
+                    ).join("")}
                             </div>
                         </div>
                     `;
@@ -281,7 +304,6 @@
                     if (chartProfesional) chartProfesional.destroy();
                     if (chartHorario) chartHorario.destroy();
 
-                    // === GRAFICO DE BARRAS ===
                     chartProfesional = new Chart(ctxProf, {
                         type: 'bar',
                         data: {
@@ -299,10 +321,6 @@
                         },
                         options: {
                             responsive: true,
-                            animation: {
-                                duration: 700,
-                                easing: 'easeOutQuart'
-                            },
                             onClick: (evt, elements) => {
                                 const inicioVal = document.querySelector('input[name="inicio"]').value;
                                 const finVal = document.querySelector('input[name="fin"]').value;
@@ -311,32 +329,19 @@
                                     const index = elements[0].index;
                                     const seleccionado = data.PorProfesional[index].Profesional;
 
-                                    // 🔁 Si ya está seleccionado, vuelve al general
                                     if (profesionalActual === seleccionado) {
                                         profesionalActual = null;
                                         cargarEstadisticas(inicioVal, finVal);
                                     } else {
                                         cargarEstadisticas(inicioVal, finVal, seleccionado);
                                     }
-                                } else if (profesionalActual) {
-                                    profesionalActual = null;
-                                    cargarEstadisticas(inicioVal, finVal);
                                 }
                             },
-                            plugins: {
-                                legend: { display: false },
-                                tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} citas` } }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    ticks: { precision: 0 }
-                                }
-                            }
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
                         }
                     });
 
-                    // === GRAFICO DE PASTEL ===
                     chartHorario = new Chart(ctxHor, {
                         type: 'pie',
                         data: {
@@ -348,10 +353,10 @@
                         },
                         options: {
                             responsive: true,
-                            animation: { duration: 700, easing: 'easeOutQuart' },
                             plugins: { legend: { position: 'bottom' } }
                         }
                     });
+
                 });
             })
             .catch(err => {
@@ -361,14 +366,19 @@
             });
     }
 
-    // === EVENTOS ===
+    // ============================
+    // EVENTOS
+    // ============================
+
     btnVerEstadisticas.addEventListener("click", function () {
         const inicio = document.querySelector('input[name="inicio"]').value;
         const fin = document.querySelector('input[name="fin"]').value;
+
         if (!inicio || !fin) {
-            alert("Seleccione ambas fechas para generar el reporte.");
+            mostrarAlerta("Seleccione ambas fechas para generar el reporte.");
             return;
         }
+
         cargarEstadisticas(inicio, fin);
     });
 
@@ -378,17 +388,18 @@
     function descargarArchivo(formato) {
         const inicio = document.querySelector('input[name="inicio"]').value;
         const fin = document.querySelector('input[name="fin"]').value;
+
         if (!inicio || !fin) {
-            alert("Seleccione ambas fechas antes de descargar.");
+            mostrarAlerta("Seleccione ambas fechas antes de descargar.");
             return;
         }
 
-        // Si hay un profesional filtrado, se añade al querystring
         const extraParam = profesionalActual
             ? `&profesionalNombre=${encodeURIComponent(profesionalActual)}`
             : "";
 
-        window.location.href = `/Cita/DescargarReporteCitas?inicio=${inicio}&fin=${fin}&formato=${formato}${extraParam}`;
+        window.location.href =
+            `/Cita/DescargarReporteCitas?inicio=${inicio}&fin=${fin}&formato=${formato}${extraParam}`;
     }
 
 </script>
