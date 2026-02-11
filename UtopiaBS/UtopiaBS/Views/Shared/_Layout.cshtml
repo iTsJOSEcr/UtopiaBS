@@ -67,142 +67,19 @@
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-3">
 
-                        @* -------- MENÚ CLIENTE -------- *@
-                        @if (esCliente && !esAdminHome)
-                        {
-                            <li class="nav-item dropdown mx-lg-1">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarCitasCliente" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-calendar-alt me-1"></i> Citas
-                                </a>
-                                <ul class="dropdown-menu fadeIn" aria-labelledby="navbarCitasCliente">
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("Listar", "CitaCliente")">
-                                            <i class="fas fa-calendar-plus me-2 text-success"></i> Citas Disponibles
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("MisCitas", "CitaCliente")">
-                                            <i class="fas fa-user-clock me-2 text-primary"></i> Mis Citas
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("Historial", "CitaCliente")">
-                                            <i class="fas fa-clock me-2 text-info"></i> Historial de Citas
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("MisPuntos", "Account")">
-                                            <i class="fas fa-coins me-2 text-warning"></i> Puntos
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        }
-
-                        @* -------- MENÚ EMPLEADO -------- *@
-                        @if (esEmpleado && !esAdminHome)
-                        {
-                            <li class="nav-item dropdown mx-lg-1">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarEmpleado" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-briefcase me-1"></i> Operaciones
-                                </a>
-                                <ul class="dropdown-menu fadeIn" aria-labelledby="navbarEmpleado">
-
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("ListarAgendadas", "Cita")">
-                                            <i class="fas fa-calendar-check me-2 text-info"></i> Citas del Día
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("Administrar", "Cita")">
-                                            <i class="fas fa-tools me-2 text-warning"></i> Administrar Citas
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("PuntoVenta", "Ventas")">
-                                            <i class="fas fa-cash-register me-2 text-success"></i> Punto de Venta
-                                        </a>
-                                    </li>
-
-                                </ul>
-                            </li>
-                        }
-
-
-                        @* -------- MENÚ ADMIN -------- *@
-                        @if (esAdmin && !esAdminHome)
-                        {
-                            <!-- Gestión de Citas -->
-                            <li class="nav-item dropdown mx-lg-1">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarCitasAdmin" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-calendar-alt me-1"></i> Gestión de Citas
-                                </a>
-                                <ul class="dropdown-menu fadeIn" aria-labelledby="navbarCitasAdmin">
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("ListarAgendadas", "Cita")">
-                                            <i class="fas fa-calendar-check me-2 text-info"></i> Citas Agendadas
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("Administrar", "Cita")">
-                                            <i class="fas fa-tools me-2 text-warning"></i> Administrar Citas
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("Reportes", "Cita")">
-                                            <i class="fas fa-file-alt me-2 text-success"></i> Reportes
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-
-                            <!-- Inventario -->
-                            <li class="nav-item mx-lg-1">
-                                <a class="nav-link" href="@Url.Action("Listar", "Producto")">
-                                    <i class="fas fa-boxes me-1"></i> Inventario
-                                </a>
-                            </li>
-
-                            <!-- Punto de Venta -->
-                            <li class="nav-item mx-lg-1">
-                                <a class="nav-link" href="@Url.Action("PuntoVenta", "Ventas")">
-                                    <i class="fas fa-cash-register me-1"></i> Punto de Venta
-                                </a>
-                            </li>
-
-                            <!-- Contabilidad -->
-                            <li class="nav-item mx-lg-1">
-                                <a class="nav-link" href="@Url.Action("Index", "Contabilidad")">
-                                    <i class="fas fa-money-bill-wave me-1"></i> Contabilidad
-                                </a>
-                            </li>
-
-                            <!-- Administración (Gestión Usuarios + Membresías) -->
-                            <li class="nav-item dropdown mx-lg-1">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarAdmin" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-user-shield me-1"></i> Administración
-                                </a>
-                                <ul class="dropdown-menu fadeIn" aria-labelledby="navbarAdmin">
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("GestionUsuarios", "Admin")">
-                                            <i class="fas fa-users-cog me-2 text-warning"></i> Gestión de Usuarios
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("Panel", "Membresias")">
-                                            <i class="fas fa-id-card me-2 text-info"></i> Membresías
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item" href="@Url.Action("Index", "Recompensas")">
-                                            <i class="fas fa-gift me-2 text-info"></i> Gestión de Recompensas
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
-                        }
+                        <!-- VOLVER AL PANEL -->
+                        <li class="nav-item mx-lg-1">
+                            <a class="nav-link"
+                               href="@(User.IsInRole("Administrador")
+                ? Url.Action("AdminHome", "Home")
+                : User.IsInRole("Empleado")
+                    ? Url.Action("EmpleadoHome", "Home")
+                    : User.IsInRole("Cliente")
+                        ? Url.Action("ClienteHome", "Home")
+                        : Url.Action("Index", "Home"))">
+                                <i class="fas fa-house me-1"></i>
+                            </a>
+                        </li>
 
                         <!-- USUARIO -->
                         <li class="nav-item dropdown mx-lg-1">
@@ -211,7 +88,6 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end fadeIn" aria-labelledby="userDropdown">
 
-                                @* Reporte activos SOLO admin *@
                                 @if (esAdmin)
                                 {
                                     <li>
@@ -239,7 +115,6 @@
                                         </button>
                                     }
                                 </li>
-
                             </ul>
                         </li>
 
@@ -299,9 +174,24 @@
                 padding: 0.4rem 0;
                 min-width: 220px;
             }
+
+        /* Transición suave entre páginas */
+        .page-transition {
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+            .page-transition.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
     </style>
 
-    @RenderBody()
+    <div id="pageContent" class="page-transition">
+        @RenderBody()
+    </div>
+
 
     <!-- FOOTER -->
     <footer class="footer py-4 mt-auto">
@@ -314,6 +204,35 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/Scripts/js/scripts.js"></script>
     @RenderSection("Scripts", required: false)
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const content = document.getElementById("pageContent");
+            if (content) {
+                requestAnimationFrame(() => {
+                    content.classList.add("show");
+                });
+            }
+        });
+
+        document.querySelectorAll("a[href]").forEach(link => {
+            link.addEventListener("click", function (e) {
+                const href = this.getAttribute("href");
+
+                if (!href || href.startsWith("#") || this.hasAttribute("data-bs-toggle")) return;
+
+                const content = document.getElementById("pageContent");
+                if (!content) return;
+
+                e.preventDefault();
+                content.classList.remove("show");
+
+                setTimeout(() => {
+                    window.location.href = href;
+                }, 200);
+            });
+        });
+    </script>
 
 </body>
 </html>
