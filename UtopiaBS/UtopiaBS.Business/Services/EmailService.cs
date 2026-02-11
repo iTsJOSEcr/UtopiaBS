@@ -26,7 +26,6 @@ namespace UtopiaBS.Business.Services
             {
                 smtp.EnableSsl = true;
 
-                // ⭐ ESTA LÍNEA ERA LA QUE FALTABA ⭐
                 smtp.UseDefaultCredentials = false;
 
                 smtp.Credentials = new NetworkCredential(correoSistema, clave);

@@ -27,6 +27,12 @@ namespace UtopiaBS.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Agregar(Producto nuevo)
         {
+            if (nuevo.CantidadStock <= 0)
+            {
+                ModelState.AddModelError("CantidadStock",
+                    "El stock inicial debe ser mayor a 0.");
+            }
+
             if (ModelState.IsValid)
             {
                 nuevo.Fecha = DateTime.Now;
